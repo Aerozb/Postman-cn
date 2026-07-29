@@ -1,0 +1,22 @@
+node_modules/
+npm-debug.log*
+*.log
+*.tmp
+*.bak
+*.asar
+*.asar.original
+*.asar.zh
+app.asar.unpacked.zh/
+screenshots/
+captures/
+dist/
+
+# 仓库自带的说明截图要入库（上面的 screenshots/ 是排除审计临时截图）
+!assets/screenshots/
+!assets/screenshots/**
+
+# 审计/翻译过程产物（本地生成，不入库）
+_generated/
+nav-surfaces*.json
+__pycache__/
+*.pyc
