@@ -497,7 +497,10 @@ if ($exists) {
   Write-Info "已删除旧 Release $Tag"
 }
 
-$notes = @"
+# 用单引号 here-string（@'...'@）避免反引号被当成 PowerShell 转义符：
+# 双引号 here-string 里 `a=响铃(BEL)、`P 等会吃掉反引号，导致 markdown 代码块
+# 渲染成乱码（曾出现 “替换 `app-...`” → “替换 <BEL>pp-...”）。变量用 .Replace 注入。
+$notes = @'
 Postman 中文汉化版 $version
 
 ## 下载说明
@@ -509,9 +512,9 @@ Postman 中文汉化版 $version
 
 - 汉化基于运行时注入，界面词典约 6600 条
 - 已关闭自动更新，避免官方更新覆盖汉化
-- 绿色版不含 ``app.asar.original``（英文原版备份），如需还原英文请重装官方版
+- 绿色版不含 `app.asar.original`（英文原版备份），如需还原英文请重装官方版
 - 部分内容刻意保留英文：HTTP 头名、AI 模型名、协议名、产品专有名词等
-"@
+'@.Replace('$version', $version)
 $notesFile = Join-Path $outDir 'release-notes.md'
 Set-Content -LiteralPath $notesFile -Value $notes -Encoding UTF8
 
