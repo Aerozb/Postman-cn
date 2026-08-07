@@ -77,4 +77,4 @@ Postman 桌面版汉化补丁，界面全中文，开箱即用。
 
 ---
 
-<sub>维护者与技术细节见 [AGENT.md](./AGENT.md) 和 [docs/](./docs)。</sub>
+<sub>维护者与技术细节见 [AGENTS.md](./AGENTS.md) 和 [docs/](./docs)。</sub>

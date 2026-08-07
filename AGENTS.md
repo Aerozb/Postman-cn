@@ -1,4 +1,4 @@
-# AGENT.md — Postman 汉化工具链维护指南
+# AGENTS.md — Postman 汉化工具链维护指南
 
 > 本文件是本项目对 AI 助手（Claude Code、Codex 等）的**权威说明**。任何自动化助手打开本项目都应先读本文件。
 > `CLAUDE.md` 只是一个指针，内容以本文件为准。面向普通人类用户的使用说明见 `README.md`。
@@ -30,7 +30,7 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
         zh-auth-webview-preload.js    ← 登录/授权 webview 的预加载汉化
       scripts\                        ← 见第 4 节
       docs\  汉化教程.md  维护指南.md
-      AGENT.md  CLAUDE.md  README.md
+      AGENTS.md  CLAUDE.md  README.md
       install-latest-zh.bat           ← 普通用户主入口（双击）
       restore-original.bat            ← 还原英文原版（双击）
       导出漏翻清单.bat                 ← 导出运行时收集到的漏翻（双击）
