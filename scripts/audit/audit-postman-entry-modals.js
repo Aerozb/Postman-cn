@@ -178,7 +178,7 @@ async function main() {
   if (!fs.existsSync(portFile)) throw new Error('Postman DevToolsActivePort was not found');
   const lines = fs.readFileSync(portFile, 'utf8').split(/\r?\n/); const port = lines[0].trim(); const browserPath = norm(lines[1]);
   const pages = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
-  const target = pages.find(p => p.type === 'page' && /^https:\/\/desktop\.postman\.com/i.test(p.url||''));
+  const target = pages.find(p => p.type === 'page' && /(?:^https:\/\/desktop\.postman\.com(?::\d+)?(?:[\/?#]|$)|^file:\/\/\/.*\/(?:requester|scratchpad)\.html(?:[?#]|$))/i.test(p.url||''));
   if (!target) throw new Error('Postman page target was not found');
   const cdp = await connectTarget(port,browserPath,target); await cdp.send('Runtime.enable'); await cdp.send('Page.enable'); await cdp.send('Accessibility.enable');
   const actions = [], errors = [], snapshots = [], merged = new Map();

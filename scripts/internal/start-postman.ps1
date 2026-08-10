@@ -48,6 +48,22 @@ if (-not (Test-Path -LiteralPath $exe)) { throw "Postman.exe not found: $exe" }
 
 $portFile = Join-Path $env:APPDATA "Postman\DevToolsActivePort"
 
+# A running single-instance Postman ignores new launch flags. Restart it so the
+# requested random CDP port is guaranteed to apply.
+$running = @(Get-Process -Name Postman -ErrorAction SilentlyContinue)
+if ($running.Count -gt 0) {
+  Write-Host "[start-postman] stopping $($running.Count) existing process(es)"
+  for ($round = 1; $round -le 12; $round++) {
+    $processes = @(Get-Process -Name Postman -ErrorAction SilentlyContinue)
+    if ($processes.Count -eq 0) { break }
+    $processes | Stop-Process -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Milliseconds 500
+  }
+  if (@(Get-Process -Name Postman -ErrorAction SilentlyContinue).Count -gt 0) {
+    throw "Could not stop all existing Postman processes before restart."
+  }
+}
+
 # Remove stale port file so we don't read an old port after launch.
 if (Test-Path -LiteralPath $portFile) {
   Remove-Item -LiteralPath $portFile -Force -ErrorAction SilentlyContinue
@@ -71,7 +87,15 @@ while ((Get-Date) -lt $deadline) {
   if (-not $port) { continue }
   try {
     $list = Invoke-RestMethod -Uri "http://127.0.0.1:$port/json/list" -TimeoutSec 3
-    $page = $list | Where-Object { $_.type -eq "page" -and $_.url -like "*desktop.postman.com*" }
+    $pages = @($list | Where-Object {
+      $_.type -eq "page" -and
+      $_.webSocketDebuggerUrl -and
+      $_.url -notlike "devtools://*" -and
+      $_.url -notlike "https://www.postman.com/complete-checkout*"
+    })
+    $page = $pages | Where-Object {
+      $_.url -match "^https://desktop\.postman\.com(?::\d+)?(?:[/?#]|$)|^file:///.*?/(?:requester|scratchpad)\.html(?:[?#]|$)"
+    } | Select-Object -First 1
     if ($page) { $activePort = $port; break }
   } catch {
     # page not ready yet; keep waiting

@@ -15,7 +15,10 @@ function argValue(name, fallback = null) {
 function resolveOutBase(value) {
   const requested = value || "postman-audit";
   const hasDirectory = path.isAbsolute(requested) || requested.includes("/") || requested.includes("\\");
-  const resolved = hasDirectory ? requested : path.resolve(__dirname, "..", "..", "..", "_generated", requested);
+  let resolved = hasDirectory ? requested : path.resolve(__dirname, "..", "..", "..", "_generated", requested);
+  if ([".json", ".png"].includes(path.extname(resolved).toLowerCase())) {
+    resolved = resolved.slice(0, -path.extname(resolved).length);
+  }
   fs.mkdirSync(path.dirname(resolved), { recursive: true });
   return resolved;
 }
@@ -105,14 +108,14 @@ function targetSummary(target) {
 function isDeepWorkbenchTarget(target) {
   const title = String(target && target.title || "");
   const url = String(target && target.url || "");
-  return /^https:\/\/desktop\.postman\.com\b/i.test(url) &&
+  return /(?:^https:\/\/desktop\.postman\.com(?::\d+)?(?:[\/?#]|$)|^file:\/\/\/.*\/(?:requester|scratchpad)\.html(?:[?#]|$))/i.test(url) &&
     /(?:未命名请求|新建请求|我的工作区|Untitled Request|New Request|HTTP Request|My Workspace|Runner|运行器)/i.test(title);
 }
 
 function isRequestWorkbenchTarget(target) {
   const title = String(target && target.title || "");
   const url = String(target && target.url || "");
-  return /^https:\/\/desktop\.postman\.com\b/i.test(url) &&
+  return /(?:^https:\/\/desktop\.postman\.com(?::\d+)?(?:[\/?#]|$)|^file:\/\/\/.*\/(?:requester|scratchpad)\.html(?:[?#]|$))/i.test(url) &&
     /(?:未命名请求|新建请求|Untitled Request|New Request|HTTP Request|MQTT 请求|MQTT Request)/i.test(title);
 }
 
@@ -147,7 +150,7 @@ async function waitForPostmanTarget(port, timeoutMs, targetTitle) {
         return deep;
       }
 
-      const desktop = pageTargets.find((item) => /^https:\/\/desktop\.postman\.com\b/i.test(String(item.url || "")));
+      const desktop = pageTargets.find((item) => /(?:^https:\/\/desktop\.postman\.com(?::\d+)?(?:[\/?#]|$)|^file:\/\/\/.*\/(?:requester|scratchpad)\.html(?:[?#]|$))/i.test(String(item.url || "")));
       if (desktop) {
         return desktop;
       }

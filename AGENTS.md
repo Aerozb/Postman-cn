@@ -47,7 +47,7 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
 ## 3. 环境要求
 
 - Windows 10/11，Postman Desktop 12.x
-- Node.js 18+（脚本用 `npx --yes @electron/asar` 解包/打包；CDP 相关脚本用 Node 内置 `WebSocket`/`fetch`，需 Node 18+）
+- Node.js 22+（脚本用 `npx --yes @electron/asar` 解包/打包；CDP 相关脚本使用 Node 内置 `WebSocket` 和 `fetch`）
 - PowerShell 5+
 
 ---

@@ -12,7 +12,10 @@ function argValue(name, fallback = null) {
 function resolveOutBase(value) {
   const requested = value || "postman-audit";
   const hasDirectory = path.isAbsolute(requested) || requested.includes("/") || requested.includes("\\");
-  const resolved = hasDirectory ? requested : path.resolve(__dirname, "..", "..", "..", "_generated", requested);
+  let resolved = hasDirectory ? requested : path.resolve(__dirname, "..", "..", "..", "_generated", requested);
+  if ([".json", ".png"].includes(path.extname(resolved).toLowerCase())) {
+    resolved = resolved.slice(0, -path.extname(resolved).length);
+  }
   fs.mkdirSync(path.dirname(resolved), { recursive: true });
   return resolved;
 }
@@ -86,7 +89,7 @@ async function waitForPostmanTarget(port, timeoutMs) {
       lastTargets = targets;
       const page = targets.find((item) => item.type === "page" &&
         item.webSocketDebuggerUrl &&
-        /^https:\/\/desktop\.postman\.com\b/i.test(String(item.url || "")));
+        /(?:^https:\/\/desktop\.postman\.com(?::\d+)?(?:[\/?#]|$)|^file:\/\/\/.*\/(?:requester|scratchpad)\.html(?:[?#]|$))/i.test(String(item.url || "")));
       if (page) return page;
     } catch (_) {}
     await sleep(800);

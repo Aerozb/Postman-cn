@@ -4,12 +4,32 @@
 // 静态深度扫描：从 Postman 本地磁盘缓存（--disk，推荐）或运行中页面（CDP）抽取
 // UI 属性键（label/title/tooltip/text/...）后面的字符串字面量，逐条通过
 // zh-localize.js 的 translate() 测试，输出"翻译不出来"的候选清单。
-// 用法：node extract-ui-strings.js --disk [--max N]
-// 输出：_generated/zh-static-candidates.json
+// 用法：node extract-ui-strings.js --disk [--max N] [--out report.json]
+// 输出：默认写入同级 _generated/zh-static-candidates.json。裸名称也写入 _generated；带目录的相对路径按调用目录解析。
 
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
+
+function outputPath() {
+  const index = process.argv.indexOf("--out");
+  const generatedDir = path.resolve(__dirname, "..", "..", "..", "_generated");
+  let resolved = path.join(generatedDir, "zh-static-candidates.json");
+  if (index < 0) return resolved;
+
+  const value = process.argv[index + 1];
+  if (!value || value.startsWith("--")) {
+    throw new Error("--out requires a JSON report path");
+  }
+  const hasDirectory = path.isAbsolute(value) || value.includes("/") || value.includes("\\");
+  resolved = hasDirectory ? path.resolve(value) : path.join(generatedDir, value);
+  const extension = path.extname(resolved);
+  if (!extension) return resolved + ".json";
+  if (extension.toLowerCase() !== ".json") {
+    throw new Error("--out must use a .json extension or no extension");
+  }
+  return resolved;
+}
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -233,6 +253,7 @@ async function main() {
   const maxArg = process.argv.indexOf("--max");
   const maxOut = maxArg >= 0 ? Number(process.argv[maxArg + 1]) : 0;
   const diskMode = process.argv.includes("--disk");
+  const outFile = outputPath();
 
   const counter = new Map();
   const resourceCount = diskMode ? extractFromDisk(counter) : await extractViaCdp(counter);
@@ -250,9 +271,7 @@ async function main() {
   untranslated.sort((a, b) => b.count - a.count || a.text.length - b.text.length);
   const limited = maxOut > 0 ? untranslated.slice(0, maxOut) : untranslated;
 
-  const outDir = path.resolve(__dirname, "..", "..", "..", "_generated");
-  fs.mkdirSync(outDir, { recursive: true });
-  const outFile = path.join(outDir, "zh-static-candidates.json");
+  fs.mkdirSync(path.dirname(outFile), { recursive: true });
   fs.writeFileSync(outFile, JSON.stringify({
     exportedAt: new Date().toISOString(),
     scannedResources: resourceCount,

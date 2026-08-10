@@ -134,7 +134,7 @@ async function main() {
   const phaseOnly = arg("--phase", "all"); const enabled = (p) => phaseOnly === "all" || phaseOnly.split(",").includes(p);
   const portFile = path.join(process.env.APPDATA || "", "Postman", "DevToolsActivePort");
   const port = fs.readFileSync(portFile, "utf8").split(/\r?\n/)[0].trim(); const pages = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
-  const target = pages.find(p => p.type === "page" && /^https:\/\/desktop\.postman\.com/i.test(p.url || "")); if (!target) throw new Error("Postman page target not found");
+  const target = pages.find(p => p.type === "page" && /(?:^https:\/\/desktop\.postman\.com(?::\d+)?(?:[\/?#]|$)|^file:\/\/\/.*\/(?:requester|scratchpad)\.html(?:[?#]|$))/i.test(p.url || "")); if (!target) throw new Error("Postman page target not found");
   const cdp = await connect(target.webSocketDebuggerUrl); const snapshots = [], errors = [], auditedTabs = [];
   const snap = async (phase, scope="all", tab=null) => {
     const state=await evaluate(cdp,scanScript(scope));

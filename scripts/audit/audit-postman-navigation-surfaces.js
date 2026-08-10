@@ -636,7 +636,7 @@ async function main() {
   const port = portLines[0].trim();
   const browserPath = norm(portLines[1]);
   const pages = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
-  const target = pages.find(page => page.type === "page" && /^https:\/\/desktop\.postman\.com/i.test(page.url || ""));
+  const target = pages.find(page => page.type === "page" && /(?:^https:\/\/desktop\.postman\.com(?::\d+)?(?:[\/?#]|$)|^file:\/\/\/.*\/(?:requester|scratchpad)\.html(?:[?#]|$))/i.test(page.url || ""));
   if (!target) throw new Error("Postman page target was not found.");
 
   const cdp = await connectTarget(port, browserPath, target);

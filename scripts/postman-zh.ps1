@@ -1,5 +1,4 @@
-﻿[CmdletBinding()]
-param(
+﻿param(
   [Parameter(Position = 0)]
   [ValidateSet('install', 'restore', 'collect', 'verify', 'start', 'stop', 'fix-browser', 'static-scan', 'merge', 'probe', 'scan', 'audit', 'publish', 'help')]
   [string]$Command = 'install',
@@ -12,6 +11,8 @@ param(
   [switch]$NoVerify,
   [switch]$CleanOldVersions,
   [switch]$Clear,
+  [Alias('out')]
+  [string]$NodeOut,
 
   [Parameter(ValueFromRemainingArguments = $true)]
   [string[]]$RemainingArguments
@@ -33,6 +34,21 @@ try {
 function Stop-WithCode {
   param([int]$Code = 0)
   exit $Code
+}
+
+function Assert-NodeRuntime {
+  $node = Get-Command node -ErrorAction SilentlyContinue
+  if (-not $node) {
+    throw '找不到 Node.js。请安装 Node.js 22 或更高版本。'
+  }
+
+  $versionText = (& $node.Source --version 2>$null | Select-Object -First 1)
+  if ($LASTEXITCODE -ne 0 -or $versionText -notmatch '^v(?<major>\d+)\.') {
+    throw '无法读取 Node.js 版本。请安装 Node.js 22 或更高版本。'
+  }
+  if ([int]$Matches.major -lt 22) {
+    throw "当前 Node.js 版本为 $versionText；本工具需要 Node.js 22 或更高版本。"
+  }
 }
 
 function Invoke-NodeScript {
@@ -63,6 +79,15 @@ function Invoke-PowerShellScript {
   Stop-WithCode $code
 }
 
+function Get-NodeArguments {
+  param([string[]]$Arguments = @())
+
+  $result = @()
+  if ($NodeOut) { $result += @('--out', $NodeOut) }
+  $result += @($Arguments)
+  return $result
+}
+
 function Show-Help {
   Write-Host @'
 Postman 中文汉化工具
@@ -78,11 +103,11 @@ Postman 中文汉化工具
   start         启动 Postman 并等待 CDP 调试端口
   stop          彻底关闭 Postman 进程
   fix-browser   修复系统浏览器 URL 参数引号
-  static-scan   扫描磁盘缓存中的 UI 文案
+  static-scan   扫描磁盘缓存中的 UI 文案；--out 裸名称写入 _generated
   merge         合并 _generated/trans-*.json 译文
-  probe         检查更新页面
+  probe         检查更新页面；--out 裸名称写入 _generated，截图使用同名 PNG
   scan          扫描可点击界面
-  audit <名称>  运行指定深度审计（见下方名称）
+  audit <名称>  运行指定深度审计；--out 可用裸名称或 .json（见下方名称）
   publish       调用维护者发布脚本
   help          显示本帮助
 
@@ -99,6 +124,11 @@ Postman 中文汉化工具
 }
 
 try {
+  $nodeCommands = @('install', 'collect', 'verify', 'static-scan', 'merge', 'probe', 'scan', 'audit')
+  if ($nodeCommands -contains $Command) {
+    Assert-NodeRuntime
+  }
+
   switch ($Command) {
     'help' {
       Show-Help
@@ -134,6 +164,7 @@ try {
     'verify' {
       $nodeArgs = @($RemainingArguments)
       if ($PostmanDir) { $nodeArgs += @('--postman-dir', $PostmanDir) }
+      if (-not $KeepUpdates) { $nodeArgs += '--expect-updates-disabled' }
       Invoke-NodeScript (Join-Path $PSScriptRoot 'verify-postman-zh.js') $nodeArgs
     }
 
@@ -153,7 +184,7 @@ try {
     }
 
     'static-scan' {
-      Invoke-NodeScript (Join-Path $dataRoot 'extract-ui-strings.js') @($RemainingArguments)
+      Invoke-NodeScript (Join-Path $dataRoot 'extract-ui-strings.js') @(Get-NodeArguments $RemainingArguments)
     }
 
     'merge' {
@@ -161,11 +192,11 @@ try {
     }
 
     'probe' {
-      Invoke-NodeScript (Join-Path $runtimeRoot 'probe-update-page.js') @($RemainingArguments)
+      Invoke-NodeScript (Join-Path $runtimeRoot 'probe-update-page.js') @(Get-NodeArguments $RemainingArguments)
     }
 
     'scan' {
-      Invoke-NodeScript (Join-Path $auditRoot 'scan-postman-clickables.js') @($RemainingArguments)
+      Invoke-NodeScript (Join-Path $auditRoot 'scan-postman-clickables.js') @(Get-NodeArguments $RemainingArguments)
     }
 
     'audit' {
@@ -187,7 +218,8 @@ try {
         Write-Host "请指定审计名称：$($auditNames.Keys -join ', ')"
         Stop-WithCode 2
       }
-      $nodeArgs = if ($RemainingArguments.Count -gt 1) { @($RemainingArguments[1..($RemainingArguments.Count - 1)]) } else { @() }
+      $auditArguments = if ($RemainingArguments.Count -gt 1) { @($RemainingArguments[1..($RemainingArguments.Count - 1)]) } else { @() }
+      $nodeArgs = @(Get-NodeArguments $auditArguments)
       Invoke-NodeScript (Join-Path $auditRoot $auditNames[$name]) $nodeArgs
     }
 

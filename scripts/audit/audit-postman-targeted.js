@@ -15,7 +15,10 @@ function argValue(name, fallback = null) {
 function resolveOutBase(value) {
   const requested = value || "postman-audit";
   const hasDirectory = path.isAbsolute(requested) || requested.includes("/") || requested.includes("\\");
-  const resolved = hasDirectory ? requested : path.resolve(__dirname, "..", "..", "..", "_generated", requested);
+  let resolved = hasDirectory ? requested : path.resolve(__dirname, "..", "..", "..", "_generated", requested);
+  if ([".json", ".png"].includes(path.extname(resolved).toLowerCase())) {
+    resolved = resolved.slice(0, -path.extname(resolved).length);
+  }
   fs.mkdirSync(path.dirname(resolved), { recursive: true });
   return resolved;
 }

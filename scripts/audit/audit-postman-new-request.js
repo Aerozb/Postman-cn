@@ -15,7 +15,10 @@ function argValue(name, fallback = null) {
 function resolveOutBase(value) {
   const requested = value || "postman-audit";
   const hasDirectory = path.isAbsolute(requested) || requested.includes("/") || requested.includes("\\");
-  const resolved = hasDirectory ? requested : path.resolve(__dirname, "..", "..", "..", "_generated", requested);
+  let resolved = hasDirectory ? requested : path.resolve(__dirname, "..", "..", "..", "_generated", requested);
+  if ([".json", ".png"].includes(path.extname(resolved).toLowerCase())) {
+    resolved = resolved.slice(0, -path.extname(resolved).length);
+  }
   fs.mkdirSync(path.dirname(resolved), { recursive: true });
   return resolved;
 }
@@ -137,7 +140,7 @@ async function waitForPostmanTarget(port, timeoutMs, options = {}) {
         continue;
       }
       const target = pageTargets.find((item) => {
-        return /^https:\/\/desktop\.postman\.com\b/i.test(String(item.url || ""));
+        return /(?:^https:\/\/desktop\.postman\.com(?::\d+)?(?:[\/?#]|$)|^file:\/\/\/.*\/(?:requester|scratchpad)\.html(?:[?#]|$))/i.test(String(item.url || ""));
       }) || pageTargets.find((item) => {
         return !/^https:\/\/www\.postman\.com\/complete-checkout\b/i.test(String(item.url || ""));
       });

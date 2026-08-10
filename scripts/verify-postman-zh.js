@@ -3,6 +3,36 @@
 
 const fs = require("fs");
 const path = require("path");
+const { execFileSync } = require("child_process");
+const { fileURLToPath } = require("url");
+
+const POSTMAN_PAGE_URL_RE = /(?:^https:\/\/desktop\.postman\.com(?::\d+)?(?:[\/?#]|$)|^file:\/\/\/.*\/(?:requester|scratchpad)\.html(?:[?#]|$))/i;
+
+const UPDATE_PATCH_MARKERS = [
+  "postman-zh:update-guard",
+  "__postmanZhUpdatesDisabled",
+  'p("checkForUpdates"',
+  'p("quitAndInstall"',
+  "updates disabled by postman-zh",
+  "update restart blocked by postman-zh"
+];
+const EXTERNAL_URL_PATCH_MARKERS = [
+  "postmanZhPatchOpenExternalQuotes",
+  "__postmanZhOpenExternalPatched",
+  "openExternal=function"
+];
+const MAIN_MENU_PATCH_MARKERS = [
+  "postmanZhLocalizeMenuTemplate",
+  "Show DevTools (Current View)",
+  "\\u663e\\u793a\\u5f00\\u53d1\\u8005\\u5de5\\u5177\\uff08\\u5f53\\u524d\\u89c6\\u56fe\\uff09",
+  "View Logs in Explorer",
+  "\\u5728\\u8d44\\u6e90\\u7ba1\\u7406\\u5668\\u4e2d\\u67e5\\u770b\\u65e5\\u5fd7"
+];
+const ALL_PATCH_MARKERS = Array.from(new Set([
+  ...UPDATE_PATCH_MARKERS,
+  ...EXTERNAL_URL_PATCH_MARKERS,
+  ...MAIN_MENU_PATCH_MARKERS
+]));
 
 function argValue(name) {
   const index = process.argv.indexOf(name);
@@ -14,6 +44,10 @@ function argValue(name) {
 
 function hasFlag(name) {
   return process.argv.includes(name);
+}
+
+function isPostmanPageUrl(value) {
+  return POSTMAN_PAGE_URL_RE.test(String(value || ""));
 }
 
 function sleep(ms) {
@@ -47,62 +81,346 @@ function resolvePortFile() {
   return path.join(appData, "Postman", "DevToolsActivePort");
 }
 
-function inspectUpdatePatch(postmanDir) {
+function isPostmanAppDir(candidate) {
+  return !!candidate &&
+    fs.existsSync(path.join(candidate, "Postman.exe")) &&
+    fs.existsSync(path.join(candidate, "resources", "app.asar"));
+}
+
+function normalizePath(candidate) {
+  const resolved = path.resolve(candidate);
+  try {
+    return fs.realpathSync.native(resolved);
+  } catch (_) {
+    return resolved;
+  }
+}
+
+function samePath(left, right) {
+  if (!left || !right) return false;
+  const normalizeCase = (value) => {
+    const normalized = normalizePath(value).replace(/[\\/]+$/, "");
+    return process.platform === "win32" ? normalized.toLowerCase() : normalized;
+  };
+  return normalizeCase(left) === normalizeCase(right);
+}
+
+function inferPostmanDirFromTarget(targetUrl) {
+  if (!/^file:/i.test(String(targetUrl || ""))) return null;
+
+  let filePath;
+  try {
+    filePath = path.normalize(fileURLToPath(new URL(targetUrl)));
+  } catch (error) {
+    throw new Error(`Cannot parse the local Postman target URL: ${targetUrl}. ${error.message}`);
+  }
+
+  const marker = `${path.sep}resources${path.sep}app.asar`.toLowerCase();
+  const index = filePath.toLowerCase().lastIndexOf(marker);
+  if (index < 0) {
+    throw new Error(
+      `Local page target is not inside app-*/resources/app.asar: ${targetUrl}. ` +
+      "Restart Postman from the intended installation."
+    );
+  }
+
+  const suffix = filePath.slice(index + marker.length);
+  if (suffix && !suffix.startsWith(path.sep)) {
+    throw new Error(`Invalid app.asar page path in target URL: ${targetUrl}`);
+  }
+
+  const inferred = normalizePath(filePath.slice(0, index));
+  if (!/^app-.+/i.test(path.basename(inferred)) || !isPostmanAppDir(inferred)) {
+    throw new Error(
+      `Local page target resolved to an invalid Postman app directory: ${inferred}. ` +
+      "Restart Postman from the intended installation."
+    );
+  }
+  return inferred;
+}
+
+function processRecordCandidates(record) {
+  const candidates = [];
+  if (record && record.ExecutablePath) {
+    candidates.push(path.dirname(String(record.ExecutablePath)));
+  }
+
+  const commandLine = String(record && record.CommandLine || "");
+  const appPathMatch = commandLine.match(/--app-path(?:=|\s+)(?:"([^"]+)"|([^\s]+))/i);
+  const appAsar = appPathMatch && (appPathMatch[1] || appPathMatch[2]);
+  if (appAsar && path.basename(appAsar).toLowerCase() === "app.asar") {
+    candidates.push(path.dirname(path.dirname(appAsar)));
+  }
+
+  return candidates
+    .map(normalizePath)
+    .filter((candidate) => /^app-.+/i.test(path.basename(candidate)) && isPostmanAppDir(candidate));
+}
+
+function uniqueProcessCandidates(records) {
+  const candidates = new Map();
+  for (const record of records) {
+    for (const candidate of processRecordCandidates(record)) {
+      const key = process.platform === "win32" ? candidate.toLowerCase() : candidate;
+      const current = candidates.get(key) || { dir: candidate, processIds: [] };
+      const processId = Number(record.ProcessId);
+      if (Number.isInteger(processId) && !current.processIds.includes(processId)) {
+        current.processIds.push(processId);
+      }
+      candidates.set(key, current);
+    }
+  }
+  return Array.from(candidates.values());
+}
+
+function queryWindowsPostmanProcesses(port) {
+  if (process.platform !== "win32") {
+    return {
+      ownerPids: [],
+      processes: [],
+      connectionError: "Process binding is only implemented on Windows.",
+      processError: null
+    };
+  }
+
+  const portNumber = Number(port);
+  if (!Number.isInteger(portNumber) || portNumber < 1 || portNumber > 65535) {
+    throw new Error(`Invalid DevTools port for process binding: ${port}`);
+  }
+
+  const script = [
+    "[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)",
+    `$portNumber = ${portNumber}`,
+    "$connectionError = $null",
+    "$processError = $null",
+    "$ownerPids = @()",
+    "$processes = @()",
+    "try { $ownerPids = @(Get-NetTCPConnection -State Listen -LocalPort $portNumber -ErrorAction Stop | Select-Object -ExpandProperty OwningProcess -Unique) } catch { $connectionError = $_.Exception.Message }",
+    "try { $processes = @(Get-CimInstance Win32_Process -Filter \"Name = 'Postman.exe'\" -ErrorAction Stop | Select-Object ProcessId, ExecutablePath, CommandLine) } catch { $processError = $_.Exception.Message }",
+    "$result = [ordered]@{ ownerPids = @($ownerPids); processes = @($processes); connectionError = $connectionError; processError = $processError }",
+    "$result | ConvertTo-Json -Depth 4 -Compress"
+  ].join("; ");
+
+  try {
+    const output = execFileSync(
+      "powershell.exe",
+      ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", script],
+      { encoding: "utf8", windowsHide: true, timeout: 10000, maxBuffer: 1024 * 1024 }
+    ).trim();
+    if (!output) {
+      throw new Error("PowerShell returned no process data.");
+    }
+    const result = JSON.parse(output);
+    result.ownerPids = Array.isArray(result.ownerPids) ? result.ownerPids : [];
+    result.processes = Array.isArray(result.processes) ? result.processes : [];
+    return result;
+  } catch (error) {
+    return {
+      ownerPids: [],
+      processes: [],
+      connectionError: `Windows process query failed: ${error.message}`,
+      processError: null
+    };
+  }
+}
+
+function resolvePostmanDirFromProcess(port) {
+  const query = queryWindowsPostmanProcesses(port);
+  const ownerIds = new Set(query.ownerPids.map(Number).filter(Number.isInteger));
+  const ownerRecords = query.processes.filter((record) => ownerIds.has(Number(record.ProcessId)));
+  const ownerCandidates = uniqueProcessCandidates(ownerRecords);
+  if (ownerCandidates.length === 1) {
+    return {
+      dir: ownerCandidates[0].dir,
+      method: "devtools-port-owner",
+      processIds: ownerCandidates[0].processIds,
+      warnings: [query.connectionError, query.processError].filter(Boolean)
+    };
+  }
+
+  const runningCandidates = uniqueProcessCandidates(query.processes);
+
+  return {
+    dir: null,
+    method: "unresolved",
+    ownerCandidates: ownerCandidates.map((item) => item.dir),
+    runningCandidates: runningCandidates.map((item) => item.dir),
+    warnings: [query.connectionError, query.processError].filter(Boolean)
+  };
+}
+
+function assertPostmanDir(candidate, source) {
+  const resolved = normalizePath(candidate);
+  if (!/^app-.+/i.test(path.basename(resolved)) || !isPostmanAppDir(resolved)) {
+    throw new Error(
+      `${source} is not a valid Postman app-* directory: ${resolved}. ` +
+      "Expected Postman.exe and resources/app.asar."
+    );
+  }
+  return resolved;
+}
+
+function resolvePostmanDir(explicitDir, targetUrl, port) {
+  const inferred = inferPostmanDirFromTarget(targetUrl);
+  const explicit = explicitDir ? assertPostmanDir(explicitDir, "--postman-dir") : null;
+
+  if (explicit && inferred && !samePath(explicit, inferred)) {
+    throw new Error(
+      `--postman-dir points to ${explicit}, but the running local page belongs to ${inferred}. ` +
+      "Refusing to mix runtime verification from one installation with app.asar from another."
+    );
+  }
+  if (explicit && inferred) {
+    return { dir: explicit, method: "explicit-and-local-target" };
+  }
+  if (inferred) {
+    return { dir: inferred, method: "local-target-url" };
+  }
+
+  const processBinding = resolvePostmanDirFromProcess(port);
+  if (explicit) {
+    if (!processBinding.dir) {
+      const candidates = Array.from(new Set([
+        ...(processBinding.ownerCandidates || []),
+        ...(processBinding.runningCandidates || [])
+      ]));
+      const detail = candidates.length ? ` Candidates: ${candidates.join(", ")}.` : "";
+      const warnings = processBinding.warnings && processBinding.warnings.length
+        ? ` Process query errors: ${processBinding.warnings.join(" | ")}.`
+        : "";
+      throw new Error(
+        `Cannot bind DevTools port ${port} to --postman-dir ${explicit} via the listening Postman process.${detail}${warnings} ` +
+        "Refusing to combine runtime results with an unverified app.asar."
+      );
+    }
+    if (!samePath(explicit, processBinding.dir)) {
+      throw new Error(
+        `--postman-dir points to ${explicit}, but DevTools port ${port} belongs to ` +
+        `${processBinding.dir}. Refusing to mix two Postman installations.`
+      );
+    }
+    return {
+      dir: explicit,
+      method: "explicit-and-process",
+      processBinding
+    };
+  }
+  if (processBinding.dir) {
+    return { ...processBinding };
+  }
+
+  const candidates = Array.from(new Set([
+    ...(processBinding.ownerCandidates || []),
+    ...(processBinding.runningCandidates || [])
+  ]));
+  const detail = candidates.length ? ` Candidates: ${candidates.join(", ")}.` : "";
+  const warnings = processBinding.warnings && processBinding.warnings.length
+    ? ` Process query errors: ${processBinding.warnings.join(" | ")}.`
+    : "";
+  throw new Error(
+    `Cannot uniquely bind DevTools port ${port} to the running Postman installation via its listening process.${detail}${warnings} ` +
+    "Restart Postman and ensure Windows process inspection is available."
+  );
+}
+
+function scanFileForMarkers(filePath, markers) {
+  const pending = markers.map((text) => ({ text, bytes: Buffer.from(text, "utf8") }));
+  const found = new Set();
+  const maxMarkerLength = Math.max(...pending.map((item) => item.bytes.length));
+  const chunk = Buffer.allocUnsafe(1024 * 1024);
+  let tail = Buffer.alloc(0);
+  const handle = fs.openSync(filePath, "r");
+  try {
+    let bytesRead = 0;
+    while ((bytesRead = fs.readSync(handle, chunk, 0, chunk.length, null)) > 0 && found.size < pending.length) {
+      const current = chunk.subarray(0, bytesRead);
+      const data = tail.length ? Buffer.concat([tail, current]) : current;
+      for (const marker of pending) {
+        if (!found.has(marker.text) && data.indexOf(marker.bytes) >= 0) {
+          found.add(marker.text);
+        }
+      }
+      const keep = Math.min(maxMarkerLength - 1, data.length);
+      tail = keep > 0 ? Buffer.from(data.subarray(data.length - keep)) : Buffer.alloc(0);
+    }
+  } finally {
+    fs.closeSync(handle);
+  }
+  return found;
+}
+
+function createPatchSource(postmanDir) {
   if (!postmanDir) {
-    return { checked: false, disabled: false, reason: "postman dir not provided" };
+    return { checked: false, reason: "Postman app directory not found", includes: () => false };
   }
+  const appAsar = path.join(postmanDir, "resources", "app.asar");
+  if (!fs.existsSync(appAsar)) {
+    return { checked: false, reason: `app.asar not found: ${appAsar}`, includes: () => false };
+  }
+
+  // The packed app.asar is what Electron is currently executing. A leftover
+  // installer tree is diagnostic only and must never make verification pass.
+  const activeMarkers = scanFileForMarkers(appAsar, ALL_PATCH_MARKERS);
   const mainJs = path.join(postmanDir, "resources", "app.asar.unpacked.zh", "main.js");
-  if (!fs.existsSync(mainJs)) {
-    return { checked: false, disabled: false, reason: "patched main.js not found" };
+  let temporaryCrossCheck = {
+    checked: false,
+    source: mainJs,
+    reason: "temporary installer main.js is not present"
+  };
+  if (fs.existsSync(mainJs)) {
+    const temporaryMarkers = scanFileForMarkers(mainJs, ALL_PATCH_MARKERS);
+    temporaryCrossCheck = {
+      checked: true,
+      source: mainJs,
+      matchesAppAsar: ALL_PATCH_MARKERS.every((marker) => {
+        return activeMarkers.has(marker) === temporaryMarkers.has(marker);
+      }),
+      onlyInTemporary: ALL_PATCH_MARKERS.filter((marker) => {
+        return temporaryMarkers.has(marker) && !activeMarkers.has(marker);
+      }),
+      onlyInAppAsar: ALL_PATCH_MARKERS.filter((marker) => {
+        return activeMarkers.has(marker) && !temporaryMarkers.has(marker);
+      })
+    };
   }
-  const content = fs.readFileSync(mainJs, "utf8");
+
+  return {
+    checked: true,
+    source: appAsar,
+    temporaryCrossCheck,
+    includes: (needle) => activeMarkers.has(needle)
+  };
+}
+
+function inspectUpdatePatch(source) {
+  if (!source.checked) {
+    return { checked: false, disabled: false, reason: source.reason };
+  }
   // isUpdateEnabled is intentionally left untouched now; blocking
   // downloadUpdate/restartAppToUpdate is what actually prevents updates
   // while keeping the Settings > Update page functional.
-  const runtimeGuard = content.includes("postman-zh:update-guard") &&
-    content.includes("__postmanZhUpdatesDisabled") &&
-    content.includes('p("checkForUpdates"') &&
-    content.includes('p("quitAndInstall"');
+  const runtimeGuard = UPDATE_PATCH_MARKERS.slice(0, 4).every((needle) => source.includes(needle));
   const sourceOptimizations = {
-    download: content.includes("updates disabled by postman-zh"),
-    restart: content.includes("update restart blocked by postman-zh")
+    download: source.includes(UPDATE_PATCH_MARKERS[4]),
+    restart: source.includes(UPDATE_PATCH_MARKERS[5])
   };
-  return { checked: true, disabled: runtimeGuard, runtimeGuard, sourceOptimizations };
+  return { checked: true, source: source.source, disabled: runtimeGuard, runtimeGuard, sourceOptimizations };
 }
 
-function inspectExternalUrlPatch(postmanDir) {
-  if (!postmanDir) {
-    return { checked: false, installed: false, reason: "postman dir not provided" };
+function inspectExternalUrlPatch(source) {
+  if (!source.checked) {
+    return { checked: false, installed: false, reason: source.reason };
   }
-  const mainJs = path.join(postmanDir, "resources", "app.asar.unpacked.zh", "main.js");
-  if (!fs.existsSync(mainJs)) {
-    return { checked: false, installed: false, reason: "patched main.js not found" };
-  }
-  const content = fs.readFileSync(mainJs, "utf8");
-  const installed = content.includes("postmanZhPatchOpenExternalQuotes") &&
-    content.includes("__postmanZhOpenExternalPatched") &&
-    content.includes("openExternal=function");
-  return { checked: true, installed };
+  const installed = EXTERNAL_URL_PATCH_MARKERS.every((needle) => source.includes(needle));
+  return { checked: true, source: source.source, installed };
 }
 
-function inspectMainMenuPatch(postmanDir) {
-  if (!postmanDir) {
-    return { checked: false, installed: false, missing: ["postman dir not provided"] };
+function inspectMainMenuPatch(source) {
+  if (!source.checked) {
+    return { checked: false, installed: false, missing: [source.reason] };
   }
-  const mainJs = path.join(postmanDir, "resources", "app.asar.unpacked.zh", "main.js");
-  if (!fs.existsSync(mainJs)) {
-    return { checked: false, installed: false, missing: ["patched main.js not found"] };
-  }
-  const content = fs.readFileSync(mainJs, "utf8");
-  const required = [
-    "postmanZhLocalizeMenuTemplate",
-    "Show DevTools (Current View)",
-    "\\u663e\\u793a\\u5f00\\u53d1\\u8005\\u5de5\\u5177\\uff08\\u5f53\\u524d\\u89c6\\u56fe\\uff09",
-    "View Logs in Explorer",
-    "\\u5728\\u8d44\\u6e90\\u7ba1\\u7406\\u5668\\u4e2d\\u67e5\\u770b\\u65e5\\u5fd7"
-  ];
-  const missing = required.filter((needle) => !content.includes(needle));
-  return { checked: true, installed: missing.length === 0, missing };
+  const missing = MAIN_MENU_PATCH_MARKERS.filter((needle) => !source.includes(needle));
+  return { checked: true, source: source.source, installed: missing.length === 0, missing };
 }
 
 async function connectCdp(wsUrl) {
@@ -171,9 +489,7 @@ async function waitForPostmanTarget(port, timeoutMs) {
           !String(item.url || "").startsWith("devtools://");
       });
       const target = pageTargets.find((item) => {
-        return /^https:\/\/desktop\.postman\.com\b/i.test(String(item.url || ""));
-      }) || pageTargets.find((item) => {
-        return !/^https:\/\/www\.postman\.com\/complete-checkout\b/i.test(String(item.url || ""));
+        return isPostmanPageUrl(item.url);
       });
       if (target) {
         return target;
@@ -186,7 +502,7 @@ async function waitForPostmanTarget(port, timeoutMs) {
 
 async function main() {
   const timeoutMs = Number(argValue("--timeout-ms") || 30000);
-  const postmanDir = argValue("--postman-dir");
+  const explicitPostmanDir = argValue("--postman-dir");
   const expectUpdatesDisabled = hasFlag("--expect-updates-disabled");
   const portFile = resolvePortFile();
 
@@ -202,6 +518,8 @@ async function main() {
   }
 
   const target = await waitForPostmanTarget(port, timeoutMs);
+  const postmanDirResolution = resolvePostmanDir(explicitPostmanDir, target.url, port);
+  const postmanDir = postmanDirResolution.dir;
   const cdp = await connectCdp(target.webSocketDebuggerUrl);
   try {
     await cdp.send("Runtime.enable");
@@ -426,6 +744,17 @@ async function main() {
         "Close All but Selected Tab"
       ];
       const translationProbeTargets = [
+        "Pre-request scripts are written in JavaScript, and are run before the request is sent. Learn more:",
+        "Pre-request scripts are written in JavaScript, and are run before the 请求 is sent. 了解更多：",
+        "Pre-request scripts are written in JavaScript, and are run before the request is sent.",
+        "Read less...Ctrl+Space",
+        "Two pane view (Ctrl + Alt + V)",
+        "Hide Sidebar (Ctrl+\\\\)",
+        "Enter a URL or cURL command",
+        "Get started by adding the API request URL or cURL command to test an endpoint. A URL typically has a base location and a path. For example, https://postman-echo.com/get.",
+        "开始使用 by adding the API 请求 URL or cURL command to test an endpoint. A URL typically has a base location and a path. For example, https://postman-echo.com/get.",
+        "Enter a URL or cURL command Get started by adding the API request URL or cURL command to test an endpoint. A URL typically has a base location and a path. For example, https://postman-echo.com/get.",
+        "Enter a URL or cURL command 开始使用 by adding the API 请求 URL or cURL command to test an endpoint. A URL typically has a base location and a path. For example, https://postman-echo.com/get.",
         "Stay on top of your APIs",
         "Upgrade to enterprise for detailed reports on team productivity, API behavior, and performance.",
         "Upgrade to Enterprise",
@@ -1014,7 +1343,22 @@ async function main() {
             "Duplicate Selected Tab",
             "Close Selected Tab",
             "Selected Tab",
-            "Close All but Selected Tab"
+            "Close All but Selected Tab",
+            "Pre-request scripts",
+            "are written in",
+            "are run before",
+            "is sent",
+            "Learn more",
+            "Read less",
+            "Two pane view",
+            "Hide Sidebar",
+            "Enter a URL or cURL command",
+            "Get started by adding",
+            "by adding the API",
+            "command to test an endpoint",
+            "typically has a base location",
+            "and a path",
+            "For example"
           ].filter((needle) => String(output || "").includes(needle));
           return hits.length ? { input: text, output, hits } : null;
         }).filter(Boolean);
@@ -1091,9 +1435,18 @@ async function main() {
     if (!result) {
       throw new Error("No verification result returned from Postman.");
     }
-    result.updatePatch = inspectUpdatePatch(postmanDir);
-    result.externalUrlPatch = inspectExternalUrlPatch(postmanDir);
-    result.mainMenuPatch = inspectMainMenuPatch(postmanDir);
+    const patchSource = createPatchSource(postmanDir);
+    result.postmanDir = postmanDir;
+    result.postmanDirResolution = postmanDirResolution;
+    result.staticPatchSource = {
+      checked: patchSource.checked,
+      source: patchSource.source || null,
+      reason: patchSource.reason || null,
+      temporaryCrossCheck: patchSource.temporaryCrossCheck || null
+    };
+    result.updatePatch = inspectUpdatePatch(patchSource);
+    result.externalUrlPatch = inspectExternalUrlPatch(patchSource);
+    result.mainMenuPatch = inspectMainMenuPatch(patchSource);
 
     const failures = [];
     if (result.localized !== "true") {
@@ -1147,8 +1500,22 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error("[postman-zh] VERIFY ERROR");
-  console.error(error && error.stack || error);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((error) => {
+    console.error("[postman-zh] VERIFY ERROR");
+    console.error(error && error.stack || error);
+    process.exit(1);
+  });
+}
+
+module.exports = {
+  createPatchSource,
+  inferPostmanDirFromTarget,
+  isPostmanPageUrl,
+  inspectExternalUrlPatch,
+  inspectMainMenuPatch,
+  inspectUpdatePatch,
+  resolvePostmanDir,
+  resolvePostmanDirFromProcess,
+  scanFileForMarkers
+};
