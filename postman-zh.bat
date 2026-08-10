@@ -8,6 +8,7 @@ set "exitCode=%errorlevel%"
 
 if "%~1"=="" (
   echo.
-  set /p "postmanZhClose=脚本已结束。按 Enter 键关闭窗口..."
+  echo 脚本已结束，窗口将在 5 秒后自动关闭；按任意键可提前关闭。
+  timeout /t 5 >nul
 )
 exit /b %exitCode%
