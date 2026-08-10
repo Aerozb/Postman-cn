@@ -59,7 +59,7 @@ async function main() {
   const target = targets.find((t) => t.type === "page" && /desktop\.postman\.com|requester\.html/i.test(t.url || ""));
   if (!target) throw new Error("Postman requester target not found");
   const cdp = await connectCdp(target.webSocketDebuggerUrl);
-  const outDir = path.resolve(__dirname, "..", "..", "_generated");
+  const outDir = path.resolve(__dirname, "..", "..", "..", "_generated");
   fs.mkdirSync(outDir, { recursive: true });
   try {
     await cdp.send("Runtime.enable");

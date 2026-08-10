@@ -1,6 +1,6 @@
 # Postman 中文版
 
-Postman 桌面版汉化补丁，界面全中文，开箱即用。
+Postman 桌面版汉化补丁，适用于 Windows 10/11 与 Postman 12.x。
 
 > 本项目为非官方汉化，仅供学习交流。Postman 及相关商标归 Postman 公司所有。
 
@@ -9,72 +9,48 @@ Postman 桌面版汉化补丁，界面全中文，开箱即用。
   <img src="assets/screenshots/02-request-builder-cn.png" width="49%" alt="中文请求界面">
 </p>
 
-**适用系统：** Windows 10 / 11 · Postman 桌面版 12.x（已在 12.19.6 上测试）
+## 直接使用发布版
 
----
+前往 [Releases 下载页](https://github.com/Aerozb/Postman-cn/releases)，按 Postman 版本选择：
 
-## 方式一：下载现成的，直接用（推荐）
+- `Postman-cn-<版本>-win64.zip`：解压后直接运行，适合大多数人。
+- `app.asar`：只替换同版本官方安装目录中的 `resources\app.asar`，替换前请先备份原文件。
 
-适合大多数人：**不用装任何环境**，下载解压就能用中文。
+## 使用统一脚本入口
 
-前往 **[Releases 下载页](https://github.com/Aerozb/Postman-cn/releases)**，里面有两个文件，**二选一**下载：
+仓库根目录只有一个用户入口：[postman-zh.bat](./postman-zh.bat)。安装 Node.js 18+ 后双击它即可安装最新版汉化；也可以在 PowerShell 中带命令运行：
 
-### A. 完整版 `Postman-cn-<版本>-win64.zip`（新手首选）
+```powershell
+.\postman-zh.bat install       # 安装汉化、关闭自动更新并验证
+.\postman-zh.bat restore       # 还原英文原版
+.\postman-zh.bat help          # 查看所有命令
+```
 
-1. 下载后解压到任意文件夹（比如 `D:\Postman-cn`）；
-2. 双击里面的 **`Postman.exe`**；
-3. 打开就是中文，无需安装。
+常用维护命令：
 
-### B. 单个文件 `app.asar`（已装了官方 Postman、且版本号相同时用）
+```powershell
+.\postman-zh.bat collect       # 导出运行时漏翻
+.\postman-zh.bat collect -Clear
+.\postman-zh.bat verify        # 单独验证
+.\postman-zh.bat start         # 启动并等待 CDP 调试端口
+.\postman-zh.bat stop
+.\postman-zh.bat static-scan   # 扫描磁盘缓存中的 UI 文案
+.\postman-zh.bat scan          # 扫描可点击界面
+.\postman-zh.bat audit new-request
+```
 
-1. **先完全退出 Postman**（连同右下角托盘里的图标一起退出）；
-2. 按 `Win + R`，输入 `%LOCALAPPDATA%\Postman` 后回车，打开 Postman 安装目录；
-3. 进入与你版本号一致的文件夹里的 `resources`，例如 `app-12.19.6\resources`；
-4. 把这里原来的 `app.asar` 改名备份（比如改成 `app.asar.bak`），再把下载的 `app.asar` 放进去；
-5. 重新打开 Postman，界面变中文即成功。
+安装到指定版本目录：
 
-> ⚠️ `app.asar` 和版本号强绑定：必须下载与你 Postman 版本**完全一致**的文件。版本对不上就用上面的 A，或用下面的方式二。
+```powershell
+.\postman-zh.bat install -PostmanDir C:\Path\To\Postman\app-12.19.6
+```
 
----
-
-## 方式二：自己运行脚本汉化（适合新版本）
-
-适合：Postman 升级到了 Releases 里还没发布的新版本，想自己给它打中文补丁。脚本会自动找到本机最新版本、打补丁、关闭自动更新并验证。
-
-**需要先准备：**
-
-- Windows 10 / 11，并已安装 Postman；
-- **Node.js 18 或更高版本**（到 [nodejs.org](https://nodejs.org) 下载 LTS 版安装即可）。
-  装好后在命令行输入 `node -v`，能显示版本号就说明成功了。
-
-**使用步骤：**
-
-1. 下载本项目：仓库首页点绿色的 **Code → Download ZIP**，然后解压；
-2. 双击文件夹里的 **`install-latest-zh.bat`**；
-3. 等它自动运行完，看到这一行就成功了：
-
-   ```
-   [postman-zh] VERIFY PASSED
-   ```
-
-4. 以后 Postman 又更新了，重新双击一次 `install-latest-zh.bat` 即可。
-
----
-
-## 还原成英文原版
-
-- 用**方式二**脚本装的：双击 **`restore-original.bat`**。
-- 用**方式一 A**（绿色版）的：直接删掉解压出来的文件夹即可。
-- 用**方式一 B**（替换过 `app.asar`）的：把之前备份的 `app.asar.bak` 改回 `app.asar`。
-
----
+脚本会自动备份 `resources\app.asar` 为 `app.asar.original`，从备份解包、注入汉化、重新打包并启动验证。Postman 更新后再次运行 `install` 即可。
 
 ## 常见问题
 
-- **打开又变回英文了？** 多半是 Postman 自动更新到了新版本。重新双击 `install-latest-zh.bat` 给新版本重新汉化即可（脚本默认已关闭自动更新，正常情况下不会发生）。
-- **有些词还是英文？** `GET`、`POST`、`API`、`JSON`、`Ctrl+K` 这类技术词、快捷键和产品名是**故意保留**的，不属于漏翻。
-- **方式一和方式二怎么选？** 只想马上用中文 → 方式一；Postman 已是最新版、Releases 里还没有对应下载 → 方式二。
+- `GET`、`POST`、`API`、`JSON`、快捷键和产品名等技术词会刻意保留英文。
+- 安装后仍是英文，通常是 Postman 更新到了新的 `app-*` 目录；重新运行 `install`。
+- 登录页外部链接异常时运行 `.\postman-zh.bat fix-browser`。
 
----
-
-<sub>维护者与技术细节见 [AGENTS.md](./AGENTS.md) 和 [docs/](./docs)。</sub>
+维护细节见 [AGENTS.md](./AGENTS.md) 和 [docs/维护指南.md](./docs/维护指南.md)。

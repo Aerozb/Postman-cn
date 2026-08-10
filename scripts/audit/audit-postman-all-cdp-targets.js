@@ -332,7 +332,7 @@ async function main() {
     targets: results,
     findings
   };
-  const out = path.resolve(value("--out", path.join(__dirname, "..", "..", "_generated", "all-cdp-targets-audit.json")));
+  const out = path.resolve(value("--out", path.join(__dirname, "..", "..", "..", "_generated", "all-cdp-targets-audit.json")));
   fs.mkdirSync(path.dirname(out), { recursive: true });
   fs.writeFileSync(out, JSON.stringify(report, null, 2) + "\n", "utf8");
   process.stdout.write(JSON.stringify({ out, summary: report.summary }, null, 2) + "\n");

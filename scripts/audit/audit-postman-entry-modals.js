@@ -171,7 +171,7 @@ function pick(state, patterns, opts = {}) {
 }
 
 async function main() {
-  const out = path.resolve(arg('--out', path.join(process.cwd(), '_generated', 'postman-entry-modals.json')));
+  const out = path.resolve(arg('--out', path.join(__dirname, '..', '..', '..', '_generated', 'postman-entry-modals.json')));
   const delay = Math.max(120, Number(arg('--delay-ms', '420')));
   const maxAx = Math.max(0, Number(arg('--max-ax', '8'))); let axUsed=0;
   const portFile = path.join(process.env.APPDATA || '', 'Postman', 'DevToolsActivePort');

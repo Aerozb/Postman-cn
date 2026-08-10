@@ -54,7 +54,7 @@ async function connectCdp(wsUrl) {
 }
 
 function loadTranslator() {
-  const payload = path.resolve(__dirname, "..", "payload", "zh-localize.js");
+  const payload = path.resolve(__dirname, "..", "..", "payload", "zh-localize.js");
   const code = fs.readFileSync(payload, "utf8");
   const noopEl = { setAttribute() {}, nodeType: 0 };
   const sandbox = {
@@ -250,7 +250,7 @@ async function main() {
   untranslated.sort((a, b) => b.count - a.count || a.text.length - b.text.length);
   const limited = maxOut > 0 ? untranslated.slice(0, maxOut) : untranslated;
 
-  const outDir = path.resolve(__dirname, "..", "..", "_generated");
+  const outDir = path.resolve(__dirname, "..", "..", "..", "_generated");
   fs.mkdirSync(outDir, { recursive: true });
   const outFile = path.join(outDir, "zh-static-candidates.json");
   fs.writeFileSync(outFile, JSON.stringify({

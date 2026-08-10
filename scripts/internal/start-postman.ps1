@@ -8,8 +8,8 @@
 # the current port so callers can connect reliably.
 #
 # Usage:
-#   powershell -ExecutionPolicy Bypass -File scripts/start-postman.ps1
-#   powershell -ExecutionPolicy Bypass -File scripts/start-postman.ps1 -TimeoutSec 90
+#   .\postman-zh.bat start
+#   .\postman-zh.bat start -TimeoutSec 90
 
 param(
   [string]$PostmanDir = "",       # app-x.y.z dir; auto-detected if empty

@@ -12,6 +12,13 @@
 
 $ErrorActionPreference = "Stop"
 
+$scriptRoot = Split-Path -Parent $PSCommandPath
+$repoRoot = Split-Path -Parent (Split-Path -Parent $scriptRoot)
+$packageRoot = $repoRoot
+$workspaceRoot = Split-Path -Parent $repoRoot
+$workspaceParent = Split-Path -Parent $workspaceRoot
+$scriptsRoot = Join-Path $repoRoot "scripts"
+
 try {
   [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 } catch {}
@@ -130,10 +137,6 @@ function Resolve-PostmanAppDir {
     }
   }
 
-  $scriptRoot = Split-Path -Parent $PSCommandPath
-  $packageRoot = Split-Path -Parent $scriptRoot
-  $workspaceRoot = Split-Path -Parent $packageRoot
-  $workspaceParent = Split-Path -Parent $workspaceRoot
   $roots = @(
     (Get-Location).Path,
     $workspaceRoot,
@@ -703,8 +706,6 @@ function Remove-OldPostmanVersions {
   }
 }
 
-$scriptRoot = Split-Path -Parent $PSCommandPath
-$packageRoot = Split-Path -Parent $scriptRoot
 if (-not $PayloadPath) {
   $PayloadPath = Join-Path $packageRoot "payload\zh-localize.js"
 }
@@ -819,7 +820,7 @@ if ($Verify) {
     Write-Step "Verification skipped because -NoRestart was used."
   } else {
     Start-Sleep -Seconds 18
-    $verifyScript = Join-Path $scriptRoot "verify-postman-zh.js"
+    $verifyScript = Join-Path $scriptsRoot "verify-postman-zh.js"
     if (Test-Path -LiteralPath $verifyScript) {
       $verifyArgs = @("--postman-dir", $appDir)
       if ($DisableUpdates) {

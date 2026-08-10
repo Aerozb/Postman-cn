@@ -610,7 +610,7 @@ const DEEP_PAGE_SURFACES = [
 ];
 
 async function main() {
-  const out = path.resolve(arg("--out", path.join(process.cwd(), "_generated", "postman-navigation-surfaces.json")));
+  const out = path.resolve(arg("--out", path.join(__dirname, "..", "..", "..", "_generated", "postman-navigation-surfaces.json")));
   const delay = Math.max(80, Number(arg("--delay-ms", "380")));
   const maxRequesterTabs = Math.max(0, Number(arg("--max-requester-tabs", "40")));
   const maxSurfaces = Math.max(1, Number(arg("--max-surfaces", "45")));

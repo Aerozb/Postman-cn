@@ -128,7 +128,7 @@ function english(text) {
 }
 
 async function main() {
-  const out = path.resolve(arg("--out", path.join(process.cwd(), "_generated", "postman-phased-audit.json")));
+  const out = path.resolve(arg("--out", path.join(__dirname, "..", "..", "..", "_generated", "postman-phased-audit.json")));
   const delay = Number(arg("--delay-ms", "450")), hoverLimit = Number(arg("--max-hovers", "120")), clickLimit = Number(arg("--max-dropdowns", "30")), contextLimit = Number(arg("--max-context", "30"));
   const allTabs = flag("--all-tabs"), maxTabs = Math.max(0, Number(arg("--max-tabs", "50"))), tabDelay = Math.max(0, Number(arg("--tab-delay-ms", String(delay))));
   const phaseOnly = arg("--phase", "all"); const enabled = (p) => phaseOnly === "all" || phaseOnly.split(",").includes(p);

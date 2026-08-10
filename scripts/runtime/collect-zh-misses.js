@@ -5,7 +5,7 @@
 // 用法：
 //   node collect-zh-misses.js            输出并保存清单到 _generated/zh-misses.json
 //   node collect-zh-misses.js --clear    导出后清空已收集记录
-// 前提：Postman 以 --remote-debugging-port=0 启动（install-latest-zh.bat 安装后默认如此）。
+// 前提：Postman 以 --remote-debugging-port=0 启动（postman-zh.bat install 默认如此）。
 
 const fs = require("fs");
 const path = require("path");
@@ -51,7 +51,7 @@ async function main() {
   const clear = process.argv.includes("--clear");
   const portFile = path.join(process.env.APPDATA || "", "Postman", "DevToolsActivePort");
   if (!fs.existsSync(portFile)) {
-    throw new Error("DevToolsActivePort not found. 请先通过 install-latest-zh.bat 安装流程启动 Postman。");
+    throw new Error("DevToolsActivePort not found. 请先通过 postman-zh.bat install 启动 Postman。");
   }
   const port = fs.readFileSync(portFile, "utf8").split(/\r?\n/)[0].trim();
   const targets = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
@@ -87,7 +87,7 @@ async function main() {
   }
 
   const misses = Array.from(merged.values()).sort((a, b) => b.count - a.count || a.text.localeCompare(b.text));
-  const outDir = path.resolve(__dirname, "..", "..", "_generated");
+  const outDir = path.resolve(__dirname, "..", "..", "..", "_generated");
   fs.mkdirSync(outDir, { recursive: true });
   const outFile = path.join(outDir, "zh-misses.json");
   fs.writeFileSync(outFile, JSON.stringify({ exportedAt: new Date().toISOString(), cleared: clear, total: misses.length, misses }, null, 2), "utf8");

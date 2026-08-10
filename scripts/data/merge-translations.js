@@ -9,8 +9,8 @@ const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
 
-const payloadPath = path.resolve(__dirname, "..", "payload", "zh-localize.js");
-const genDir = path.resolve(__dirname, "..", "..", "_generated");
+const payloadPath = path.resolve(__dirname, "..", "..", "payload", "zh-localize.js");
+const genDir = path.resolve(__dirname, "..", "..", "..", "_generated");
 
 function loadTranslator() {
   const code = fs.readFileSync(payloadPath, "utf8");

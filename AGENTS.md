@@ -28,16 +28,19 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
       payload\
         zh-localize.js                ← 汉化主体：词典 + 翻译逻辑 + 收集器（唯一的"数据源"）
         zh-auth-webview-preload.js    ← 登录/授权 webview 的预加载汉化
-      scripts\                        ← 见第 4 节
+      scripts\postman-zh.ps1          ← 命令分发器（唯一实现入口）
+        internal\                     ← 安装、启动、停止等内部 PowerShell 实现
+        audit\                        ← 点击、悬停、右键等 CDP 审计
+        runtime\                      ← 运行时收集和页面探测
+        data\                         ← 静态扫描和译文合并
+        maintenance\                 ← 发布脚本
       docs\  汉化教程.md  维护指南.md
       AGENTS.md  CLAUDE.md  README.md
-      install-latest-zh.bat           ← 普通用户主入口（双击）
-      restore-original.bat            ← 还原英文原版（双击）
-      导出漏翻清单.bat                 ← 导出运行时收集到的漏翻（双击）
+      postman-zh.bat                  ← 普通用户唯一入口（双击）
     _generated\                       ← 所有脚本产物输出到这里（可再生，可被随时删除）
 ```
 
-**重要**：`_generated` 必须与 `Postman-cn` **同级**——脚本用 `scripts/../../_generated` 相对定位输出。它发生过不明删除（疑似系统清理软件），里面全是可再生产物，词典本体在 `payload/zh-localize.js`，不受影响。若装了清理工具，建议把 `Desktop\Postman` 加白名单。
+**重要**：`_generated` 必须与 `Postman-cn` **同级**，所有扫描产物都写在那里。它里面全是可再生产物，词典本体在 `payload/zh-localize.js`，不受影响。若装了清理工具，建议把 `Desktop\Postman` 加白名单。
 
 ---
 
@@ -49,42 +52,46 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
 
 ---
 
-## 4. 脚本清单（scripts/）
+## 4. 脚本清单（统一入口）
 
-### 安装 / 还原（PowerShell）
+日常只使用：
+
+```powershell
+.\postman-zh.bat help
+.\postman-zh.bat install
+.\postman-zh.bat restore
+```
+
+实现按用途归档在 `scripts/` 下，不要从根目录再新增 `.bat` 或转发用 `.ps1`。
+
+### 内部 PowerShell 实现
 | 脚本 | 作用 |
 |---|---|
-| `install-postman-zh.ps1` | **核心安装脚本**。解包 → 注入 preload/汉化/菜单包装/外链引号修复/禁更新 → 打包 → 覆盖 app.asar → 可选验证。所有 `.bat` 和其他 ps1 都最终调它。 |
-| `install-and-freeze-postman-zh.ps1` | 便捷入口，等价 `install-postman-zh.ps1 -DisableUpdates -Verify` |
-| `restore-postman-original.ps1` | 便捷入口，等价 `install-postman-zh.ps1 -RestoreOriginal` |
-| `fix-browser-url-handler.ps1` | 单独修复系统 URL 协议处理器 `--single-argument "%1"` 引号问题 |
-| `kill-postman.ps1` | **彻底杀掉 Postman**。循环杀最多 10 轮（处理守护进程互相拉起），清零返回 exit 0。重装/验证前先跑它。已 10 次压力测试稳定清零。 |
-| `start-postman.ps1` | **启动 Postman 并等页面级调试端口就绪**，打印当前真实端口。因 `--remote-debugging-port=0` 每次重启端口随机变，连 CDP 前务必用它拿当前端口，勿用旧值。 |
+| `scripts/internal/install-postman-zh.ps1` | 核心安装实现，由 `postman-zh.bat install` 调用。 |
+| `scripts/internal/fix-browser-url-handler.ps1` | 修复系统 URL 协议处理器的引号问题。 |
+| `scripts/internal/kill-postman.ps1` | 循环关闭全部 Postman 进程。 |
+| `scripts/internal/start-postman.ps1` | 启动 Postman 并等待当前 CDP 端口就绪。 |
 
-`install-postman-zh.ps1` 关键参数：
+安装命令常用参数：
 ```
 -PostmanDir <path>     指定 app-* 目录（不传则自动发现）
--Latest                按 app-x.y.z 版本号选最新目录（忽略正在运行的旧版）
--DisableUpdates        注入"禁止自动更新"补丁（见第 6 节）
--FixBrowserUrlHandler  修复浏览器 URL 引号
+-KeepUpdates           不注入禁止自动更新补丁（默认会禁用更新）
+-NoVerify              安装后不运行验证
 -CleanOldVersions      打补丁成功后删除旧 app-* 目录、旧 nupkg、裁剪 RELEASES
--Verify                安装后启动 Postman 并跑 verify-postman-zh.js
 -NoRestart             安装后不重启
--RestoreOriginal       还原 app.asar.original
--PayloadPath <path>    指定 zh-localize.js（通常不用）
 ```
 
-### 汉化维护（Node）—— 日常最常用
+### 汉化维护（Node）
 | 脚本 | 作用 |
 |---|---|
-| `extract-ui-strings.js --disk` | **静态全量扫描**。从 `%APPDATA%\Postman\Partitions` 磁盘缓存解压所有 JS bundle，抽取 UI 属性键后的字符串，逐条过 `translate()`，未翻译候选按频率排序输出到 `_generated/zh-static-candidates.json`。**这是发现漏翻的主力**，不需要打开界面。 |
-| `merge-translations.js` | 把 `_generated/trans-*.json` 的译文合并进 `zh-localize.js` 的 `EXACT` 词典头部（重复键后者被覆盖，故已有人工词条自动优先）。合并后自检 JS 语法。 |
-| `collect-zh-misses.js` | **运行时漏翻导出**。连正在运行的 Postman（CDP），调 `window.__POSTMAN_ZH_LOCALIZER__.getMisses()` 取出你使用过程中攒的漏翻，写 `_generated/zh-misses.json`。加 `--clear` 清空收集器。 |
-| `verify-postman-zh.js` | 安装验证。检查注入是否成功、菜单/外链/禁更新补丁是否就位、残留英文等。`-Verify` 会自动调它。 |
-| `probe-update-page.js` | 打开"设置 > 更新"页并读文本，验证更新页是否正常 + 汉化。 |
+| `scripts/data/extract-ui-strings.js` | 静态扫描实现，由 `static-scan` 调用。 |
+| `scripts/data/merge-translations.js` | 合并 `_generated/trans-*.json` 译文。 |
+| `scripts/runtime/collect-zh-misses.js` | 导出运行时漏翻清单。 |
+| `scripts/runtime/probe-update-page.js` | 探测更新页。 |
+| `scripts/verify-postman-zh.js` | 安装验证实现，由 `verify` 或 `install` 调用。 |
 
 ### 审计（Node，走 CDP，需 Postman 带 `--remote-debugging-port=0` 启动）
-`audit-postman-*.js` 系列、`scan-postman-clickables.js`：通过 CDP 模拟点击/悬停/右键遍历各页面，报告残留英文。用于定位交互后才出现的漏翻。`-Verify` 安装会自动带调试端口启动。日常优先用 `extract-ui-strings.js`（更全更快），审计脚本用于补充特定交互路径。
+`scripts/audit/` 下的脚本通过 CDP 模拟点击、悬停和右键遍历页面。使用 `postman-zh.bat audit <名称>` 调用，不要直接记内部文件名。
 
 ---
 
@@ -93,7 +100,7 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
 ### A. 发现并补齐漏翻（治本，批量）
 ```powershell
 # 1. 静态扫描出未翻译候选（覆盖全部界面，含没打开过的）
-node scripts/extract-ui-strings.js --disk
+.\postman-zh.bat static-scan --disk
 #    → _generated/zh-static-candidates.json（按出现频率排序）
 
 # 2. 从候选里筛出"该翻的"，翻译成 _generated/trans-*.json
@@ -101,16 +108,16 @@ node scripts/extract-ui-strings.js --disk
 #    大批量时可派并行子代理各翻一段（见第 7 节的跳过规则）
 
 # 3. 合并进词典
-node scripts/merge-translations.js
+.\postman-zh.bat merge
 
 # 4. 重装 + 验证
-powershell -ExecutionPolicy Bypass -File scripts/install-postman-zh.ps1 -Latest -DisableUpdates -Verify
+.\postman-zh.bat install
 ```
 
 ### B. 兜底：运行时收集用户实际遇到的漏翻
 ```powershell
-node scripts/collect-zh-misses.js          # 导出 _generated/zh-misses.json
-node scripts/collect-zh-misses.js --clear  # 清空，重新开始攒
+.\postman-zh.bat collect          # 导出 _generated/zh-misses.json
+.\postman-zh.bat collect -Clear   # 清空，重新开始攒
 ```
 用户正常使用 Postman，界面上凡是翻译器没命中的英文会自动记进 localStorage。适合捕获服务端新下发的动态文案。
 
@@ -166,7 +173,7 @@ node scripts/collect-zh-misses.js --clear  # 清空，重新开始攒
 - `ATTRS` — 需要翻译的元素属性名列表（含 `data-placeholder`）
 - 运行时收集器 `recordMiss` + `getMisses()`（对外挂在 `window.__POSTMAN_ZH_LOCALIZER__`）
 
-补词条决策：固定完整句 → `EXACT`；可复用片段 → `PHRASES`；含变量 → `RULES`；输入框默认值 → 同时看 `EDITABLE_EXACT`；原生菜单 → 改 `install-postman-zh.ps1` 里的菜单包装器词典。
+补词条决策：固定完整句 → `EXACT`；可复用片段 → `PHRASES`；含变量 → `RULES`；输入框默认值 → 同时看 `EDITABLE_EXACT`；原生菜单 → 改 `scripts/internal/install-postman-zh.ps1` 里的菜单包装器词典。
 
 ---
 
@@ -176,8 +183,8 @@ node scripts/collect-zh-misses.js --clear  # 清空，重新开始攒
 2. 下载 full nupkg 到 `packages/`，校验 SHA1 与 feed 一致
 3. 解压 nupkg 的 `lib/net45` 为 `app-<新版本>`
 4. 在 `packages/RELEASES` 追加新版本行
-5. 双击 `install-latest-zh.bat`（`-Latest -DisableUpdates -FixBrowserUrlHandler -CleanOldVersions -Verify`）——打补丁成功后自动删除旧 `app-*`、旧 nupkg，只保留当前版本
-6. 跑一遍 `extract-ui-strings.js --disk` 扫新版新增文案，走第 5A 节闭环补齐
+5. 运行 `.\postman-zh.bat install -CleanOldVersions`——打补丁成功后自动删除旧 `app-*`、旧 nupkg，只保留当前版本
+6. 运行 `.\postman-zh.bat static-scan --disk` 扫新版新增文案，走第 5A 节闭环补齐
 
 看到 `[postman-zh] VERIFY PASSED` 即成功。
 
@@ -189,10 +196,10 @@ node scripts/collect-zh-misses.js --clear  # 清空，重新开始攒
 node -c payload/zh-localize.js
 node -c payload/zh-auth-webview-preload.js
 node -c scripts/verify-postman-zh.js
-node -c scripts/extract-ui-strings.js
-node -c scripts/merge-translations.js
-node -c scripts/collect-zh-misses.js
-powershell -NoProfile -ExecutionPolicy Bypass -Command "[scriptblock]::Create((Get-Content -Raw scripts/install-postman-zh.ps1)) | Out-Null; 'PS_PARSE_OK'"
+node -c scripts/data/extract-ui-strings.js
+node -c scripts/data/merge-translations.js
+node -c scripts/runtime/collect-zh-misses.js
+powershell -NoProfile -ExecutionPolicy Bypass -Command "[scriptblock]::Create((Get-Content -Raw -Encoding UTF8 scripts/postman-zh.ps1)) | Out-Null; [scriptblock]::Create((Get-Content -Raw -Encoding UTF8 scripts/internal/install-postman-zh.ps1)) | Out-Null; 'PS_PARSE_OK'"
 ```
 
 不要提交任何 `app.asar` / `app.asar.original` / `app.asar.unpacked.zh` / 截图 / `_generated` 产物 / 用户数据。

@@ -12,10 +12,10 @@
        想留着就加 -KeepArtifacts
 
   用法：
-    powershell -ExecutionPolicy Bypass -File .\publish-postman-cn.ps1
-    powershell -ExecutionPolicy Bypass -File .\publish-postman-cn.ps1 -CheckOnly
-    powershell -ExecutionPolicy Bypass -File .\publish-postman-cn.ps1 -SkipPush
-    powershell -ExecutionPolicy Bypass -File .\publish-postman-cn.ps1 -SkipRelease
+    .\postman-zh.bat publish
+    .\postman-zh.bat publish -CheckOnly
+    .\postman-zh.bat publish -SkipPush
+    .\postman-zh.bat publish -SkipRelease
 #>
 [CmdletBinding()]
 param(
@@ -100,18 +100,30 @@ function Confirm-Step([string]$Message) {
 }
 
 # ---------- 路径 ----------
-# 本脚本支持两种摆放位置，靠"自己旁边有没有 payload\zh-localize.js"判断：
-#   A. 仓库内（Postman-cn\publish-postman-cn.ps1）        → 脚本所在目录就是仓库
-#   B. 仓库外（postman-zh-workspace\publish-postman-cn.ps1）→ 仓库是同级的 Postman-cn\
-# 两种情况下 $postmanRoot 都要落在 Squirrel 安装目录（含 app-* 的那层）。
+# 本脚本支持放在仓库的 scripts\maintenance\ 下，也兼容放在
+# postman-zh-workspace\ 下的旧位置。通过查找 payload\zh-localize.js 定位仓库。
 $scriptDir = Split-Path -Parent $PSCommandPath
-if (Test-Path -LiteralPath (Join-Path $scriptDir 'payload\zh-localize.js')) {
-  $repoDir       = $scriptDir                               # ...\Postman-cn
-  $workspaceRoot = Split-Path -Parent $repoDir              # ...\postman-zh-workspace
-} else {
-  $workspaceRoot = $scriptDir                               # ...\postman-zh-workspace
-  $repoDir       = Join-Path $workspaceRoot $script:RepoDirName
+$repoDir = $null
+$candidate = $scriptDir
+while ($candidate) {
+  if (Test-Path -LiteralPath (Join-Path $candidate 'payload\zh-localize.js')) {
+    $repoDir = $candidate
+    break
+  }
+  $parent = Split-Path -Parent $candidate
+  if ($parent -eq $candidate) { break }
+  $candidate = $parent
 }
+if (-not $repoDir) {
+  $workspaceCandidate = Join-Path $scriptDir $script:RepoDirName
+  if (Test-Path -LiteralPath (Join-Path $workspaceCandidate 'payload\zh-localize.js')) {
+    $repoDir = $workspaceCandidate
+  }
+}
+if (-not $repoDir) {
+  throw "无法定位 Postman-cn 仓库：未找到 payload\zh-localize.js"
+}
+$workspaceRoot = Split-Path -Parent $repoDir
 $postmanRoot = Split-Path -Parent $workspaceRoot            # ...\Desktop\Postman
 $outDir      = Join-Path $workspaceRoot '_release'          # 产物始终放仓库外，不会被 git 看到
 
@@ -238,7 +250,7 @@ if (-not $appPath -or -not (Test-Path -LiteralPath $appPath)) {
     # 校验确实打过汉化补丁，别把英文原版发出去
     if (Test-BinaryContains -Path $asar -Needle 'postman-zh-localizer') { Write-Ok 'app.asar 已含汉化补丁标记' }
     else {
-      Write-Bad 'app.asar 里没有汉化标记，可能是未汉化的原版！先跑 install-latest-zh.bat'
+      Write-Bad 'app.asar 里没有汉化标记，可能是未汉化的原版！先跑 postman-zh.bat install'
       $problems.Add('app.asar 未汉化')
     }
   }

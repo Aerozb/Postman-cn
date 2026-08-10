@@ -50,7 +50,7 @@ const flowOverflowScript = `(() => {
 })()`;
 
 async function main(){
- const out=path.resolve(arg("--out",path.join(process.cwd(),"_generated","postman-targeted-surfaces.json"))), delay=Number(arg("--delay-ms","500"));
+ const out=path.resolve(arg("--out",path.join(__dirname,"..","..","..","_generated","postman-targeted-surfaces.json"))), delay=Number(arg("--delay-ms","500"));
  const portFile=path.join(process.env.APPDATA||"","Postman","DevToolsActivePort"),port=fs.readFileSync(portFile,"utf8").split(/\r?\n/)[0].trim(),pages=await(await fetch(`http://127.0.0.1:${port}/json/list`)).json();
  const target=pages.find(p=>p.type==="page"&&/^https:\/\/desktop\.postman\.com/i.test(p.url||""));if(!target)throw new Error("Postman page target not found");const cdp=await connect(target.webSocketDebuggerUrl),shots=[],actions=[];
  const snap=async(name,scope="all")=>{const s=await evalv(cdp,domScript(scope));shots.push({name,roots:s.roots,hits:s.hits,findings:s.hits.filter(x=>isEnglish(x.text)),targetCount:s.targets.length,targetPreview:s.targets.slice(0,250),scrollCount:s.scrolls.length});return s};
