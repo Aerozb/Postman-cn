@@ -1,4 +1,4 @@
-param()
+﻿param()
 
 $ErrorActionPreference = "Stop"
 
@@ -8,7 +8,7 @@ try {
 
 function Write-Step {
   param([string]$Message)
-  Write-Host "[postman-zh] $Message"
+  Write-Host "[Postman 汉化] $Message"
 }
 
 $schemes = @("http", "https")
@@ -20,7 +20,7 @@ foreach ($scheme in $schemes) {
   $choice = Get-ItemProperty -Path $choicePath -ErrorAction SilentlyContinue
   $progId = $choice.ProgId
   if ([string]::IsNullOrWhiteSpace($progId)) {
-    Write-Step "No browser handler ProgId found for $scheme"
+    Write-Step "未找到 $scheme 的浏览器处理程序标识。"
     continue
   }
 
@@ -34,21 +34,21 @@ foreach ($scheme in $schemes) {
   }
 
   if (-not $sourcePath) {
-    Write-Step "Browser handler command not found for $scheme ($progId)"
+    Write-Step "未找到 $scheme 的浏览器处理命令（$progId）。"
     continue
   }
 
   $command = (Get-ItemProperty -LiteralPath $sourcePath).'(default)'
   if ([string]::IsNullOrWhiteSpace($command)) {
-    Write-Step "Browser handler command is empty for $scheme ($progId)"
+    Write-Step "$scheme 的浏览器处理命令为空（$progId）。"
     continue
   }
 
   if ($command -notmatch '--single-argument\s+"%1"') {
     if ($command -match '--single-argument\s+%1') {
-      Write-Step "Browser URL handler already fixed for $scheme ($progId)"
+      Write-Step "$scheme 的浏览器链接处理程序已经修复（$progId）。"
     } else {
-      Write-Step "Browser URL handler for $scheme ($progId) does not match the Chrome quote issue pattern"
+      Write-Step "$scheme 的浏览器链接处理程序不符合 Chrome 引号问题特征，无需修改（$progId）。"
     }
     continue
   }
@@ -60,7 +60,7 @@ foreach ($scheme in $schemes) {
 
   New-Item -Path $hkcuCommandPath -Force | Out-Null
   Set-ItemProperty -LiteralPath $hkcuCommandPath -Name "(default)" -Value $fixed
-  Write-Step "Fixed browser URL handler quotes for $scheme ($progId)"
+  Write-Step "已修复 $scheme 浏览器链接处理程序的引号（$progId）。"
   $changed = $true
 }
 
@@ -69,10 +69,9 @@ if ($backupLines.Count -gt 0) {
   New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
   $backupFile = Join-Path $backupDir ("postman-zh-browser-handler-backup-{0}.txt" -f (Get-Date -Format "yyyyMMdd-HHmmss"))
   $backupLines | Set-Content -LiteralPath $backupFile -Encoding UTF8
-  Write-Step "Browser handler backup: $backupFile"
+  Write-Step "浏览器处理程序备份：$backupFile"
 }
 
 if (-not $changed) {
-  Write-Step "No browser URL handler changes were needed"
+  Write-Step "浏览器链接处理程序无需修改。"
 }
-

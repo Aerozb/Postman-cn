@@ -20,12 +20,12 @@ async function connect(url) {
     const p = pending.get(msg.id); pending.delete(msg.id); clearTimeout(p.timer);
     msg.error ? p.reject(new Error(msg.error.message)) : p.resolve(msg.result);
   });
-  return { send(method, params = {}) { const callId = id++; ws.send(JSON.stringify({ id: callId, method, params })); return new Promise((resolve, reject) => { const timer = setTimeout(() => { pending.delete(callId); reject(new Error(`timeout: ${method}`)); }, 60000); pending.set(callId, { resolve, reject, timer }); }); }, close() { try { ws.close(); } catch (_) {} } };
+  return { send(method, params = {}) { const callId = id++; ws.send(JSON.stringify({ id: callId, method, params })); return new Promise((resolve, reject) => { const timer = setTimeout(() => { pending.delete(callId); reject(new Error(`CDP 命令执行超时：${method}`)); }, 60000); pending.set(callId, { resolve, reject, timer }); }); }, close() { try { ws.close(); } catch (_) {} } };
 }
 
 async function evaluate(cdp, expression) {
   const r = await cdp.send("Runtime.evaluate", { expression, returnByValue: true, awaitPromise: true });
-  if (r.exceptionDetails) throw new Error(r.exceptionDetails.text || "Runtime.evaluate failed");
+  if (r.exceptionDetails) throw new Error(r.exceptionDetails.text || "Runtime.evaluate 执行失败");
   return r.result.value;
 }
 async function mouse(cdp, type, x, y, button = "none", clickCount = 0) { await cdp.send("Input.dispatchMouseEvent", { type, x, y, button, clickCount }); }
@@ -133,8 +133,9 @@ async function main() {
   const allTabs = flag("--all-tabs"), maxTabs = Math.max(0, Number(arg("--max-tabs", "50"))), tabDelay = Math.max(0, Number(arg("--tab-delay-ms", String(delay))));
   const phaseOnly = arg("--phase", "all"); const enabled = (p) => phaseOnly === "all" || phaseOnly.split(",").includes(p);
   const portFile = path.join(process.env.APPDATA || "", "Postman", "DevToolsActivePort");
+  if (!fs.existsSync(portFile)) throw new Error("未找到 Postman 的 DevToolsActivePort 文件。请先启动 Postman。");
   const port = fs.readFileSync(portFile, "utf8").split(/\r?\n/)[0].trim(); const pages = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
-  const target = pages.find(p => p.type === "page" && /(?:^https:\/\/desktop\.postman\.com(?::\d+)?(?:[\/?#]|$)|^file:\/\/\/.*\/(?:requester|scratchpad)\.html(?:[?#]|$))/i.test(p.url || "")); if (!target) throw new Error("Postman page target not found");
+  const target = pages.find(p => p.type === "page" && /(?:^https:\/\/desktop\.postman\.com(?::\d+)?(?:[\/?#]|$)|^file:\/\/\/.*\/(?:requester|scratchpad)\.html(?:[?#]|$))/i.test(p.url || "")); if (!target) throw new Error("未找到 Postman 页面调试目标");
   const cdp = await connect(target.webSocketDebuggerUrl); const snapshots = [], errors = [], auditedTabs = [];
   const snap = async (phase, scope="all", tab=null) => {
     const state=await evaluate(cdp,scanScript(scope));
@@ -149,12 +150,12 @@ async function main() {
         try {
           await esc(cdp);
           const point = await evaluate(cdp, requesterTabActivateScript(tab.tabId));
-          if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y)) throw new Error("requester tab is no longer available");
+          if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y)) throw new Error("请求编辑器标签页已不可用");
           await click(cdp, point);
           const waitUntil = Date.now() + Math.max(1000, tabDelay * 4);
           let active = false;
           do { await sleep(Math.max(80, Math.min(250, tabDelay || 80))); active = await evaluate(cdp, requesterTabActiveScript(tab.tabId)); } while (!active && Date.now() < waitUntil);
-          if (!active) throw new Error("requester tab did not become active");
+          if (!active) throw new Error("请求编辑器标签页未能激活");
           if (tabDelay > 0) await sleep(tabDelay);
 
           const tabContext = { tabId: tab.tabId, tabName: point.tabName || tab.tabName };
@@ -196,6 +197,6 @@ async function main() {
   } finally { cdp.close(); }
   const findings=new Map(); for(const s of snapshots)for(const h of s.findings){const k=h.kind+"|"+h.attribute+"|"+h.text;const v=findings.get(k)||{...h,count:0,phases:[],tabs:[]};v.count++;if(v.phases.length<20)v.phases.push(s.phase);if(s.tabId&&!v.tabs.some(t=>t.tabId===s.tabId))v.tabs.push({tabId:s.tabId,tabName:s.tabName});findings.set(k,v)}
   const report={generatedAt:new Date().toISOString(),target:{title:target.title,url:target.url},options:{phaseOnly,delay,hoverLimit,clickLimit,contextLimit,allTabs,maxTabs,tabDelay},tabs:auditedTabs,summary:{snapshots:snapshots.length,tabs:auditedTabs.length,findings:findings.size,errors:errors.length},findings:[...findings.values()].sort((a,b)=>b.count-a.count),snapshots,errors};
-  fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,JSON.stringify(report,null,2));console.log(JSON.stringify({out,summary:report.summary,top:report.findings.slice(0,30).map(x=>x.text)},null,2));
+  fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,JSON.stringify(report,null,2));console.log("分阶段流程审计完成，以下为结果摘要：");console.log(JSON.stringify({out,summary:report.summary,top:report.findings.slice(0,30).map(x=>x.text)},null,2));
 }
-main().catch(e=>{console.error(e.stack||e);process.exit(1)});
+main().catch(e=>{console.error("分阶段流程审计失败，详细信息如下：");console.error(e.stack||e);process.exit(1)});

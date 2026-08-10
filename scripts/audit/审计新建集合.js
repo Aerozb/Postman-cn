@@ -27,14 +27,14 @@ function sleep(ms) {
 async function getJson(url) {
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status} ${url}`);
+    throw new Error(`HTTP 请求失败：状态码 ${response.status}，地址 ${url}`);
   }
   return response.json();
 }
 
 function resolvePortFile() {
   if (!process.env.APPDATA) {
-    throw new Error("APPDATA is not set; cannot locate Postman DevToolsActivePort.");
+    throw new Error("未设置 APPDATA 环境变量，无法定位 Postman 的 DevToolsActivePort 文件。");
   }
   return path.join(process.env.APPDATA, "Postman", "DevToolsActivePort");
 }
@@ -45,14 +45,14 @@ async function connectCdp(wsUrl) {
   const ws = new WebSocket(wsUrl);
 
   await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("Timed out connecting to CDP websocket.")), 10000);
+    const timer = setTimeout(() => reject(new Error("连接 CDP WebSocket 超时。")), 10000);
     ws.addEventListener("open", () => {
       clearTimeout(timer);
       resolve();
     }, { once: true });
     ws.addEventListener("error", () => {
       clearTimeout(timer);
-      reject(new Error("Failed to connect to CDP websocket."));
+      reject(new Error("连接 CDP WebSocket 失败。"));
     }, { once: true });
   });
 
@@ -79,7 +79,7 @@ async function connectCdp(wsUrl) {
         setTimeout(() => {
           if (pending.has(id)) {
             pending.delete(id);
-            reject(new Error(`CDP command timed out: ${method}`));
+            reject(new Error(`CDP 命令执行超时：${method}`));
           }
         }, 45000);
       });
@@ -108,7 +108,7 @@ async function waitForPostmanTarget(port, timeoutMs) {
     } catch (_) {}
     await sleep(800);
   }
-  throw new Error(`Cannot find a Postman page target. Targets: ${JSON.stringify(lastTargets)}`);
+  throw new Error(`未找到 Postman 页面调试目标。当前目标：${JSON.stringify(lastTargets)}`);
 }
 
 async function evaluate(cdp, expression, awaitPromise = false) {
@@ -534,7 +534,7 @@ async function main() {
 
   const portFile = resolvePortFile();
   if (!fs.existsSync(portFile)) {
-    throw new Error("DevToolsActivePort not found. Start Postman with --remote-debugging-port=0 first.");
+    throw new Error("未找到 DevToolsActivePort 文件。请先以 --remote-debugging-port=0 启动 Postman。");
   }
   const port = fs.readFileSync(portFile, "utf8").split(/\r?\n/)[0].trim();
   const target = await waitForPostmanTarget(port, timeoutMs);
@@ -630,6 +630,7 @@ async function main() {
     fs.writeFileSync(`${outBase}.json`, JSON.stringify(output, null, 2), "utf8");
     const shot = await cdp.send("Page.captureScreenshot", { format: "png", fromSurface: true });
     fs.writeFileSync(`${outBase}.png`, Buffer.from(shot.data, "base64"));
+    console.log("新建集合界面审计完成，以下为结果摘要：");
     console.log(JSON.stringify({
       out: `${outBase}.json`,
       screenshot: `${outBase}.png`,
@@ -653,6 +654,7 @@ async function main() {
 }
 
 main().catch((error) => {
+  console.error("新建集合界面审计失败，详细信息如下：");
   console.error(error && error.stack || error);
   process.exit(1);
 });

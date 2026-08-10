@@ -55,20 +55,13 @@ function sleep(ms) {
 }
 
 function escapeForConsole(value) {
-  return JSON.stringify(value, (_key, current) => {
-    if (typeof current !== "string") {
-      return current;
-    }
-    return current.replace(/[\u007f-\uffff]/g, (ch) => {
-      return "\\u" + ch.charCodeAt(0).toString(16).padStart(4, "0");
-    });
-  }, 2);
+  return JSON.stringify(value, null, 2);
 }
 
 async function getJson(url) {
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status} ${url}`);
+    throw new Error(`HTTP 请求失败：状态码 ${response.status}，地址 ${url}`);
   }
   return response.json();
 }
@@ -76,7 +69,7 @@ async function getJson(url) {
 function resolvePortFile() {
   const appData = process.env.APPDATA;
   if (!appData) {
-    throw new Error("APPDATA is not set; cannot locate Postman DevToolsActivePort.");
+    throw new Error("未设置 APPDATA，无法定位 Postman 的 DevToolsActivePort。");
   }
   return path.join(appData, "Postman", "DevToolsActivePort");
 }
@@ -112,28 +105,28 @@ function inferPostmanDirFromTarget(targetUrl) {
   try {
     filePath = path.normalize(fileURLToPath(new URL(targetUrl)));
   } catch (error) {
-    throw new Error(`Cannot parse the local Postman target URL: ${targetUrl}. ${error.message}`);
+    throw new Error(`无法解析本地 Postman 目标网址：${targetUrl}。${error.message}`);
   }
 
   const marker = `${path.sep}resources${path.sep}app.asar`.toLowerCase();
   const index = filePath.toLowerCase().lastIndexOf(marker);
   if (index < 0) {
     throw new Error(
-      `Local page target is not inside app-*/resources/app.asar: ${targetUrl}. ` +
-      "Restart Postman from the intended installation."
+      `本地页面目标不在 app-*/resources/app.asar 中：${targetUrl}。` +
+      "请从目标安装目录重新启动 Postman。"
     );
   }
 
   const suffix = filePath.slice(index + marker.length);
   if (suffix && !suffix.startsWith(path.sep)) {
-    throw new Error(`Invalid app.asar page path in target URL: ${targetUrl}`);
+    throw new Error(`目标网址中的 app.asar 页面路径无效：${targetUrl}`);
   }
 
   const inferred = normalizePath(filePath.slice(0, index));
   if (!/^app-.+/i.test(path.basename(inferred)) || !isPostmanAppDir(inferred)) {
     throw new Error(
-      `Local page target resolved to an invalid Postman app directory: ${inferred}. ` +
-      "Restart Postman from the intended installation."
+      `本地页面目标解析到了无效的 Postman 版本目录：${inferred}。` +
+      "请从目标安装目录重新启动 Postman。"
     );
   }
   return inferred;
@@ -178,14 +171,14 @@ function queryWindowsPostmanProcesses(port) {
     return {
       ownerPids: [],
       processes: [],
-      connectionError: "Process binding is only implemented on Windows.",
+      connectionError: "仅支持在 Windows 上绑定进程。",
       processError: null
     };
   }
 
   const portNumber = Number(port);
   if (!Number.isInteger(portNumber) || portNumber < 1 || portNumber > 65535) {
-    throw new Error(`Invalid DevTools port for process binding: ${port}`);
+    throw new Error(`用于进程绑定的 DevTools 端口无效：${port}`);
   }
 
   const script = [
@@ -208,7 +201,7 @@ function queryWindowsPostmanProcesses(port) {
       { encoding: "utf8", windowsHide: true, timeout: 10000, maxBuffer: 1024 * 1024 }
     ).trim();
     if (!output) {
-      throw new Error("PowerShell returned no process data.");
+      throw new Error("PowerShell 没有返回进程数据。");
     }
     const result = JSON.parse(output);
     result.ownerPids = Array.isArray(result.ownerPids) ? result.ownerPids : [];
@@ -218,7 +211,7 @@ function queryWindowsPostmanProcesses(port) {
     return {
       ownerPids: [],
       processes: [],
-      connectionError: `Windows process query failed: ${error.message}`,
+      connectionError: `查询 Windows 进程失败：${error.message}`,
       processError: null
     };
   }
@@ -253,8 +246,8 @@ function assertPostmanDir(candidate, source) {
   const resolved = normalizePath(candidate);
   if (!/^app-.+/i.test(path.basename(resolved)) || !isPostmanAppDir(resolved)) {
     throw new Error(
-      `${source} is not a valid Postman app-* directory: ${resolved}. ` +
-      "Expected Postman.exe and resources/app.asar."
+      `${source} 不是有效的 Postman app-* 目录：${resolved}。` +
+      "目录中应包含 Postman.exe 和 resources/app.asar。"
     );
   }
   return resolved;
@@ -266,8 +259,8 @@ function resolvePostmanDir(explicitDir, targetUrl, port) {
 
   if (explicit && inferred && !samePath(explicit, inferred)) {
     throw new Error(
-      `--postman-dir points to ${explicit}, but the running local page belongs to ${inferred}. ` +
-      "Refusing to mix runtime verification from one installation with app.asar from another."
+      `--postman-dir 指向 ${explicit}，但运行中的本地页面属于 ${inferred}。` +
+      "不能混用两个安装目录的运行时结果和 app.asar。"
     );
   }
   if (explicit && inferred) {
@@ -284,19 +277,19 @@ function resolvePostmanDir(explicitDir, targetUrl, port) {
         ...(processBinding.ownerCandidates || []),
         ...(processBinding.runningCandidates || [])
       ]));
-      const detail = candidates.length ? ` Candidates: ${candidates.join(", ")}.` : "";
+      const detail = candidates.length ? ` 候选目录：${candidates.join(", ")}。` : "";
       const warnings = processBinding.warnings && processBinding.warnings.length
-        ? ` Process query errors: ${processBinding.warnings.join(" | ")}.`
+        ? ` 进程查询错误：${processBinding.warnings.join(" | ")}。`
         : "";
       throw new Error(
-        `Cannot bind DevTools port ${port} to --postman-dir ${explicit} via the listening Postman process.${detail}${warnings} ` +
-        "Refusing to combine runtime results with an unverified app.asar."
+        `无法通过监听中的 Postman 进程将 DevTools 端口 ${port} 绑定到 --postman-dir ${explicit}。${detail}${warnings} ` +
+        "不能把运行时结果与未经确认的 app.asar 组合验证。"
       );
     }
     if (!samePath(explicit, processBinding.dir)) {
       throw new Error(
-        `--postman-dir points to ${explicit}, but DevTools port ${port} belongs to ` +
-        `${processBinding.dir}. Refusing to mix two Postman installations.`
+        `--postman-dir 指向 ${explicit}，但 DevTools 端口 ${port} 属于 ` +
+        `${processBinding.dir}。不能混用两个 Postman 安装目录。`
       );
     }
     return {
@@ -313,13 +306,13 @@ function resolvePostmanDir(explicitDir, targetUrl, port) {
     ...(processBinding.ownerCandidates || []),
     ...(processBinding.runningCandidates || [])
   ]));
-  const detail = candidates.length ? ` Candidates: ${candidates.join(", ")}.` : "";
+  const detail = candidates.length ? ` 候选目录：${candidates.join(", ")}。` : "";
   const warnings = processBinding.warnings && processBinding.warnings.length
-    ? ` Process query errors: ${processBinding.warnings.join(" | ")}.`
+    ? ` 进程查询错误：${processBinding.warnings.join(" | ")}。`
     : "";
   throw new Error(
-    `Cannot uniquely bind DevTools port ${port} to the running Postman installation via its listening process.${detail}${warnings} ` +
-    "Restart Postman and ensure Windows process inspection is available."
+    `无法通过监听进程将 DevTools 端口 ${port} 唯一绑定到正在运行的 Postman 安装目录。${detail}${warnings} ` +
+    "请重新启动 Postman，并确认 Windows 进程查询功能可用。"
   );
 }
 
@@ -351,11 +344,11 @@ function scanFileForMarkers(filePath, markers) {
 
 function createPatchSource(postmanDir) {
   if (!postmanDir) {
-    return { checked: false, reason: "Postman app directory not found", includes: () => false };
+    return { checked: false, reason: "找不到 Postman 版本目录。", includes: () => false };
   }
   const appAsar = path.join(postmanDir, "resources", "app.asar");
   if (!fs.existsSync(appAsar)) {
-    return { checked: false, reason: `app.asar not found: ${appAsar}`, includes: () => false };
+    return { checked: false, reason: `找不到 app.asar：${appAsar}`, includes: () => false };
   }
 
   // The packed app.asar is what Electron is currently executing. A leftover
@@ -365,7 +358,7 @@ function createPatchSource(postmanDir) {
   let temporaryCrossCheck = {
     checked: false,
     source: mainJs,
-    reason: "temporary installer main.js is not present"
+    reason: "不存在安装阶段的临时 main.js。"
   };
   if (fs.existsSync(mainJs)) {
     const temporaryMarkers = scanFileForMarkers(mainJs, ALL_PATCH_MARKERS);
@@ -429,14 +422,14 @@ async function connectCdp(wsUrl) {
   const ws = new WebSocket(wsUrl);
 
   await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("Timed out connecting to CDP websocket.")), 10000);
+    const timer = setTimeout(() => reject(new Error("连接 CDP WebSocket 超时。")), 10000);
     ws.addEventListener("open", () => {
       clearTimeout(timer);
       resolve();
     }, { once: true });
     ws.addEventListener("error", () => {
       clearTimeout(timer);
-      reject(new Error("Failed to connect to CDP websocket."));
+      reject(new Error("连接 CDP WebSocket 失败。"));
     }, { once: true });
   });
 
@@ -463,7 +456,7 @@ async function connectCdp(wsUrl) {
         setTimeout(() => {
           if (pending.has(id)) {
             pending.delete(id);
-            reject(new Error(`CDP command timed out: ${method}`));
+            reject(new Error(`CDP 命令执行超时：${method}`));
           }
         }, 15000);
       });
@@ -497,7 +490,7 @@ async function waitForPostmanTarget(port, timeoutMs) {
     } catch (_) {}
     await sleep(1000);
   }
-  throw new Error(`Cannot find a Postman page target. Targets: ${JSON.stringify(lastTargets)}`);
+  throw new Error(`没有找到 Postman 页面目标。当前目标：${JSON.stringify(lastTargets)}`);
 }
 
 async function main() {
@@ -508,13 +501,13 @@ async function main() {
 
   if (!fs.existsSync(portFile)) {
     throw new Error(
-      "DevToolsActivePort not found. Start Postman with --remote-debugging-port=0 first."
+      "找不到 DevToolsActivePort。请先通过 postman-zh.bat start 启动 Postman。"
     );
   }
 
   const port = fs.readFileSync(portFile, "utf8").split(/\r?\n/)[0].trim();
   if (!/^\d+$/.test(port)) {
-    throw new Error(`Invalid DevTools port: ${port}`);
+    throw new Error(`DevTools 端口无效：${port}`);
   }
 
   const target = await waitForPostmanTarget(port, timeoutMs);
@@ -1364,7 +1357,7 @@ async function main() {
         }).filter(Boolean);
       } else {
         translationProbe.untranslated = translationProbeTargets;
-        translationProbe.englishHits = translationProbeTargets.map((text) => ({ input: text, output: text, hits: ["probe unavailable"] }));
+        translationProbe.englishHits = translationProbeTargets.map((text) => ({ input: text, output: text, hits: ["翻译探针不可用"] }));
       }
       const tabs = Array.from(document.querySelectorAll("[data-tab-id]")).slice(0, 10).map((el) => {
         const rect = el.getBoundingClientRect();
@@ -1397,7 +1390,7 @@ async function main() {
         output.managerPatched = !!(manager && manager.__postmanZhBuildMenuPatched);
         const target = tabs.length ? Array.from(document.querySelectorAll("[data-tab-id]")).find((el) => /GET/.test(el.innerText || "")) || document.querySelector("[data-tab-id]") : null;
         if (!manager || typeof manager.buildMenu !== "function") {
-          output.error = "contextMenuManager is unavailable";
+          output.error = "右键菜单管理器不可用。";
         } else if (!target) {
           output.contextMenuSkipped = true;
           output.menuLabels = [];
@@ -1433,7 +1426,7 @@ async function main() {
 
     const result = evaluation.result && evaluation.result.value;
     if (!result) {
-      throw new Error("No verification result returned from Postman.");
+      throw new Error("Postman 没有返回验证结果。");
     }
     const patchSource = createPatchSource(postmanDir);
     result.postmanDir = postmanDir;
@@ -1450,51 +1443,52 @@ async function main() {
 
     const failures = [];
     if (result.localized !== "true") {
-      failures.push("data-postman-zh-localized is not true");
+      failures.push("data-postman-zh-localized 标记不是 true。");
     }
     if (/\bMy Workspace\b|\bTeam Workspace\b|\bPersonal Workspace\b/.test(result.title || "")) {
-      failures.push(`title English hit: ${result.title}`);
+      failures.push(`标题中仍有英文：${result.title}`);
     }
     if (result.bodyEnglishHits && result.bodyEnglishHits.length) {
-      failures.push(`body English hits: ${result.bodyEnglishHits.join(", ")}`);
+      failures.push(`页面正文中仍有英文：${result.bodyEnglishHits.join(", ")}`);
     }
     if (!result.translationProbe || !result.translationProbe.available) {
-      failures.push("translation probe is unavailable");
+      failures.push("翻译探针不可用。");
     } else if (result.translationProbe.untranslated && result.translationProbe.untranslated.length) {
-      failures.push(`translation probe untranslated: ${result.translationProbe.untranslated.join(", ")}`);
+      failures.push(`翻译探针发现未翻译文案：${result.translationProbe.untranslated.join(", ")}`);
     } else if (result.translationProbe.englishHits && result.translationProbe.englishHits.length) {
-      failures.push(`translation probe English hits: ${JSON.stringify(result.translationProbe.englishHits)}`);
+      failures.push(`翻译探针发现英文残留：${JSON.stringify(result.translationProbe.englishHits)}`);
     }
     if (result.error) {
       failures.push(result.error);
     }
     if (result.menuEnglishHits && result.menuEnglishHits.length) {
-      failures.push(`context-menu English hits: ${result.menuEnglishHits.join(", ")}`);
+      failures.push(`右键菜单中仍有英文：${result.menuEnglishHits.join(", ")}`);
     }
     if (!result.contextMenuSkipped && (!Array.isArray(result.menuLabels) || !result.menuLabels.length)) {
-      failures.push("context-menu labels were not captured");
+      failures.push("没有采集到右键菜单文案。");
     }
     if (expectUpdatesDisabled && (!result.updatePatch || !result.updatePatch.disabled)) {
-      failures.push(`update patch is not disabled: ${JSON.stringify(result.updatePatch)}`);
+      failures.push(`自动更新拦截补丁未生效：${JSON.stringify(result.updatePatch)}`);
     }
     if (!result.externalUrlPatch || !result.externalUrlPatch.installed) {
-      failures.push(`external URL quote patch is not installed: ${JSON.stringify(result.externalUrlPatch)}`);
+      failures.push(`外部链接引号补丁未安装：${JSON.stringify(result.externalUrlPatch)}`);
     }
     if (!result.mainMenuPatch || !result.mainMenuPatch.installed) {
-      failures.push(`main menu patch is incomplete: ${JSON.stringify(result.mainMenuPatch)}`);
+      failures.push(`应用菜单汉化补丁不完整：${JSON.stringify(result.mainMenuPatch)}`);
     }
 
+    console.log("汉化验证详情：");
     console.log(escapeForConsole(result));
 
     if (failures.length) {
-      console.error("[postman-zh] VERIFY FAILED");
+      console.error("[Postman 汉化] 验证失败");
       for (const failure of failures) {
         console.error(`- ${failure}`);
       }
       process.exit(1);
     }
 
-    console.log("[postman-zh] VERIFY PASSED");
+    console.log("[Postman 汉化] 验证通过");
   } finally {
     cdp.close();
   }
@@ -1502,7 +1496,7 @@ async function main() {
 
 if (require.main === module) {
   main().catch((error) => {
-    console.error("[postman-zh] VERIFY ERROR");
+    console.error("[Postman 汉化] 验证过程出错");
     console.error(error && error.stack || error);
     process.exit(1);
   });

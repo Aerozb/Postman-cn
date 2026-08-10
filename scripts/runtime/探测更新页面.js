@@ -14,7 +14,7 @@ function outputPaths() {
   if (index >= 0) {
     const value = process.argv[index + 1];
     if (!value || value.startsWith("--")) {
-      throw new Error("--out requires a JSON report path");
+      throw new Error("--out 后必须提供 JSON 报告路径。");
     }
     const hasDirectory = path.isAbsolute(value) || value.includes("/") || value.includes("\\");
     reportPath = hasDirectory ? path.resolve(value) : path.join(generatedDir, value);
@@ -22,7 +22,7 @@ function outputPaths() {
     if (!extension) {
       reportPath += ".json";
     } else if (extension.toLowerCase() !== ".json") {
-      throw new Error("--out must use a .json extension or no extension");
+      throw new Error("--out 路径必须使用 .json 扩展名，或不写扩展名。");
     }
   }
   const parsed = path.parse(reportPath);
@@ -41,7 +41,7 @@ async function getJson(url) {
   const timer = setTimeout(() => controller.abort(), 10000);
   try {
     const response = await fetch(url, { signal: controller.signal });
-    if (!response.ok) throw new Error(`HTTP ${response.status} ${url}`);
+    if (!response.ok) throw new Error(`HTTP 请求失败：状态码 ${response.status}，地址 ${url}`);
     return response.json();
   } finally {
     clearTimeout(timer);
@@ -53,9 +53,9 @@ async function connectCdp(wsUrl) {
   const pending = new Map();
   const ws = new WebSocket(wsUrl);
   await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("CDP connect timeout")), 10000);
+    const timer = setTimeout(() => reject(new Error("连接 CDP 超时。")), 10000);
     ws.addEventListener("open", () => { clearTimeout(timer); resolve(); }, { once: true });
-    ws.addEventListener("error", () => { clearTimeout(timer); reject(new Error("CDP connect failed")); }, { once: true });
+    ws.addEventListener("error", () => { clearTimeout(timer); reject(new Error("连接 CDP 失败。")); }, { once: true });
   });
   ws.addEventListener("message", (event) => {
     const message = JSON.parse(event.data);
@@ -69,7 +69,7 @@ async function connectCdp(wsUrl) {
   ws.addEventListener("close", () => {
     for (const [id, cb] of pending) {
       clearTimeout(cb.timer);
-      cb.reject(new Error(`CDP closed while waiting for request ${id}`));
+      cb.reject(new Error(`等待请求 ${id} 时 CDP 连接已关闭。`));
     }
     pending.clear();
   });
@@ -78,7 +78,7 @@ async function connectCdp(wsUrl) {
       const id = nextId++;
       return new Promise((resolve, reject) => {
         const timer = setTimeout(() => {
-          if (pending.has(id)) { pending.delete(id); reject(new Error(`timeout: ${method}`)); }
+          if (pending.has(id)) { pending.delete(id); reject(new Error(`CDP 方法执行超时：${method}`)); }
         }, timeoutMs);
         pending.set(id, { resolve, reject, timer });
         ws.send(JSON.stringify({ id, method, params }));
@@ -98,24 +98,36 @@ async function main() {
   const { reportPath, screenshotPath } = outputPaths();
   fs.mkdirSync(path.dirname(reportPath), { recursive: true });
   const portFile = path.join(process.env.APPDATA || "", "Postman", "DevToolsActivePort");
+  if (!fs.existsSync(portFile)) {
+    throw new Error("找不到 DevToolsActivePort。请先通过 postman-zh.bat start 启动 Postman。");
+  }
   const port = fs.readFileSync(portFile, "utf8").split(/\r?\n/)[0].trim();
   const targets = await getJson(`http://127.0.0.1:${port}/json/list`);
   const target = targets.find((t) => t.type === "page" && /(?:^https:\/\/desktop\.postman\.com(?::\d+)?(?:[\/?#]|$)|^file:\/\/\/.*\/(?:requester|scratchpad)\.html(?:[?#]|$))/i.test(t.url || ""));
-  if (!target) throw new Error("Postman requester target not found");
+  if (!target) throw new Error("没有找到 Postman 请求编辑器页面。");
   const cdp = await connectCdp(target.webSocketDebuggerUrl);
   try {
     await cdp.send("Runtime.enable");
     await cdp.send("Page.enable");
 
-    const clickByText = (label) => evaluate(cdp, `(() => {
+    const findSettingsTab = () => evaluate(cdp, `(() => {
       const norm = (s) => String(s || "").replace(/\\s+/g, " ").trim();
-      const nodes = Array.from(document.querySelectorAll("button,a,[role],[tabindex],span,div"));
-      const el = nodes.find((n) => norm(n.innerText) === ${JSON.stringify(label)} && n.getBoundingClientRect().width > 0);
-      if (!el) return false;
-      el.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
-      el.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
-      el.click();
-      return true;
+      const visible = (el) => {
+        const r = el.getBoundingClientRect();
+        const style = getComputedStyle(el);
+        return r.width > 2 && r.height > 2 && r.bottom > 0 && r.right > 0 &&
+          r.top < innerHeight && r.left < innerWidth && style.visibility !== "hidden" && style.display !== "none";
+      };
+      const roots = Array.from(document.querySelectorAll('[role="dialog"],[aria-modal="true"],[class*="settings" i]'))
+        .filter((root) => visible(root) && /(?:通用|General)/i.test(norm(root.innerText)) && /(?:关于|About)/i.test(norm(root.innerText)));
+      for (const root of roots) {
+        const el = Array.from(root.querySelectorAll("button,[role=tab],[role=button],[tabindex],span,div"))
+          .find((node) => /^(?:更新|Update)$/.test(norm(node.innerText)) && visible(node));
+        if (!el) continue;
+        const r = el.getBoundingClientRect();
+        return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+      }
+      return null;
     })()`);
 
     const findPoint = (label) => evaluate(cdp, `(() => {
@@ -139,9 +151,18 @@ async function main() {
       await cdp.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: pt.x, y: pt.y, button: "left", clickCount: 1 });
     };
 
+    const pressKey = async (key, code, windowsVirtualKeyCode) => {
+      await cdp.send("Input.dispatchKeyEvent", { type: "keyDown", key, code, windowsVirtualKeyCode, nativeVirtualKeyCode: windowsVirtualKeyCode });
+      await cdp.send("Input.dispatchKeyEvent", { type: "keyUp", key, code, windowsVirtualKeyCode, nativeVirtualKeyCode: windowsVirtualKeyCode });
+    };
+
     // Reuse an already-open settings dialog so the probe is safe to rerun.
-    let clickedTab = await clickByText("更新");
-    if (!clickedTab) clickedTab = await clickByText("Update");
+    let updateTab = await findSettingsTab();
+    let clickedTab = false;
+    if (updateTab) {
+      await realClick(updateTab);
+      clickedTab = true;
+    }
 
     if (!clickedTab) {
       // Open header settings gear, then the settings entry in its menu.
@@ -155,7 +176,7 @@ async function main() {
         return { label, meta, x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height };
       }).filter((i) => i.w > 2 && i.h > 2 && i.y < 60);
     })()`);
-      console.error("header:", JSON.stringify(headerButtons));
+      console.error(`顶部区域发现 ${headerButtons.length} 个可交互候选。`);
       let gear = headerButtons.find((i) => /设置|settings|gear|cog/i.test(i.meta));
       if (!gear) {
         gear = await evaluate(cdp, `(() => {
@@ -168,9 +189,16 @@ async function main() {
         return { x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height };
       })()`);
       }
-      if (!gear) throw new Error("settings gear not found");
+      if (!gear) throw new Error("没有找到设置按钮。");
       await realClick(gear);
-      await sleep(1200);
+      await sleep(600);
+      await pressKey("ArrowDown", "ArrowDown", 40);
+      await sleep(120);
+      await pressKey("Enter", "Enter", 13);
+      await sleep(1500);
+
+      updateTab = await findSettingsTab();
+      if (!updateTab) {
       const overlayItems = await evaluate(cdp, `(() => {
       const norm = (s) => String(s || "").replace(/\\s+/g, " ").trim();
       const roots = Array.from(document.querySelectorAll('[class*="popover"],[class*="overlay"],[class*="menu"],[class*="Menu"],[class*="dropdown"],[role="menu"],[role="listbox"],[data-popper-placement]'));
@@ -186,16 +214,18 @@ async function main() {
       });
       return out.slice(0, 60);
     })()`);
-      console.error("overlay:", JSON.stringify(overlayItems));
+      console.error(`设置菜单中发现 ${overlayItems.length} 个候选项，尝试坐标点击兜底。`);
       const entryItem = overlayItems.find((i) => /^(应用设置|设置|Settings)$/.test(i.t));
       const entry = entryItem ? { x: entryItem.x, y: entryItem.y } : null;
-      if (!entry) throw new Error("settings menu entry not found");
+      if (!entry) throw new Error("没有找到设置菜单项。");
       await realClick(entry);
       await sleep(1500);
+        updateTab = await findSettingsTab();
+      }
 
-      clickedTab = await clickByText("更新");
-      if (!clickedTab) clickedTab = await clickByText("Update");
-      if (!clickedTab) throw new Error("update settings tab not found");
+      if (!updateTab) throw new Error("没有找到更新设置标签页。");
+      await realClick(updateTab);
+      clickedTab = true;
     }
     await sleep(2500);
 
@@ -205,26 +235,27 @@ async function main() {
       return container.innerText.slice(0, 4000);
     })()`);
     if (/出现了一些问题|Something went wrong/i.test(text)) {
-      throw new Error("update page reported an error state");
+      throw new Error("更新页面显示了错误状态。");
     }
     if (!/(?:已是|已经是|已为|当前(?:已)?是|使用的是)最新版本/.test(text)) {
-      throw new Error("update page did not report a Chinese up-to-date state");
+      throw new Error("更新页面没有显示中文的“已是最新版本”状态。");
     }
 
     const report = { verified: true, language: "zh-CN", clickedTab, text, screenshot: null, screenshotError: null };
     try {
       const screenshot = await cdp.send(
         "Page.captureScreenshot",
-        { format: "png", fromSurface: true, captureBeyondViewport: false },
-        10000
+        { format: "png" },
+        30000
       );
       fs.writeFileSync(screenshotPath, Buffer.from(screenshot.data, "base64"));
       report.screenshot = screenshotPath;
     } catch (error) {
       report.screenshotError = error && error.message || String(error);
-      console.error(`[probe] screenshot skipped: ${report.screenshotError}`);
+      console.error(`截图失败，已跳过：${report.screenshotError}`);
     }
     fs.writeFileSync(reportPath, JSON.stringify(report, null, 2), "utf8");
+    console.log(`更新页面验证通过，报告已保存：${reportPath}`);
     console.log(JSON.stringify({ verified: true, language: report.language, report: reportPath, clickedTab, screenshot: report.screenshot, screenshotError: report.screenshotError, textPreview: text.slice(0, 600) }, null, 2));
   } finally {
     cdp.close();
@@ -232,6 +263,7 @@ async function main() {
 }
 
 main().catch((error) => {
+  console.error("探测更新页面失败：");
   console.error(error && error.stack || error);
   process.exit(1);
 });

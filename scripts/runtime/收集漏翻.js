@@ -3,8 +3,8 @@
 
 // 导出汉化脚本运行时收集到的漏翻清单。
 // 用法：
-//   node collect-zh-misses.js            输出并保存清单到 _generated/zh-misses.json
-//   node collect-zh-misses.js --clear    导出后清空已收集记录
+//   node 收集漏翻.js            输出并保存清单到 _generated/zh-misses.json
+//   node 收集漏翻.js --clear    导出后清空已收集记录
 // 前提：Postman 以 --remote-debugging-port=0 启动（postman-zh.bat install 默认如此）。
 
 const fs = require("fs");
@@ -19,9 +19,9 @@ async function connectCdp(wsUrl) {
   const pending = new Map();
   const ws = new WebSocket(wsUrl);
   await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("CDP connect timeout")), 10000);
+    const timer = setTimeout(() => reject(new Error("连接 CDP 超时。")), 10000);
     ws.addEventListener("open", () => { clearTimeout(timer); resolve(); }, { once: true });
-    ws.addEventListener("error", () => { clearTimeout(timer); reject(new Error("CDP connect failed")); }, { once: true });
+    ws.addEventListener("error", () => { clearTimeout(timer); reject(new Error("连接 CDP 失败。")); }, { once: true });
   });
   ws.addEventListener("message", (event) => {
     const message = JSON.parse(event.data);
@@ -38,7 +38,7 @@ async function connectCdp(wsUrl) {
       ws.send(JSON.stringify({ id, method, params }));
       return new Promise((resolve, reject) => {
         const timer = setTimeout(() => {
-          if (pending.has(id)) { pending.delete(id); reject(new Error(`timeout: ${method}`)); }
+          if (pending.has(id)) { pending.delete(id); reject(new Error(`CDP 方法执行超时：${method}`)); }
         }, 30000);
         pending.set(id, { resolve, reject, timer });
       });
@@ -51,12 +51,12 @@ async function main() {
   const clear = process.argv.includes("--clear");
   const portFile = path.join(process.env.APPDATA || "", "Postman", "DevToolsActivePort");
   if (!fs.existsSync(portFile)) {
-    throw new Error("DevToolsActivePort not found. 请先通过 postman-zh.bat install 启动 Postman。");
+    throw new Error("找不到 DevToolsActivePort。请先通过 postman-zh.bat start 启动 Postman。");
   }
   const port = fs.readFileSync(portFile, "utf8").split(/\r?\n/)[0].trim();
   const targets = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
   const pages = targets.filter((t) => t.type === "page" && t.webSocketDebuggerUrl);
-  if (!pages.length) throw new Error("No debuggable Postman pages found.");
+  if (!pages.length) throw new Error("没有找到可调试的 Postman 页面。");
 
   const merged = new Map();
   for (const page of pages) {
@@ -80,7 +80,7 @@ async function main() {
         else merged.set(item.text, { ...item });
       }
     } catch (error) {
-      console.error(`skip target ${page.url && page.url.slice(0, 60)}: ${error.message}`);
+      console.error(`已跳过目标 ${page.url && page.url.slice(0, 60)}：${error.message}`);
     } finally {
       if (cdp) cdp.close();
     }
@@ -100,6 +100,7 @@ async function main() {
 }
 
 main().catch((error) => {
+  console.error("收集漏翻失败：");
   console.error(error && error.message || error);
   process.exit(1);
 });

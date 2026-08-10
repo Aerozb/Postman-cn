@@ -22,9 +22,9 @@ async function connect(wsUrl) {
   const ws = new WebSocket(wsUrl);
   const pending = new Map(); let id = 0;
   await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("CDP connection timeout")), 10000);
+    const timer = setTimeout(() => reject(new Error("连接 CDP 超时。")), 10000);
     ws.addEventListener("open", () => { clearTimeout(timer); resolve(); }, { once: true });
-    ws.addEventListener("error", () => { clearTimeout(timer); reject(new Error("CDP connection failed")); }, { once: true });
+    ws.addEventListener("error", () => { clearTimeout(timer); reject(new Error("连接 CDP 失败。")); }, { once: true });
   });
   ws.addEventListener("message", event => {
     const msg = JSON.parse(event.data); if (!msg.id || !pending.has(msg.id)) return;
@@ -34,7 +34,7 @@ async function connect(wsUrl) {
   return { send(method, params = {}, sessionId = null) {
     const callId = ++id; ws.send(JSON.stringify({ id: callId, method, params, ...(sessionId ? {sessionId} : {}) }));
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => { pending.delete(callId); reject(new Error(`CDP timeout: ${method}`)); }, 60000);
+      const timer = setTimeout(() => { pending.delete(callId); reject(new Error(`CDP 命令执行超时：${method}`)); }, 60000);
       pending.set(callId, { resolve, reject, timer });
     });
   }, close() { try { ws.close(); } catch (_) {} } };
@@ -44,7 +44,7 @@ async function connectTarget(port, browserPath, target) {
   if (browserPath) {
     const root = await connect(`ws://127.0.0.1:${port}${browserPath}`);
     const attached = await root.send("Target.attachToTarget", { targetId: target.id, flatten: true });
-    if (!attached || !attached.sessionId) { root.close(); throw new Error("Target.attachToTarget did not return a session id"); }
+    if (!attached || !attached.sessionId) { root.close(); throw new Error("Target.attachToTarget 未返回会话 ID"); }
     const sessionId = attached.sessionId;
     return {
       send(method, params = {}) { return root.send(method, params, sessionId); },
@@ -56,7 +56,7 @@ async function connectTarget(port, browserPath, target) {
 
 async function evaluate(cdp, expression) {
   const result = await cdp.send("Runtime.evaluate", { expression, awaitPromise: true, returnByValue: true });
-  if (result.exceptionDetails) throw new Error(result.exceptionDetails.text || "Runtime.evaluate failed");
+  if (result.exceptionDetails) throw new Error(result.exceptionDetails.text || "Runtime.evaluate 执行失败");
   return result.result && result.result.value;
 }
 async function mouse(cdp, type, x, y, button = "none", clickCount = 0) {
@@ -144,7 +144,7 @@ async function accessibilityFindings(cdp){
   try{
     const tree=await Promise.race([
       cdp.send('Accessibility.getFullAXTree'),
-      new Promise((_,reject)=>setTimeout(()=>reject(new Error('Accessibility.getFullAXTree soft timeout')),8000))
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error('Accessibility.getFullAXTree 软超时')),8000))
     ]); const out=[]; const seen=new Set();
     for(const node of tree.nodes||[]){
       for(const [kind,key] of [['ax-name','name'],['ax-description','description'],['ax-value','value']]){
@@ -175,11 +175,11 @@ async function main() {
   const delay = Math.max(120, Number(arg('--delay-ms', '420')));
   const maxAx = Math.max(0, Number(arg('--max-ax', '8'))); let axUsed=0;
   const portFile = path.join(process.env.APPDATA || '', 'Postman', 'DevToolsActivePort');
-  if (!fs.existsSync(portFile)) throw new Error('Postman DevToolsActivePort was not found');
+  if (!fs.existsSync(portFile)) throw new Error('未找到 Postman 的 DevToolsActivePort 文件');
   const lines = fs.readFileSync(portFile, 'utf8').split(/\r?\n/); const port = lines[0].trim(); const browserPath = norm(lines[1]);
   const pages = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
   const target = pages.find(p => p.type === 'page' && /(?:^https:\/\/desktop\.postman\.com(?::\d+)?(?:[\/?#]|$)|^file:\/\/\/.*\/(?:requester|scratchpad)\.html(?:[?#]|$))/i.test(p.url||''));
-  if (!target) throw new Error('Postman page target was not found');
+  if (!target) throw new Error('未找到 Postman 页面调试目标');
   const cdp = await connectTarget(port,browserPath,target); await cdp.send('Runtime.enable'); await cdp.send('Page.enable'); await cdp.send('Accessibility.enable');
   const actions = [], errors = [], snapshots = [], merged = new Map();
   async function scan(label, phase) {
@@ -245,13 +245,15 @@ async function main() {
   const findings = [...merged.values()].sort((a,b)=>b.count-a.count||a.text.localeCompare(b.text));
   const report = {generatedAt:new Date().toISOString(),target:{id:target.id,title:target.title,url:target.url},options:{delay,maxAx},coverage:{axScans:axUsed},summary:{snapshots:snapshots.length,actions:actions.length,successfulActions:actions.filter(a=>a.ok).length,findings:findings.length,errors:errors.length},findings,actions,snapshots,errors};
   fs.mkdirSync(path.dirname(out),{recursive:true}); fs.writeFileSync(out,JSON.stringify(report,null,2),'utf8');
+  console.log('入口弹窗审计完成，以下为结果摘要：');
   console.log(JSON.stringify({out,summary:report.summary,top:findings.slice(0,100).map(f=>f.text)},null,2));
 }
 
 if (flag('--self-test')) {
   new Function(`return (${scanScript});`); // generated browser expression parse check
   const fake={targets:[{text:'设置',testid:'settings-button',hasPopup:'menu',x:10,y:10,w:20,h:20,disabled:false},{text:'删除',testid:'delete-button',hasPopup:'menu',x:10,y:10,w:20,h:20,disabled:false}]};
-  if (!pick(fake,[/^设置$/],{top:true,maxY:60})) throw new Error('pick self-test failed');
-  if (pick(fake,[/^删除$/])) throw new Error('danger guard self-test failed');
+  if (!pick(fake,[/^设置$/],{top:true,maxY:60})) throw new Error('自检失败：未选中预期目标');
+  if (pick(fake,[/^删除$/])) throw new Error('自检失败：危险操作防护未生效');
+  console.log('入口弹窗审计脚本自检完成，以下为结果摘要：');
   console.log(JSON.stringify({ok:true,generatedScripts:1,guards:1},null,2));
-} else main().catch(error=>{console.error(error&&error.stack||error);process.exit(1);});
+} else main().catch(error=>{console.error('入口弹窗审计失败，详细信息如下：');console.error(error&&error.stack||error);process.exit(1);});

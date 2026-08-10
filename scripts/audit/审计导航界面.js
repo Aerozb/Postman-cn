@@ -43,9 +43,9 @@ async function connect(wsUrl) {
   let nextId = 1;
 
   await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("Timed out connecting to Postman CDP.")), 10000);
+    const timer = setTimeout(() => reject(new Error("连接 Postman CDP 超时。")), 10000);
     ws.addEventListener("open", () => { clearTimeout(timer); resolve(); }, { once: true });
-    ws.addEventListener("error", () => { clearTimeout(timer); reject(new Error("Failed to connect to Postman CDP.")); }, { once: true });
+    ws.addEventListener("error", () => { clearTimeout(timer); reject(new Error("连接 Postman CDP 失败。")); }, { once: true });
   });
 
   ws.addEventListener("message", (event) => {
@@ -65,7 +65,7 @@ async function connect(wsUrl) {
       return new Promise((resolve, reject) => {
         const timer = setTimeout(() => {
           pending.delete(id);
-          reject(new Error(`CDP timeout: ${method}`));
+          reject(new Error(`CDP 命令执行超时：${method}`));
         }, 60000);
         pending.set(id, { resolve, reject, timer });
       });
@@ -83,7 +83,7 @@ async function connectTarget(port, browserPath, target) {
     const sessionId = attached && attached.sessionId;
     if (!sessionId) {
       root.close();
-      throw new Error("Target.attachToTarget did not return a session id.");
+      throw new Error("Target.attachToTarget 未返回会话 ID。");
     }
     return {
       send(method, params = {}) {
@@ -104,7 +104,7 @@ async function evaluate(cdp, expression) {
     awaitPromise: true
   });
   if (result.exceptionDetails) {
-    throw new Error(result.exceptionDetails.text || "Runtime.evaluate failed");
+    throw new Error(result.exceptionDetails.text || "Runtime.evaluate 执行失败");
   }
   return result.result.value;
 }
@@ -631,13 +631,13 @@ async function main() {
   const used = { hovers: 0, menus: 0, dropdowns: 0, contexts: 0, scrolls: 0 };
 
   const portFile = path.join(process.env.APPDATA || "", "Postman", "DevToolsActivePort");
-  if (!fs.existsSync(portFile)) throw new Error("Postman DevToolsActivePort was not found. Start Postman with remote debugging enabled.");
+  if (!fs.existsSync(portFile)) throw new Error("未找到 Postman 的 DevToolsActivePort 文件。请先启用远程调试并启动 Postman。");
   const portLines = fs.readFileSync(portFile, "utf8").split(/\r?\n/);
   const port = portLines[0].trim();
   const browserPath = norm(portLines[1]);
   const pages = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
   const target = pages.find(page => page.type === "page" && /(?:^https:\/\/desktop\.postman\.com(?::\d+)?(?:[\/?#]|$)|^file:\/\/\/.*\/(?:requester|scratchpad)\.html(?:[?#]|$))/i.test(page.url || ""));
-  if (!target) throw new Error("Postman page target was not found.");
+  if (!target) throw new Error("未找到 Postman 页面调试目标。");
 
   const cdp = await connectTarget(port, browserPath, target);
   const snapshots = [];
@@ -872,7 +872,7 @@ async function main() {
       try {
         await closeTransient(cdp, delay);
         const point = await evaluate(cdp, activateRequesterTabScript(tab.tabId));
-        if (!point) throw new Error("requester tab disappeared");
+        if (!point) throw new Error("请求编辑器标签页已消失");
         await click(cdp, point);
         const deadline = Date.now() + Math.max(1600, delay * 5);
         let active = false;
@@ -880,7 +880,7 @@ async function main() {
           await sleep(Math.max(90, Math.min(delay, 240)));
           active = await evaluate(cdp, activeRequesterTabScript(tab.tabId));
         }
-        if (!active) throw new Error("requester tab did not become active");
+        if (!active) throw new Error("请求编辑器标签页未能激活");
         actions.push({ type: "requester-tab", ok: true, tabId: tab.tabId, tabName: point.tabName || tab.tabName });
         await auditSurface(`requester:${point.tabName || tab.tabName || tab.tabId}`);
       } catch (error) {
@@ -1058,6 +1058,7 @@ async function main() {
 
   fs.mkdirSync(path.dirname(out), { recursive: true });
   fs.writeFileSync(out, JSON.stringify(report, null, 2), "utf8");
+  console.log("导航界面审计完成，以下为结果摘要：");
   console.log(JSON.stringify({
     out,
     summary: report.summary,
@@ -1081,7 +1082,7 @@ if (flag("--self-test")) {
       // are intentionally not executed by the self-test.
       new Function(`return (${expression});`); // eslint-disable-line no-new-func
     } catch (error) {
-      throw new Error(`Generated browser script failed to parse (${name}): ${error.message}`);
+      throw new Error(`生成的浏览器脚本解析失败（${name}）：${error.message}`);
     }
   }
   const fakeState = {
@@ -1091,12 +1092,14 @@ if (flag("--self-test")) {
       { x: 800, y: 300, rect: { w: 60, h: 24 }, text: "删除", testid: "delete-button", role: "button", region: "content", tag: "BUTTON", disabled: false, href: "" }
     ]
   };
-  if (!pickTarget(fakeState, WORKSPACE_SURFACES[0])) throw new Error("Self-test failed: exact text navigation target was not matched.");
-  if (!pickTarget(fakeState, SIDEBAR_SURFACES[0])) throw new Error("Self-test failed: sidebar testid navigation target was not matched.");
-  if (safeInteractive(fakeState.targets[2])) throw new Error("Self-test failed: destructive control passed the click guard.");
+  if (!pickTarget(fakeState, WORKSPACE_SURFACES[0])) throw new Error("自检失败：未匹配到精确文本导航目标。");
+  if (!pickTarget(fakeState, SIDEBAR_SURFACES[0])) throw new Error("自检失败：未匹配到侧边栏 testid 导航目标。");
+  if (safeInteractive(fakeState.targets[2])) throw new Error("自检失败：破坏性控件通过了点击防护。");
+  console.log("导航界面审计脚本自检完成，以下为结果摘要：");
   console.log(JSON.stringify({ ok: true, generatedScripts: 7, navigationGuards: 3 }, null, 2));
 } else {
   main().catch((error) => {
+    console.error("导航界面审计失败，详细信息如下：");
     console.error(error && error.stack || error);
     process.exit(1);
   });

@@ -47,7 +47,7 @@ $script:RepoDirName  = 'Postman-cn'
 
 # ---------- 输出辅助 ----------
 function Write-Head($t) { Write-Host ""; Write-Host "=== $t ===" -ForegroundColor Cyan }
-function Write-Ok($t)   { Write-Host "  [OK]   $t" -ForegroundColor Green }
+function Write-Ok($t)   { Write-Host "  [通过] $t" -ForegroundColor Green }
 function Write-Warn2($t){ Write-Host "  [注意] $t" -ForegroundColor Yellow }
 function Write-Bad($t)  { Write-Host "  [缺失] $t" -ForegroundColor Red }
 function Write-Info($t) { Write-Host "  $t" -ForegroundColor Gray }
@@ -180,7 +180,7 @@ if ($ghCmd) {
 $gitName  = (git config --get user.name)  2>$null
 $gitEmail = (git config --get user.email) 2>$null
 if (-not $gitName -or -not $gitEmail) {
-  Write-Bad 'git 提交身份未配置（user.name / user.email 为空），commit 会失败'
+  Write-Bad 'git 提交身份未配置（user.name / user.email 为空），提交会失败'
   $suggestName = if ($ghUser) { $ghUser } else { '你的用户名' }
   $uid = $null
   if ($ghCmd -and $ghUser) { try { $uid = (gh api user --jq .id 2>$null) } catch { } }
@@ -192,7 +192,7 @@ if (-not $gitName -or -not $gitEmail) {
 } else {
   Write-Ok "提交身份：$gitName <$gitEmail>"
   if ($gitEmail -notmatch 'users\.noreply\.github\.com$') {
-    Write-Warn2 '当前邮箱不是 noreply 邮箱，它会随每条 commit 永久公开'
+  Write-Warn2 '当前邮箱不是 noreply 邮箱，它会随每次提交永久公开'
   }
 }
 
@@ -314,7 +314,7 @@ if (-not $SkipPush) {
       if ($c.Code -ne 0) { Write-Bad "提交失败：`n$($c.Out)"; exit 1 }
       Write-Ok "已提交：$(git log -1 --pretty=%h) $version"
     } elseif ($hasHead) {
-      Write-Info '工作区无改动，沿用当前 commit'
+  Write-Info '工作区无改动，沿用当前提交'
     } else {
       Write-Bad '没有任何文件可提交'
       exit 1
@@ -400,7 +400,7 @@ if ($SkipZip -and (Test-Path -LiteralPath $zipPath)) {
   # robocopy 比 Copy-Item 快且能按名排除；/NFL /NDL 静默文件级日志
   # Squirrel-*.log 含本机安装路径与 Windows 账户名，不能进公开压缩包
   $rc = Start-Process robocopy -ArgumentList @("`"$appPath`"", "`"$dest`"", '/E','/XF','app.asar.original','*.log','/NFL','/NDL','/NJH','/NJS','/NP','/R:1','/W:1') -Wait -PassThru -NoNewWindow
-  if ($rc.ExitCode -ge 8) { Write-Bad "robocopy 失败（code $($rc.ExitCode)）"; exit 1 }
+if ($rc.ExitCode -ge 8) { Write-Bad "robocopy 失败（退出码 $($rc.ExitCode)）"; exit 1 }
 
   foreach ($f in @('Postman.exe','Update.exe')) {
     $p = Join-Path $postmanRoot $f
@@ -479,7 +479,7 @@ if ($SkipZip -and (Test-Path -LiteralPath $zipPath)) {
   if ($sevenZip) {
     $exe = if ($sevenZip -is [string]) { $sevenZip } else { $sevenZip.Source }
     $p = Start-Process $exe -ArgumentList @('a','-tzip','-mx=5','-bso0','-bsp0',"`"$zipPath`"", "`"$stage\*`"") -Wait -PassThru -NoNewWindow
-    if ($p.ExitCode -ne 0) { Write-Bad "7z 压缩失败（code $($p.ExitCode)）"; exit 1 }
+if ($p.ExitCode -ne 0) { Write-Bad "7z 压缩失败（退出码 $($p.ExitCode)）"; exit 1 }
   } else {
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     [System.IO.Compression.ZipFile]::CreateFromDirectory($stage, $zipPath, [System.IO.Compression.CompressionLevel]::Optimal, $false)
@@ -567,7 +567,7 @@ Write-Head '5. 清理本地产物'
 if ($KeepArtifacts) {
   Write-Info "-KeepArtifacts 已指定，保留：$outDir"
 } elseif (-not $allUploaded) {
-  Write-Warn2 "资产状态未全部确认为 uploaded，保留本地产物以便排查：$outDir"
+  Write-Warn2 "资产状态未全部确认为已上传（uploaded），保留本地产物以便排查：$outDir"
 } else {
   $freed = 0
   if (Test-Path -LiteralPath $outDir) {

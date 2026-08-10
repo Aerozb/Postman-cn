@@ -1,13 +1,6 @@
-# start-postman.ps1 - Launch Postman with a CDP debug port and wait until the
-# main page is reachable. Prints the ACTIVE debug port on success.
-#
-# Why this exists: Postman is launched with --remote-debugging-port=0, so the OS
-# assigns a RANDOM port on every start. The real port is written to
-# %APPDATA%\Postman\DevToolsActivePort (first line). Never reuse a cached port;
-# always read that file. This script launches, waits for the page, and reports
-# the current port so callers can connect reliably.
-#
-# Usage:
+﻿# 启动 Postman，等待 CDP 调试端口可用，并输出本次启动的实际端口。
+# 使用 --remote-debugging-port=0 时端口每次都会变化，不能复用旧值。
+# 用法：
 #   .\postman-zh.bat start
 #   .\postman-zh.bat start -TimeoutSec 90
 
@@ -41,10 +34,10 @@ if (-not $PostmanDir) {
       break
     }
   }
-  if (-not $PostmanDir) { throw "No app-* directory found. Pass -PostmanDir explicitly." }
+  if (-not $PostmanDir) { throw "未找到 app-* 版本目录，请通过 -PostmanDir 明确指定。" }
 }
 $exe = Join-Path $PostmanDir "Postman.exe"
-if (-not (Test-Path -LiteralPath $exe)) { throw "Postman.exe not found: $exe" }
+if (-not (Test-Path -LiteralPath $exe)) { throw "未找到 Postman.exe：$exe" }
 
 $portFile = Join-Path $env:APPDATA "Postman\DevToolsActivePort"
 
@@ -52,7 +45,7 @@ $portFile = Join-Path $env:APPDATA "Postman\DevToolsActivePort"
 # requested random CDP port is guaranteed to apply.
 $running = @(Get-Process -Name Postman -ErrorAction SilentlyContinue)
 if ($running.Count -gt 0) {
-  Write-Host "[start-postman] stopping $($running.Count) existing process(es)"
+  Write-Host "[Postman 汉化] 正在关闭现有的 $($running.Count) 个 Postman 进程。"
   for ($round = 1; $round -le 12; $round++) {
     $processes = @(Get-Process -Name Postman -ErrorAction SilentlyContinue)
     if ($processes.Count -eq 0) { break }
@@ -60,7 +53,7 @@ if ($running.Count -gt 0) {
     Start-Sleep -Milliseconds 500
   }
   if (@(Get-Process -Name Postman -ErrorAction SilentlyContinue).Count -gt 0) {
-    throw "Could not stop all existing Postman processes before restart."
+    throw "重新启动前无法关闭全部 Postman 进程。"
   }
 }
 
@@ -69,11 +62,11 @@ if (Test-Path -LiteralPath $portFile) {
   Remove-Item -LiteralPath $portFile -Force -ErrorAction SilentlyContinue
 }
 
-Write-Host "[start-postman] launching: $exe"
+Write-Host "[Postman 汉化] 正在启动：$exe"
 Start-Process -FilePath $exe -ArgumentList "--remote-debugging-port=0"
 
 if ($NoWait) {
-  Write-Host "[start-postman] launched (NoWait); port file will appear at $portFile"
+  Write-Host "[Postman 汉化] 已启动；已按 -NoWait 跳过等待。端口文件将写入：$portFile"
   exit 0
 }
 
@@ -103,9 +96,9 @@ while ((Get-Date) -lt $deadline) {
 }
 
 if ($activePort) {
-  Write-Host "[start-postman] READY port=$activePort"
+  Write-Host "[Postman 汉化] Postman 已就绪，CDP 端口：$activePort"
   exit 0
 } else {
-  Write-Host "[start-postman] TIMEOUT after ${TimeoutSec}s (page not reachable). Check the port file: $portFile"
+  Write-Host "[Postman 汉化] 等待 ${TimeoutSec} 秒后超时，仍无法访问页面。请检查端口文件：$portFile"
   exit 1
 }

@@ -1,6 +1,5 @@
 ﻿param(
   [Parameter(Position = 0)]
-  [ValidateSet('install', 'restore', 'collect', 'verify', 'start', 'stop', 'fix-browser', 'static-scan', 'merge', 'probe', 'scan', 'audit', 'publish', 'help')]
   [string]$Command = 'install',
 
   [string]$PostmanDir,
@@ -74,7 +73,14 @@ function Invoke-PowerShellScript {
   if (-not (Test-Path -LiteralPath $ScriptPath)) {
     throw "找不到脚本：$ScriptPath"
   }
-  & $ScriptPath @Parameters @Arguments
+  if ($Arguments.Count -gt 0) {
+    if ($Parameters.Count -gt 0) {
+      throw "内部调用错误：不能同时使用参数表和透传参数。"
+    }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $ScriptPath @Arguments
+  } else {
+    & $ScriptPath @Parameters
+  }
   $code = if ($null -eq $LASTEXITCODE) { 0 } else { $LASTEXITCODE }
   Stop-WithCode $code
 }
@@ -104,7 +110,7 @@ Postman 中文汉化工具
   stop          彻底关闭 Postman 进程
   fix-browser   修复系统浏览器 URL 参数引号
   static-scan   扫描磁盘缓存中的 UI 文案；--out 裸名称写入 _generated
-  merge         合并 _generated/trans-*.json 译文
+  merge         合并 _generated/trans-*.json 译文；加 --check 只检查、不写入
   probe         检查更新页面；--out 裸名称写入 _generated，截图使用同名 PNG
   scan          扫描可点击界面
   audit <名称>  运行指定深度审计；--out 可用裸名称或 .json（见下方名称）
@@ -112,9 +118,17 @@ Postman 中文汉化工具
   help          显示本帮助
 
 审计名称：
-  all-targets, deep-areas, entry-modals, import, lightweight,
-  navigation, new-collection, new-request, phased, targeted,
-  targeted-surfaces
+  all-targets        全部 CDP 调试目标
+  deep-areas         深层界面
+  entry-modals       入口弹窗
+  import             导入界面
+  lightweight        轻量界面巡检
+  navigation         导航界面
+  new-collection     新建集合界面
+  new-request        新建请求界面
+  phased             分阶段完整审计
+  targeted           固定区域审计
+  targeted-surfaces  容易漏翻的重点界面
 
 安装示例：
   .\postman-zh.bat install
@@ -124,6 +138,13 @@ Postman 中文汉化工具
 }
 
 try {
+  $validCommands = @('install', 'restore', 'collect', 'verify', 'start', 'stop', 'fix-browser', 'static-scan', 'merge', 'probe', 'scan', 'audit', 'publish', 'help')
+  if ($validCommands -notcontains $Command) {
+    Write-Host "未知命令：$Command"
+    Write-Host "请运行 .\postman-zh.bat help 查看可用命令。"
+    Stop-WithCode 2
+  }
+
   $nodeCommands = @('install', 'collect', 'verify', 'static-scan', 'merge', 'probe', 'scan', 'audit')
   if ($nodeCommands -contains $Command) {
     Assert-NodeRuntime
@@ -145,77 +166,93 @@ try {
       if ($PostmanDir) { $params.PostmanDir = $PostmanDir }
       if ($NoRestart) { $params.NoRestart = $true }
       if ($CleanOldVersions) { $params.CleanOldVersions = $true }
-      Invoke-PowerShellScript (Join-Path $internalRoot 'install-postman-zh.ps1') $params
+      Invoke-PowerShellScript (Join-Path $internalRoot '安装汉化.ps1') $params
     }
 
     'restore' {
       $params = @{ Latest = $true; RestoreOriginal = $true }
       if ($PostmanDir) { $params.PostmanDir = $PostmanDir }
       if ($NoRestart) { $params.NoRestart = $true }
-      Invoke-PowerShellScript (Join-Path $internalRoot 'install-postman-zh.ps1') $params
+      Invoke-PowerShellScript (Join-Path $internalRoot '安装汉化.ps1') $params
     }
 
     'collect' {
       $nodeArgs = @($RemainingArguments)
       if ($Clear) { $nodeArgs += '--clear' }
-      Invoke-NodeScript (Join-Path $runtimeRoot 'collect-zh-misses.js') $nodeArgs
+      Invoke-NodeScript (Join-Path $runtimeRoot '收集漏翻.js') $nodeArgs
     }
 
     'verify' {
       $nodeArgs = @($RemainingArguments)
       if ($PostmanDir) { $nodeArgs += @('--postman-dir', $PostmanDir) }
       if (-not $KeepUpdates) { $nodeArgs += '--expect-updates-disabled' }
-      Invoke-NodeScript (Join-Path $PSScriptRoot 'verify-postman-zh.js') $nodeArgs
+      Invoke-NodeScript (Join-Path $PSScriptRoot '验证汉化.js') $nodeArgs
     }
 
     'start' {
       $params = @{ TimeoutSec = $TimeoutSec }
       if ($PostmanDir) { $params.PostmanDir = $PostmanDir }
       if ($NoWait) { $params.NoWait = $true }
-      Invoke-PowerShellScript (Join-Path $internalRoot 'start-postman.ps1') $params
+      Invoke-PowerShellScript (Join-Path $internalRoot '启动程序.ps1') $params
     }
 
     'stop' {
-      Invoke-PowerShellScript (Join-Path $internalRoot 'kill-postman.ps1') @{}
+      Invoke-PowerShellScript (Join-Path $internalRoot '关闭程序.ps1') @{}
     }
 
     'fix-browser' {
-      Invoke-PowerShellScript (Join-Path $internalRoot 'fix-browser-url-handler.ps1') @{}
+      Invoke-PowerShellScript (Join-Path $internalRoot '修复浏览器链接.ps1') @{}
     }
 
     'static-scan' {
-      Invoke-NodeScript (Join-Path $dataRoot 'extract-ui-strings.js') @(Get-NodeArguments $RemainingArguments)
+      Invoke-NodeScript (Join-Path $dataRoot '提取界面文案.js') @(Get-NodeArguments $RemainingArguments)
     }
 
     'merge' {
-      Invoke-NodeScript (Join-Path $dataRoot 'merge-translations.js') @($RemainingArguments)
+      Invoke-NodeScript (Join-Path $dataRoot '合并译文.js') @($RemainingArguments)
     }
 
     'probe' {
-      Invoke-NodeScript (Join-Path $runtimeRoot 'probe-update-page.js') @(Get-NodeArguments $RemainingArguments)
+      Invoke-NodeScript (Join-Path $runtimeRoot '探测更新页面.js') @(Get-NodeArguments $RemainingArguments)
     }
 
     'scan' {
-      Invoke-NodeScript (Join-Path $auditRoot 'scan-postman-clickables.js') @(Get-NodeArguments $RemainingArguments)
+      Invoke-NodeScript (Join-Path $auditRoot '扫描可交互界面.js') @(Get-NodeArguments $RemainingArguments)
     }
 
     'audit' {
-      $auditNames = @{
-        'all-targets' = 'audit-postman-all-cdp-targets.js'
-        'deep-areas' = 'audit-postman-deep-areas.js'
-        'entry-modals' = 'audit-postman-entry-modals.js'
-        'import' = 'audit-postman-import.js'
-        'lightweight' = 'audit-postman-lightweight-ui.js'
-        'navigation' = 'audit-postman-navigation-surfaces.js'
-        'new-collection' = 'audit-postman-new-collection.js'
-        'new-request' = 'audit-postman-new-request.js'
-        'phased' = 'audit-postman-phased.js'
-        'targeted' = 'audit-postman-targeted.js'
-        'targeted-surfaces' = 'audit-postman-targeted-surfaces.js'
+      $auditNames = [ordered]@{
+        'all-targets' = '审计全部调试目标.js'
+        'deep-areas' = '审计深层界面.js'
+        'entry-modals' = '审计入口弹窗.js'
+        'import' = '审计导入界面.js'
+        'lightweight' = '审计轻量界面.js'
+        'navigation' = '审计导航界面.js'
+        'new-collection' = '审计新建集合.js'
+        'new-request' = '审计新建请求.js'
+        'phased' = '审计分阶段流程.js'
+        'targeted' = '审计指定界面.js'
+        'targeted-surfaces' = '审计易漏界面.js'
+      }
+      $auditDescriptions = [ordered]@{
+        'all-targets' = '全部 CDP 调试目标'
+        'deep-areas' = '深层界面'
+        'entry-modals' = '入口弹窗'
+        'import' = '导入界面'
+        'lightweight' = '轻量界面巡检'
+        'navigation' = '导航界面'
+        'new-collection' = '新建集合界面'
+        'new-request' = '新建请求界面'
+        'phased' = '分阶段完整审计'
+        'targeted' = '固定区域审计'
+        'targeted-surfaces' = '容易漏翻的重点界面'
       }
       $name = if ($RemainingArguments.Count -gt 0) { $RemainingArguments[0] } else { $null }
-      if (-not $name -or -not $auditNames.ContainsKey($name)) {
-        Write-Host "请指定审计名称：$($auditNames.Keys -join ', ')"
+      if (-not $name -or -not $auditNames.Contains($name)) {
+        Write-Host "请指定审计名称："
+        foreach ($auditName in $auditDescriptions.Keys) {
+          Write-Host ("  {0,-18} {1}" -f $auditName, $auditDescriptions[$auditName])
+        }
         Stop-WithCode 2
       }
       $auditArguments = if ($RemainingArguments.Count -gt 1) { @($RemainingArguments[1..($RemainingArguments.Count - 1)]) } else { @() }
@@ -224,10 +261,10 @@ try {
     }
 
     'publish' {
-      Invoke-PowerShellScript (Join-Path $maintenanceRoot 'publish-postman-cn.ps1') @{} @($RemainingArguments)
+      Invoke-PowerShellScript (Join-Path $maintenanceRoot '发布中文版.ps1') @{} @($RemainingArguments)
     }
   }
 } catch {
-  Write-Error $_.Exception.Message
+  Write-Host "[Postman 汉化] 错误：$($_.Exception.Message)" -ForegroundColor Red
   Stop-WithCode 1
 }

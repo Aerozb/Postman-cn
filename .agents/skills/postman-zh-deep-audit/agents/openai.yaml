@@ -1,0 +1,4 @@
+interface:
+  display_name: "Postman 深度汉化审计"
+  short_description: "深度检查并修复 Postman 界面、菜单和弹窗中的中文漏翻"
+  default_prompt: "使用 $postman-zh-deep-audit 深度审计当前 Postman 界面，修复真实英文残留并完成安装验证。"

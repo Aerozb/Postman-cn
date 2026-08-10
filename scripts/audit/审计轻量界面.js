@@ -27,7 +27,7 @@ function sleep(ms) {
 async function getJson(url) {
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status} ${url}`);
+    throw new Error(`HTTP 请求失败：状态码 ${response.status}，地址 ${url}`);
   }
   return response.json();
 }
@@ -37,14 +37,14 @@ async function connectCdp(wsUrl) {
   const pending = new Map();
   const ws = new WebSocket(wsUrl);
   await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("Timed out connecting to CDP websocket.")), 10000);
+    const timer = setTimeout(() => reject(new Error("连接 CDP WebSocket 超时。")), 10000);
     ws.addEventListener("open", () => {
       clearTimeout(timer);
       resolve();
     }, { once: true });
     ws.addEventListener("error", () => {
       clearTimeout(timer);
-      reject(new Error("Failed to connect to CDP websocket."));
+      reject(new Error("连接 CDP WebSocket 失败。"));
     }, { once: true });
   });
   ws.addEventListener("message", (event) => {
@@ -69,7 +69,7 @@ async function connectCdp(wsUrl) {
         setTimeout(() => {
           if (pending.has(id)) {
             pending.delete(id);
-            reject(new Error(`CDP command timed out: ${method}`));
+            reject(new Error(`CDP 命令执行超时：${method}`));
           }
         }, 30000);
       });
@@ -373,7 +373,7 @@ async function waitForPostmanTarget(port, timeoutMs) {
     }
     await sleep(500);
   }
-  throw new Error(`Cannot find Postman page target. Targets: ${JSON.stringify(lastTargets)}`);
+  throw new Error(`未找到 Postman 页面调试目标。当前目标：${JSON.stringify(lastTargets)}`);
 }
 
 async function main() {
@@ -382,7 +382,7 @@ async function main() {
   const outBase = resolveOutBase(argValue("--out", "postman-lightweight-ui-audit"));
   const portFile = path.join(process.env.APPDATA || "", "Postman", "DevToolsActivePort");
   if (!fs.existsSync(portFile)) {
-    throw new Error("DevToolsActivePort not found. Start Postman with --remote-debugging-port=0 first.");
+    throw new Error("未找到 DevToolsActivePort 文件。请先以 --remote-debugging-port=0 启动 Postman。");
   }
   const port = fs.readFileSync(portFile, "utf8").split(/\r?\n/)[0].trim();
   const target = await waitForPostmanTarget(port, timeoutMs);
@@ -487,6 +487,7 @@ async function main() {
   const hits = Array.from(merged.values()).sort((a, b) => b.count - a.count || a.text.localeCompare(b.text));
   const output = { target: { title: target.title, url: target.url }, log, hits };
   fs.writeFileSync(`${outBase}.json`, JSON.stringify(output, null, 2), "utf8");
+  console.log("轻量界面审计完成，以下为结果摘要：");
   console.log(JSON.stringify({
     out: `${outBase}.json`,
     screenshot: `${outBase}.png`,
@@ -497,6 +498,7 @@ async function main() {
 }
 
 main().catch((error) => {
+  console.error("轻量界面审计失败，详细信息如下：");
   console.error(error && error.stack || error);
   process.exit(1);
 });

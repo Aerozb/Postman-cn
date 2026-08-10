@@ -46,7 +46,7 @@ function sleep(ms) {
 async function getJson(url) {
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status} ${url}`);
+    throw new Error(`HTTP 请求失败：状态码 ${response.status}，地址 ${url}`);
   }
   return response.json();
 }
@@ -54,7 +54,7 @@ async function getJson(url) {
 function resolvePortFile() {
   const appData = process.env.APPDATA;
   if (!appData) {
-    throw new Error("APPDATA is not set; cannot locate Postman DevToolsActivePort.");
+    throw new Error("未设置 APPDATA 环境变量，无法定位 Postman 的 DevToolsActivePort 文件。");
   }
   return path.join(appData, "Postman", "DevToolsActivePort");
 }
@@ -65,14 +65,14 @@ async function connectCdp(wsUrl) {
   const ws = new WebSocket(wsUrl);
 
   await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("Timed out connecting to CDP websocket.")), 10000);
+    const timer = setTimeout(() => reject(new Error("连接 CDP WebSocket 超时。")), 10000);
     ws.addEventListener("open", () => {
       clearTimeout(timer);
       resolve();
     }, { once: true });
     ws.addEventListener("error", () => {
       clearTimeout(timer);
-      reject(new Error("Failed to connect to CDP websocket."));
+      reject(new Error("连接 CDP WebSocket 失败。"));
     }, { once: true });
   });
 
@@ -99,7 +99,7 @@ async function connectCdp(wsUrl) {
         setTimeout(() => {
           if (pending.has(id)) {
             pending.delete(id);
-            reject(new Error(`CDP command timed out: ${method}`));
+            reject(new Error(`CDP 命令执行超时：${method}`));
           }
         }, 30000);
       });
@@ -150,7 +150,7 @@ async function waitForPostmanTarget(port, timeoutMs, options = {}) {
     } catch (_) {}
     await sleep(800);
   }
-  throw new Error(`Cannot find a ${requireRequestEditor ? "request editor" : "Postman page"} target. Targets: ${JSON.stringify(lastTargets)}`);
+  throw new Error(`未找到${requireRequestEditor ? "请求编辑器" : "Postman 页面"}调试目标。当前目标：${JSON.stringify(lastTargets)}`);
 }
 
 async function evaluate(cdp, expression, awaitPromise = false) {
@@ -1054,7 +1054,7 @@ async function main() {
   const portFile = resolvePortFile();
 
   if (!fs.existsSync(portFile)) {
-    throw new Error("DevToolsActivePort not found. Start Postman with --remote-debugging-port=0 first.");
+    throw new Error("未找到 DevToolsActivePort 文件。请先以 --remote-debugging-port=0 启动 Postman。");
   }
 
   const allHits = new Map();
@@ -1078,7 +1078,7 @@ async function main() {
       verificationFailures.push({
         step: "request-editor-ready",
         reason: editorReady.reason,
-        detail: "The audit must start from a visible request editor before clicking request tabs, settings, hovers, right-click menus, and response history."
+        detail: "开始审计前必须先显示请求编辑器，之后才能检查请求标签页、设置、悬停提示、右键菜单和响应历史记录。"
       });
     }
     log.push(await collectState(cdp, "after-ensure-request-editor", allHits, "full"));
@@ -1098,7 +1098,7 @@ async function main() {
         verificationFailures.push({
           step: `click-tab-${tab.name}`,
           reason: "request-tab-not-found",
-          detail: `Could not click request editor tab: ${tab.name}`
+          detail: `无法点击请求编辑器标签页：${tab.name}`
         });
       }
       log.push(await collectState(cdp, `tab-${tab.name}`, allHits, "full"));
@@ -1269,7 +1269,7 @@ async function main() {
       verificationFailures.push({
         step: "response-history-popover",
         reason: responseHistory.reason,
-        detail: "Response history must open a popover and expose its empty-state text."
+        detail: "响应历史记录必须能打开弹出层，并显示空状态文本。"
       });
     }
     await pressEsc(cdp);
@@ -1340,6 +1340,7 @@ async function main() {
       fs.writeFileSync(`${outBase}.json`, JSON.stringify(output, null, 2), "utf8");
     }
 
+    console.log("新建请求界面审计完成，以下为结果摘要：");
     console.log(JSON.stringify({
       out: `${outBase}.json`,
       screenshot: `${outBase}.png`,
@@ -1364,6 +1365,7 @@ async function main() {
 }
 
 main().catch((error) => {
+  console.error("新建请求界面审计失败，详细信息如下：");
   console.error(error && error.stack || error);
   process.exit(1);
 });

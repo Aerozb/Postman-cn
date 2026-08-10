@@ -16,9 +16,9 @@ async function connect(url) {
   const ws = new WebSocket(url), pending = new Map(); let next = 1;
   await new Promise((resolve, reject) => { ws.addEventListener("open", resolve, { once: true }); ws.addEventListener("error", reject, { once: true }); });
   ws.addEventListener("message", e => { const m = JSON.parse(e.data); if (!m.id || !pending.has(m.id)) return; const p = pending.get(m.id); pending.delete(m.id); clearTimeout(p.t); m.error ? p.reject(new Error(m.error.message)) : p.resolve(m.result); });
-  return { send(method, params = {}) { const id = next++; ws.send(JSON.stringify({ id, method, params })); return new Promise((resolve, reject) => { const t = setTimeout(() => { pending.delete(id); reject(new Error(`timeout: ${method}`)); }, 45000); pending.set(id, { resolve, reject, t }); }); }, close() { try { ws.close(); } catch (_) {} } };
+  return { send(method, params = {}) { const id = next++; ws.send(JSON.stringify({ id, method, params })); return new Promise((resolve, reject) => { const t = setTimeout(() => { pending.delete(id); reject(new Error(`CDP 命令执行超时：${method}`)); }, 45000); pending.set(id, { resolve, reject, t }); }); }, close() { try { ws.close(); } catch (_) {} } };
 }
-async function evalv(cdp, expression) { const r = await cdp.send("Runtime.evaluate", { expression, returnByValue: true, awaitPromise: true }); if (r.exceptionDetails) throw new Error(r.exceptionDetails.text || "evaluate failed"); return r.result.value; }
+async function evalv(cdp, expression) { const r = await cdp.send("Runtime.evaluate", { expression, returnByValue: true, awaitPromise: true }); if (r.exceptionDetails) throw new Error(r.exceptionDetails.text || "Runtime.evaluate 执行失败"); return r.result.value; }
 async function mouse(cdp, type, x, y, button = "none", clickCount = 0) { await cdp.send("Input.dispatchMouseEvent", { type, x, y, button, clickCount }); }
 async function click(cdp, p) { await mouse(cdp, "mouseMoved", p.x, p.y); await mouse(cdp, "mousePressed", p.x, p.y, "left", 1); await mouse(cdp, "mouseReleased", p.x, p.y, "left", 1); }
 async function esc(cdp) { await cdp.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 }); await cdp.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 }); }
@@ -51,8 +51,8 @@ const flowOverflowScript = `(() => {
 
 async function main(){
  const out=path.resolve(arg("--out",path.join(__dirname,"..","..","..","_generated","postman-targeted-surfaces.json"))), delay=Number(arg("--delay-ms","500"));
- const portFile=path.join(process.env.APPDATA||"","Postman","DevToolsActivePort"),port=fs.readFileSync(portFile,"utf8").split(/\r?\n/)[0].trim(),pages=await(await fetch(`http://127.0.0.1:${port}/json/list`)).json();
- const target=pages.find(p=>p.type==="page"&&/(?:^https:\/\/desktop\.postman\.com(?::\d+)?(?:[\/?#]|$)|^file:\/\/\/.*\/(?:requester|scratchpad)\.html(?:[?#]|$))/i.test(p.url||""));if(!target)throw new Error("Postman page target not found");const cdp=await connect(target.webSocketDebuggerUrl),shots=[],actions=[];
+ const portFile=path.join(process.env.APPDATA||"","Postman","DevToolsActivePort");if(!fs.existsSync(portFile))throw new Error("未找到 Postman 的 DevToolsActivePort 文件。请先启动 Postman。");const port=fs.readFileSync(portFile,"utf8").split(/\r?\n/)[0].trim(),pages=await(await fetch(`http://127.0.0.1:${port}/json/list`)).json();
+ const target=pages.find(p=>p.type==="page"&&/(?:^https:\/\/desktop\.postman\.com(?::\d+)?(?:[\/?#]|$)|^file:\/\/\/.*\/(?:requester|scratchpad)\.html(?:[?#]|$))/i.test(p.url||""));if(!target)throw new Error("未找到 Postman 页面调试目标");const cdp=await connect(target.webSocketDebuggerUrl),shots=[],actions=[];
  const snap=async(name,scope="all")=>{const s=await evalv(cdp,domScript(scope));shots.push({name,roots:s.roots,hits:s.hits,findings:s.hits.filter(x=>isEnglish(x.text)),targetCount:s.targets.length,targetPreview:s.targets.slice(0,250),scrollCount:s.scrolls.length});return s};
  const open=async(name,patterns,filter)=>{const s=await evalv(cdp,domScript("all")),t=matchTarget(s.targets,patterns,filter);if(!t){actions.push({name,ok:false,reason:"target-not-found"});return null}await click(cdp,t);await sleep(delay);actions.push({name,ok:true,target:t});return t};
  const scrollAll=async(name,scope="all")=>{let s=await evalv(cdp,domScript(scope));for(const [i,x]of s.scrolls.entries()){for(const dy of [100000,100000,-100000]){await cdp.send("Input.dispatchMouseEvent",{type:"mouseWheel",x:x.x,y:x.y,deltaX:0,deltaY:dy});await sleep(Math.max(150,delay/2));await snap(`${name}:scroll:${i}:${dy}`,scope)}}};
@@ -74,6 +74,6 @@ async function main(){
    await snap("final");
  }finally{cdp.close()}
  const merged=new Map();for(const s of shots)for(const h of s.findings){const k=h.kind+"|"+h.attribute+"|"+h.text,v=merged.get(k)||{...h,count:0,surfaces:[]};v.count++;if(!v.surfaces.includes(s.name))v.surfaces.push(s.name);merged.set(k,v)}
- const report={generatedAt:new Date().toISOString(),target:{title:target.title,url:target.url},summary:{snapshots:shots.length,actions:actions.length,successfulActions:actions.filter(x=>x.ok).length,findings:merged.size},actions,findings:[...merged.values()].sort((a,b)=>b.count-a.count),snapshots:shots};fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,JSON.stringify(report,null,2));console.log(JSON.stringify({out,summary:report.summary,actions,top:report.findings.slice(0,40).map(x=>x.text)},null,2));
+ const report={generatedAt:new Date().toISOString(),target:{title:target.title,url:target.url},summary:{snapshots:shots.length,actions:actions.length,successfulActions:actions.filter(x=>x.ok).length,findings:merged.size},actions,findings:[...merged.values()].sort((a,b)=>b.count-a.count),snapshots:shots};fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,JSON.stringify(report,null,2));console.log("易漏界面审计完成，以下为结果摘要：");console.log(JSON.stringify({out,summary:report.summary,actions,top:report.findings.slice(0,40).map(x=>x.text)},null,2));
 }
-main().catch(e=>{console.error(e.stack||e);process.exit(1)});
+main().catch(e=>{console.error("易漏界面审计失败，详细信息如下：");console.error(e.stack||e);process.exit(1)});

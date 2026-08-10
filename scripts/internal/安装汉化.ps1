@@ -25,7 +25,7 @@ try {
 
 function Write-Step {
   param([string]$Message)
-  Write-Host "[postman-zh] $Message"
+  Write-Host "[Postman 汉化] $Message"
 }
 
 $ExternalBrowserProcessNames = @(
@@ -73,9 +73,9 @@ function Stop-NewExternalBrowserProcesses {
   foreach ($process in $newBrowsers) {
     try {
       Stop-Process -Id $process.Id -Force -ErrorAction Stop
-      Write-Step ("Closed external browser opened during this run: {0} ({1})" -f $process.ProcessName, $process.Id)
+      Write-Step ("已关闭本次运行期间打开的外部浏览器：{0}（进程 {1}）" -f $process.ProcessName, $process.Id)
     } catch {
-      Write-Step ("Could not close external browser process {0} ({1}): {2}" -f $process.ProcessName, $process.Id, $_.Exception.Message)
+      Write-Step ("无法关闭外部浏览器进程 {0}（进程 {1}）：{2}" -f $process.ProcessName, $process.Id, $_.Exception.Message)
     }
   }
 }
@@ -116,7 +116,7 @@ function Resolve-PostmanAppDir {
   if ($PostmanDir) {
     $resolved = Resolve-ExistingPath $PostmanDir
     if (-not (Test-PostmanAppDir $resolved)) {
-      throw "PostmanDir is not a valid Postman app directory: $resolved"
+      throw "PostmanDir 不是有效的 Postman 版本目录：$resolved"
     }
     return $resolved
   }
@@ -165,7 +165,7 @@ function Resolve-PostmanAppDir {
     return $match.Item.FullName
   }
 
-  throw "Cannot find Postman. Pass -PostmanDir `"C:\Path\To\Postman\app-x.y.z`"."
+  throw "找不到 Postman。请通过 -PostmanDir `"C:\Path\To\Postman\app-x.y.z`" 指定版本目录。"
 }
 
 function Invoke-Asar {
@@ -175,12 +175,12 @@ function Invoke-Asar {
     $npx = Get-Command npx -ErrorAction SilentlyContinue
   }
   if (-not $npx) {
-    throw "npx was not found. Install Node.js first, then run this script again."
+    throw "找不到 npx。请先安装 Node.js，再重新运行本脚本。"
   }
 
   & $npx.Source --yes "@electron/asar" @AsarArgs
   if ($LASTEXITCODE -ne 0) {
-    throw "asar command failed: $($AsarArgs -join ' ')"
+    throw "asar 命令执行失败：$($AsarArgs -join ' ')"
   }
 }
 
@@ -208,11 +208,11 @@ function Assert-JavaScriptSyntax {
     $node = Get-Command node -ErrorAction SilentlyContinue
   }
   if (-not $node) {
-    throw "node was not found; cannot validate $Name."
+    throw "找不到 node，无法验证 $Name。"
   }
   & $node.Source --check $PathValue
   if ($LASTEXITCODE -ne 0) {
-    throw "$Name failed JavaScript syntax validation: $PathValue"
+    throw "$Name 未通过 JavaScript 语法验证：$PathValue"
   }
 }
 
@@ -220,10 +220,10 @@ function Assert-PayloadFiles {
   param([string]$Payload, [string]$AuthPayload)
 
   if (-not (Test-Path -LiteralPath $Payload)) {
-    throw "Localization payload not found: $Payload"
+    throw "找不到汉化主体文件：$Payload"
   }
   if (-not (Test-Path -LiteralPath $AuthPayload)) {
-    throw "Auth webview payload not found: $AuthPayload"
+    throw "找不到登录授权页面汉化文件：$AuthPayload"
   }
   Assert-JavaScriptSyntax -PathValue $Payload -Name "zh-localize.js"
   Assert-JavaScriptSyntax -PathValue $AuthPayload -Name "zh-auth-webview-preload.js"
@@ -237,9 +237,9 @@ function Assert-PayloadFiles {
   )
   $missing = @($required | Where-Object { -not $payloadContent.Contains($_) })
   if ($missing.Count -gt 0) {
-    throw "Localization payload is incomplete. Missing markers: $($missing -join ', ')"
+    throw "汉化主体文件不完整，缺少标记：$($missing -join ', ')"
   }
-  Write-Step "Payload syntax and required markers validated"
+  Write-Step "汉化文件语法和必需标记验证通过。"
 }
 
 function Assert-OriginalTree {
@@ -251,7 +251,7 @@ function Assert-OriginalTree {
   if (-not (Test-Path -LiteralPath $packageJson) -or
       -not (Test-Path -LiteralPath $mainJs) -or
       -not (Test-Path -LiteralPath $desktopPreload)) {
-    throw "Original app.asar backup is incomplete."
+    throw "英文原版 app.asar 备份不完整。"
   }
 
   $metadata = ConvertFrom-Json (Read-Utf8 $packageJson)
@@ -259,20 +259,20 @@ function Assert-OriginalTree {
   if ($appName -match '^app-(\d+(?:\.\d+){1,3})') {
     $expectedVersion = $Matches[1]
     if ([string]$metadata.version -ne $expectedVersion) {
-      throw "app.asar.original version $($metadata.version) does not match $appName. Remove the stale backup only after preserving it, then retry."
+      throw "app.asar.original 的版本 $($metadata.version) 与 $appName 不一致。请先妥善保存旧备份，再移除它并重试。"
     }
   }
 
   $markerFiles = @($mainJs, $desktopPreload, (Join-Path $UnpackedDir "js\preload.js"))
   foreach ($markerFile in $markerFiles) {
     if ((Test-Path -LiteralPath $markerFile) -and (Read-Utf8 $markerFile) -match 'postman-zh-localizer|postmanZhLocalizeMenuTemplate|postmanZhPatchOpenExternalQuotes') {
-      throw "app.asar.original already contains localization markers: $markerFile"
+      throw "app.asar.original 已含汉化标记，不是干净的英文原版：$markerFile"
     }
   }
   if (Test-Path -LiteralPath (Join-Path $UnpackedDir "js\zh-localize.js")) {
-    throw "app.asar.original already contains js\zh-localize.js and is not a clean backup."
+    throw "app.asar.original 已包含 js\zh-localize.js，不是干净的英文原版。"
   }
-  Write-Step "Original backup version and cleanliness validated"
+  Write-Step "英文原版备份的版本和完整性验证通过。"
 }
 
 function Assert-PatchedTree {
@@ -290,15 +290,15 @@ function Assert-PatchedTree {
   $mainJs = Join-Path $UnpackedDir "main.js"
   foreach ($requiredFile in @($localizedPayload, $localizedAuthPayload, $desktopPreload, $utilityPreload, $mainJs)) {
     if (-not (Test-Path -LiteralPath $requiredFile)) {
-      throw "Patched tree is missing: $requiredFile"
+      throw "补丁目录缺少文件：$requiredFile"
     }
   }
 
   if ((Get-Sha256 $localizedPayload) -ne (Get-Sha256 $Payload)) {
-    throw "Packed localization payload does not match the selected zh-localize.js."
+    throw "打包目录中的汉化主体与选定的 zh-localize.js 不一致。"
   }
   if ((Get-Sha256 $localizedAuthPayload) -ne (Get-Sha256 $AuthPayload)) {
-    throw "Packed auth payload does not match zh-auth-webview-preload.js."
+    throw "打包目录中的登录授权汉化文件与 zh-auth-webview-preload.js 不一致。"
   }
 
   $desktopContent = Read-Utf8 $desktopPreload
@@ -313,13 +313,13 @@ function Assert-PatchedTree {
   )
   foreach ($entry in $requiredMarkers) {
     if (-not ([string]$entry[0]).Contains([string]$entry[1])) {
-      throw "Patched tree is missing marker: $($entry[1])"
+      throw "补丁目录缺少注入标记：$($entry[1])"
     }
   }
   if ($ExpectUpdatesDisabled -and -not $mainContent.Contains("postman-zh:update-guard")) {
-    throw "Patched tree is missing the version-independent update guard."
+    throw "补丁目录缺少与版本无关的更新拦截补丁。"
   }
-  Write-Step "Patched tree payload hashes and injection markers validated"
+  Write-Step "补丁目录的文件哈希和注入标记验证通过。"
 }
 
 function Install-AsarAtomically {
@@ -334,7 +334,7 @@ function Install-AsarAtomically {
   Copy-Item -LiteralPath $SourceAsar -Destination $installingAsar -Force
   if ((Get-Sha256 $installingAsar) -ne $sourceHash) {
     Remove-Item -LiteralPath $installingAsar -Force -ErrorAction SilentlyContinue
-    throw "Temporary app.asar copy failed hash validation."
+    throw "临时 app.asar 副本未通过哈希验证。"
   }
 
   try {
@@ -343,13 +343,13 @@ function Install-AsarAtomically {
       if (Test-Path -LiteralPath $rollbackAsar) {
         Copy-Item -LiteralPath $rollbackAsar -Destination $DestinationAsar -Force
       }
-      throw "Installed app.asar failed hash validation; previous file was restored."
+      throw "安装后的 app.asar 未通过哈希验证，已恢复原文件。"
     }
   } finally {
     Remove-Item -LiteralPath $installingAsar -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $rollbackAsar -Force -ErrorAction SilentlyContinue
   }
-  Write-Step "Installed app.asar SHA256: $sourceHash"
+  Write-Step "已安装 app.asar 的 SHA256：$sourceHash"
 }
 
 function Remove-InstallArtifacts {
@@ -370,14 +370,14 @@ function Remove-InstallArtifacts {
       try {
         Remove-Item -LiteralPath $dir -Recurse -Force -ErrorAction Stop
       } catch {
-        Write-Step "WARNING: could not remove unpacked dir '$dir' ($($_.Exception.Message)). Close Postman completely and re-run, or this stale dir may hijack localization."
+        Write-Step "警告：无法删除解包目录 '$dir'（$($_.Exception.Message)）。请彻底关闭 Postman 后重试，否则残留目录可能覆盖汉化加载。"
       }
     }
   }
   Remove-Item -LiteralPath $PatchedAsar -Force -ErrorAction SilentlyContinue
   Remove-Item -LiteralPath "$AppAsar.installing" -Force -ErrorAction SilentlyContinue
   Remove-Item -LiteralPath "$AppAsar.rollback" -Force -ErrorAction SilentlyContinue
-  Write-Step "Removed installer temporary artifacts"
+  Write-Step "已清理安装临时文件。"
 }
 
 function Add-ZhLoaderToPreload {
@@ -389,7 +389,7 @@ function Add-ZhLoaderToPreload {
   )
 
   if (-not (Test-Path -LiteralPath $PreloadPath)) {
-    Write-Step "$Name preload not found; skipping"
+    Write-Step "未找到 $Name 预加载文件，已跳过。"
     return
   }
 
@@ -411,9 +411,9 @@ function Add-ZhLoaderToPreload {
 
   if ($changed) {
     Write-Utf8 $PreloadPath $content
-    Write-Step "Injected $Name preload"
+    Write-Step "已注入 $Name 预加载文件。"
   } else {
-    Write-Step "$Name preload already contains zh localizer"
+    Write-Step "$Name 预加载文件已包含汉化注入。"
   }
 }
 
@@ -427,13 +427,13 @@ function Patch-Preload {
   $payloadDir = Split-Path -Parent $Payload
   $authWebviewPreloadPayload = Join-Path $payloadDir "zh-auth-webview-preload.js"
   if (-not (Test-Path -LiteralPath $authWebviewPreloadPayload)) {
-    throw "zh-auth-webview-preload.js not found in payload directory."
+    throw "payload 目录中缺少 zh-auth-webview-preload.js。"
   }
   Copy-Item -LiteralPath $authWebviewPreloadPayload -Destination (Join-Path $jsDir "zh-auth-webview-preload.js") -Force
 
   $desktopPreload = Join-Path $UnpackedDir "preload_desktop.js"
   if (-not (Test-Path -LiteralPath $desktopPreload)) {
-    throw "preload_desktop.js not found in unpacked app."
+    throw "解包后的应用中缺少 preload_desktop.js。"
   }
 
   Add-ZhLoaderToPreload -PreloadPath $desktopPreload -RequirePath "./js/zh-localize.js" -Name "desktop" -ExtraScript $null
@@ -449,13 +449,13 @@ function Patch-AuthWindowLocalization {
 
   $authHtml = Join-Path $UnpackedDir "html\auth\auth.html"
   if (-not (Test-Path -LiteralPath $authHtml)) {
-    Write-Step "auth.html not found; skipping auth webview preload patch"
+    Write-Step "未找到 auth.html，已跳过登录授权页面预加载补丁。"
     return
   }
 
   $content = Read-Utf8 $authHtml
   if ($content -match "zh-auth-webview-preload\.js") {
-    Write-Step "Auth webview preload already patched"
+    Write-Step "登录授权页面的预加载补丁已经安装。"
     return
   }
 
@@ -463,12 +463,12 @@ function Patch-AuthWindowLocalization {
   $replacement = '<webview$1 preload="../../js/zh-auth-webview-preload.js"></webview>'
   $updated = [System.Text.RegularExpressions.Regex]::Replace($content, $pattern, $replacement, 1)
   if ($updated -eq $content) {
-    Write-Step "Auth webview anchor not found; utility preload fallback remains active"
+    Write-Step "未找到登录授权页面锚点，继续使用通用预加载兜底。"
     return
   }
 
   Write-Utf8 $authHtml $updated
-  Write-Step "Patched auth webview localization preload"
+  Write-Step "已安装登录授权页面汉化预加载补丁。"
 }
 
 function Patch-ScratchpadCompatibility {
@@ -485,9 +485,9 @@ function Patch-ScratchpadCompatibility {
   if ($content.Contains($from)) {
     $content = $content.Replace($from, $to)
     Write-Utf8 $scratchpad $content
-    Write-Step "Patched requester tab context-menu selector"
+    Write-Step "已修复请求标签页右键菜单选择器。"
   } else {
-    Write-Step "Requester tab context-menu selector patch not needed"
+    Write-Step "请求标签页右键菜单选择器无需修复。"
   }
 }
 
@@ -496,13 +496,13 @@ function Patch-MainMenuLocalization {
 
   $mainJs = Join-Path $UnpackedDir "main.js"
   if (-not (Test-Path -LiteralPath $mainJs)) {
-    Write-Step "main.js not found; skipping application menu localization"
+    Write-Step "未找到 main.js，已跳过应用菜单汉化。"
     return
   }
 
   $content = Read-Utf8 $mainJs
   if ($content.Contains("postmanZhLocalizeMenuTemplate")) {
-    Write-Step "Application menu localization already patched"
+    Write-Step "应用菜单汉化补丁已经安装。"
     return
   }
   # Version-robust strategy: wrap electron Menu.buildFromTemplate globally at the
@@ -515,7 +515,7 @@ function Patch-MainMenuLocalization {
 '@
 
   Write-Utf8 $mainJs ($helper.TrimEnd() + "`r`n" + $content)
-  Write-Step "Patched application menu localization (global Menu.buildFromTemplate wrapper)"
+  Write-Step "已安装应用菜单汉化补丁（全局 Menu.buildFromTemplate 包装器）。"
 }
 
 function Patch-ExternalUrlOpening {
@@ -523,13 +523,13 @@ function Patch-ExternalUrlOpening {
 
   $mainJs = Join-Path $UnpackedDir "main.js"
   if (-not (Test-Path -LiteralPath $mainJs)) {
-    Write-Step "main.js not found; skipping external URL quote patch"
+    Write-Step "未找到 main.js，已跳过外部链接引号补丁。"
     return
   }
 
   $content = Read-Utf8 $mainJs
   if ($content.Contains("postmanZhPatchOpenExternalQuotes")) {
-    Write-Step "External URL quote patch already installed"
+    Write-Step "外部链接引号补丁已经安装。"
     return
   }
 
@@ -538,7 +538,7 @@ function Patch-ExternalUrlOpening {
 '@
 
   Write-Utf8 $mainJs ($helper.TrimEnd() + "`r`n" + $content)
-  Write-Step "Patched external browser URL quote handling"
+  Write-Step "已修复外部浏览器链接的引号处理。"
 }
 
 function Patch-DisableUpdates {
@@ -546,7 +546,7 @@ function Patch-DisableUpdates {
 
   $mainJs = Join-Path $UnpackedDir "main.js"
   if (-not (Test-Path -LiteralPath $mainJs)) {
-    throw "main.js not found; cannot disable Postman updates."
+    throw "未找到 main.js，无法禁用 Postman 自动更新。"
   }
 
   $content = Read-Utf8 $mainJs
@@ -596,7 +596,7 @@ function Patch-DisableUpdates {
   }
 
   Write-Utf8 $mainJs $content
-  Write-Step "Installed version-independent update guard; optimized $patchCount updater method anchor(s)"
+  Write-Step "已安装与版本无关的更新拦截补丁，并处理 $patchCount 个更新方法锚点。"
 }
 
 function Repair-BrowserUrlHandler {
@@ -609,7 +609,7 @@ function Repair-BrowserUrlHandler {
     $choice = Get-ItemProperty -Path $choicePath -ErrorAction SilentlyContinue
     $progId = $choice.ProgId
     if ([string]::IsNullOrWhiteSpace($progId)) {
-      Write-Step "No browser handler ProgId found for $scheme"
+      Write-Step "未找到 $scheme 的浏览器处理程序标识。"
       continue
     }
 
@@ -623,21 +623,21 @@ function Repair-BrowserUrlHandler {
     }
 
     if (-not $sourcePath) {
-      Write-Step "Browser handler command not found for $scheme ($progId)"
+      Write-Step "未找到 $scheme 的浏览器处理命令（$progId）。"
       continue
     }
 
     $command = (Get-ItemProperty -LiteralPath $sourcePath).'(default)'
     if ([string]::IsNullOrWhiteSpace($command)) {
-      Write-Step "Browser handler command is empty for $scheme ($progId)"
+      Write-Step "$scheme 的浏览器处理命令为空（$progId）。"
       continue
     }
 
     if ($command -notmatch '--single-argument\s+"%1"') {
       if ($command -match '--single-argument\s+%1') {
-        Write-Step "Browser URL handler already fixed for $scheme ($progId)"
+        Write-Step "$scheme 的浏览器链接处理程序已经修复（$progId）。"
       } else {
-        Write-Step "Browser URL handler for $scheme ($progId) does not match the Chrome quote issue pattern"
+        Write-Step "$scheme 的浏览器链接处理程序不符合 Chrome 引号问题特征，无需修改（$progId）。"
       }
       continue
     }
@@ -649,7 +649,7 @@ function Repair-BrowserUrlHandler {
 
     New-Item -Path $hkcuCommandPath -Force | Out-Null
     Set-ItemProperty -LiteralPath $hkcuCommandPath -Name "(default)" -Value $fixed
-    Write-Step "Fixed browser URL handler quotes for $scheme ($progId)"
+    Write-Step "已修复 $scheme 浏览器链接处理程序的引号（$progId）。"
     $changed = $true
   }
 
@@ -658,11 +658,11 @@ function Repair-BrowserUrlHandler {
     New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
     $backupFile = Join-Path $backupDir ("postman-zh-browser-handler-backup-{0}.txt" -f (Get-Date -Format "yyyyMMdd-HHmmss"))
     $backupLines | Set-Content -LiteralPath $backupFile -Encoding UTF8
-    Write-Step "Browser handler backup: $backupFile"
+    Write-Step "浏览器处理程序备份：$backupFile"
   }
 
   if (-not $changed) {
-    Write-Step "No browser URL handler changes were needed"
+    Write-Step "浏览器链接处理程序无需修改。"
   }
 }
 
@@ -672,14 +672,14 @@ function Remove-OldPostmanVersions {
   $parent = Split-Path -Parent $CurrentAppDir
   $currentName = Split-Path -Leaf $CurrentAppDir
   if (-not (Test-Path -LiteralPath (Join-Path $parent "Update.exe"))) {
-    Write-Step "Skipping old-version cleanup: $parent is not a Squirrel install root"
+    Write-Step "已跳过旧版本清理：$parent 不是 Squirrel 安装根目录。"
     return
   }
 
   Get-ChildItem -LiteralPath $parent -Directory -Filter "app-*" -ErrorAction SilentlyContinue | Where-Object {
     $_.Name -ne $currentName
   } | ForEach-Object {
-    Write-Step "Removing old version directory: $($_.Name)"
+    Write-Step "正在删除旧版本目录：$($_.Name)"
     Remove-Item -LiteralPath $_.FullName -Recurse -Force
   }
 
@@ -692,7 +692,7 @@ function Remove-OldPostmanVersions {
     Get-ChildItem -LiteralPath $packagesDir -File -Filter "*.nupkg" -ErrorAction SilentlyContinue | Where-Object {
       $_.Name -notlike "*$currentVersion*"
     } | ForEach-Object {
-      Write-Step "Removing old package: $($_.Name)"
+      Write-Step "正在删除旧安装包：$($_.Name)"
       Remove-Item -LiteralPath $_.FullName -Force
     }
     $releasesFile = Join-Path $packagesDir "RELEASES"
@@ -700,7 +700,7 @@ function Remove-OldPostmanVersions {
       $keep = @(Get-Content -LiteralPath $releasesFile | Where-Object { $_ -like "*$currentVersion*" })
       if ($keep.Count -gt 0) {
         Set-Content -LiteralPath $releasesFile -Value $keep -Encoding Ascii
-        Write-Step "Trimmed RELEASES to current version only"
+        Write-Step "已将 RELEASES 精简为仅保留当前版本。"
       }
     }
   }
@@ -723,9 +723,9 @@ $backupAsar = Join-Path $resourcesDir "app.asar.original"
 $unpackedDir = Join-Path $resourcesDir "app.asar.unpacked.zh"
 $patchedAsar = Join-Path $resourcesDir "app.asar.zh"
 
-Write-Step "Target: $appDir"
+Write-Step "目标目录：$appDir"
 if ($payloadFull) {
-  Write-Step "Payload: $payloadFull"
+  Write-Step "汉化主体：$payloadFull"
 }
 
 if ($FixBrowserUrlHandler) {
@@ -737,7 +737,7 @@ try {
   # 文件被锁导致清理静默失败。这里全量关闭（不只按路径匹配），并等待文件锁释放。
   $running = Get-Process Postman -ErrorAction SilentlyContinue
   if ($running) {
-    Write-Step "Stopping running Postman processes"
+    Write-Step "正在关闭运行中的 Postman 进程。"
     $running | Stop-Process -Force -ErrorAction SilentlyContinue
     Start-Sleep -Seconds 3
     # 再确认一次，个别子进程可能重启
@@ -751,33 +751,33 @@ try {
 
 if ($RestoreOriginal) {
   if (-not (Test-Path -LiteralPath $backupAsar)) {
-    throw "Original backup not found: $backupAsar"
+    throw "找不到英文原版备份：$backupAsar"
   }
   Install-AsarAtomically -SourceAsar $backupAsar -DestinationAsar $appAsar
-  Write-Step "Restored original app.asar"
+  Write-Step "已恢复英文原版 app.asar。"
   Remove-InstallArtifacts -UnpackedDir $unpackedDir -PatchedAsar $patchedAsar -AppAsar $appAsar
   if (-not $NoRestart) {
-    Write-Step "Starting Postman"
+    Write-Step "正在启动 Postman。"
     Start-Process -FilePath (Join-Path $appDir "Postman.exe")
   }
-  Write-Step "Done"
+  Write-Step "操作完成。"
   exit 0
 }
 
 if (-not (Test-Path -LiteralPath $backupAsar)) {
   Copy-Item -LiteralPath $appAsar -Destination $backupAsar -Force
-  Write-Step "Backup created: $backupAsar"
+  Write-Step "已创建英文原版备份：$backupAsar"
 } else {
-  Write-Step "Backup already exists: $backupAsar"
+  Write-Step "英文原版备份已经存在：$backupAsar"
 }
 $sourceAsar = $backupAsar
 
 if (Test-Path -LiteralPath $unpackedDir) {
-  Write-Step "Removing old unpacked directory"
+  Write-Step "正在删除旧的解包目录。"
   Remove-Item -LiteralPath $unpackedDir -Recurse -Force
 }
 
-Write-Step "Extracting original app.asar backup"
+Write-Step "正在解包英文原版 app.asar 备份。"
 Invoke-Asar @("extract", $sourceAsar, $unpackedDir)
 Assert-OriginalTree -UnpackedDir $unpackedDir -AppDir $appDir
 
@@ -789,7 +789,7 @@ Patch-ExternalUrlOpening -UnpackedDir $unpackedDir
 if ($DisableUpdates) {
   Patch-DisableUpdates -UnpackedDir $unpackedDir
 } else {
-  Write-Step "Postman updates left enabled. Use -DisableUpdates to block in-app update checks."
+  Write-Step "已保留 Postman 自动更新；如需拦截应用内更新检查，请使用 -DisableUpdates。"
 }
 Assert-PatchedTree -UnpackedDir $unpackedDir -Payload $payloadFull -AuthPayload $authPayloadFull -ExpectUpdatesDisabled:$DisableUpdates
 
@@ -797,10 +797,10 @@ if (Test-Path -LiteralPath $patchedAsar) {
   Remove-Item -LiteralPath $patchedAsar -Force
 }
 
-Write-Step "Packing patched app.asar"
+Write-Step "正在打包已汉化的 app.asar。"
 Invoke-Asar @("pack", $unpackedDir, $patchedAsar)
 Install-AsarAtomically -SourceAsar $patchedAsar -DestinationAsar $appAsar
-Write-Step "Installed Chinese localization"
+Write-Step "中文汉化已安装。"
 
 if (-not $NoRestart) {
   $args = @()
@@ -811,16 +811,16 @@ if (-not $NoRestart) {
     }
     $args += "--remote-debugging-port=0"
   }
-  Write-Step "Starting Postman"
+  Write-Step "正在启动 Postman。"
   Start-Process -FilePath (Join-Path $appDir "Postman.exe") -ArgumentList $args
 }
 
 if ($Verify) {
   if ($NoRestart) {
-    Write-Step "Verification skipped because -NoRestart was used."
+    Write-Step "由于使用了 -NoRestart，已跳过运行时验证。"
   } else {
     Start-Sleep -Seconds 18
-    $verifyScript = Join-Path $scriptsRoot "verify-postman-zh.js"
+    $verifyScript = Join-Path $scriptsRoot "验证汉化.js"
     if (Test-Path -LiteralPath $verifyScript) {
       $verifyArgs = @("--postman-dir", $appDir)
       if ($DisableUpdates) {
@@ -828,10 +828,10 @@ if ($Verify) {
       }
       & node $verifyScript @verifyArgs
       if ($LASTEXITCODE -ne 0) {
-        throw "Verification failed."
+        throw "汉化验证失败。"
       }
     } else {
-      Write-Step "verify-postman-zh.js not found; skipping verification."
+      Write-Step "未找到验证汉化.js，已跳过验证。"
     }
   }
 }
@@ -845,10 +845,10 @@ Remove-InstallArtifacts -UnpackedDir $unpackedDir -PatchedAsar $patchedAsar -App
 # 最终自检：清理后确认 resources 里没有任何 app.asar.unpacked* 残留目录。
 # 若残留（通常是 Postman 未关、文件被锁），Electron 运行时会优先从 unpacked 目录读取旧的
 # zh-localize.js，导致词典更新永远不生效（本次排查的总根因）。此检查在 verify 之后运行，
-# 不能提前——verify-postman-zh.js 需要从 app.asar.unpacked.zh/main.js 读取补丁做校验。
+# 不能提前——验证汉化.js 需要从 app.asar.unpacked.zh/main.js 读取补丁做校验。
 $leftoverUnpacked = @(Get-ChildItem -LiteralPath $resourcesDir -Directory -Filter "app.asar.unpacked*" -ErrorAction SilentlyContinue)
 if ($leftoverUnpacked.Count -gt 0) {
   $names = ($leftoverUnpacked | ForEach-Object { $_.Name }) -join ", "
-  throw "Leftover unpacked directory still present after cleanup: $names. Close Postman completely and re-run — this directory hijacks translation loading."
+  throw "清理后仍残留解包目录：$names。请彻底关闭 Postman 后重试，否则该目录会覆盖汉化加载。"
 }
-Write-Step "Done"
+Write-Step "操作完成。"

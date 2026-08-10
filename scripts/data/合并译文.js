@@ -9,8 +9,19 @@ const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
 
+process.on("uncaughtException", (error) => {
+  console.error("合并译文失败：");
+  console.error(error && error.message || error);
+  process.exit(1);
+});
+
 const payloadPath = path.resolve(__dirname, "..", "..", "payload", "zh-localize.js");
 const genDir = path.resolve(__dirname, "..", "..", "..", "_generated");
+const checkOnly = process.argv.includes("--check");
+
+if (!fs.existsSync(genDir)) {
+  throw new Error(`找不到译文产物目录：${genDir}`);
+}
 
 function loadTranslator() {
   const code = fs.readFileSync(payloadPath, "utf8");
@@ -69,7 +80,12 @@ for (const file of fs.readdirSync(genDir)) {
 }
 
 if (!merged.size) {
-  console.log("nothing to merge");
+  console.log("没有找到需要合并的新译文。");
+  process.exit(0);
+}
+
+if (checkOnly) {
+  console.log("检查完成：共读取 " + readTotal + " 条译文，发现 " + merged.size + " 条可合并的新译文；--check 模式未修改汉化主体。");
   process.exit(0);
 }
 
@@ -80,11 +96,11 @@ const entries = Array.from(merged.entries())
 let src = fs.readFileSync(payloadPath, "utf8");
 const anchor = "var EXACT = {";
 const idx = src.indexOf(anchor);
-if (idx < 0) throw new Error("EXACT anchor not found");
+if (idx < 0) throw new Error("找不到 EXACT 词典锚点。");
 const insertAt = idx + anchor.length;
 src = src.slice(0, insertAt) + "\n    /* === batch-translated (auto-merged) === */\n" + entries + src.slice(insertAt);
 fs.writeFileSync(payloadPath, src, "utf8");
 
 // 语法自检
 new Function(fs.readFileSync(payloadPath, "utf8"));
-console.log("read " + readTotal + " entries, merged " + merged.size + " new entries into EXACT; JS parse OK");
+console.log("共读取 " + readTotal + " 条译文，向 EXACT 合并 " + merged.size + " 条新译文；JavaScript 语法验证通过。");

@@ -4,7 +4,7 @@
 // 静态深度扫描：从 Postman 本地磁盘缓存（--disk，推荐）或运行中页面（CDP）抽取
 // UI 属性键（label/title/tooltip/text/...）后面的字符串字面量，逐条通过
 // zh-localize.js 的 translate() 测试，输出"翻译不出来"的候选清单。
-// 用法：node extract-ui-strings.js --disk [--max N] [--out report.json]
+// 用法：node 提取界面文案.js --disk [--max N] [--out report.json]
 // 输出：默认写入同级 _generated/zh-static-candidates.json。裸名称也写入 _generated；带目录的相对路径按调用目录解析。
 
 const fs = require("fs");
@@ -19,14 +19,14 @@ function outputPath() {
 
   const value = process.argv[index + 1];
   if (!value || value.startsWith("--")) {
-    throw new Error("--out requires a JSON report path");
+    throw new Error("--out 后必须提供 JSON 报告路径。");
   }
   const hasDirectory = path.isAbsolute(value) || value.includes("/") || value.includes("\\");
   resolved = hasDirectory ? path.resolve(value) : path.join(generatedDir, value);
   const extension = path.extname(resolved);
   if (!extension) return resolved + ".json";
   if (extension.toLowerCase() !== ".json") {
-    throw new Error("--out must use a .json extension or no extension");
+    throw new Error("--out 路径必须使用 .json 扩展名，或不写扩展名。");
   }
   return resolved;
 }
@@ -41,9 +41,9 @@ async function connectCdp(wsUrl) {
   const handlers = new Map();
   const ws = new WebSocket(wsUrl);
   await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("CDP connect timeout")), 10000);
+    const timer = setTimeout(() => reject(new Error("连接 CDP 超时。")), 10000);
     ws.addEventListener("open", () => { clearTimeout(timer); resolve(); }, { once: true });
-    ws.addEventListener("error", () => { clearTimeout(timer); reject(new Error("CDP connect failed")); }, { once: true });
+    ws.addEventListener("error", () => { clearTimeout(timer); reject(new Error("连接 CDP 失败。")); }, { once: true });
   });
   ws.addEventListener("message", (event) => {
     const message = JSON.parse(typeof event.data === "string" ? event.data : event.data.toString());
@@ -65,7 +65,7 @@ async function connectCdp(wsUrl) {
       return new Promise((resolve, reject) => {
         pending.set(id, { resolve, reject });
         setTimeout(() => {
-          if (pending.has(id)) { pending.delete(id); reject(new Error("timeout: " + method)); }
+          if (pending.has(id)) { pending.delete(id); reject(new Error("CDP 方法执行超时：" + method)); }
         }, 60000);
       });
     },
@@ -103,7 +103,7 @@ function loadTranslator() {
   vm.runInContext(code, sandbox, { filename: "zh-localize.js" });
   const localizer = sandbox.window.__POSTMAN_ZH_LOCALIZER__;
   if (!localizer || !localizer.translate) {
-    throw new Error("failed to load translate() from payload");
+    throw new Error("无法从汉化主体中加载 translate()。");
   }
   return localizer.translate;
 }
@@ -174,12 +174,12 @@ function extractFromDisk(counter) {
       else if (/^f_[0-9a-f]+$/i.test(entry.name) || /^data_[0-9]$/i.test(entry.name)) files.push(full);
     }
   })(root, 0);
-  console.error("disk mode: " + files.length + " cache files");
+  console.error("磁盘模式：发现 " + files.length + " 个缓存文件。");
   let done = 0;
   let ok = 0;
   for (const file of files) {
     done += 1;
-    if (done % 100 === 0) console.error("  " + done + "/" + files.length + " (candidates: " + counter.size + ")");
+    if (done % 100 === 0) console.error("  已处理 " + done + "/" + files.length + "（候选：" + counter.size + "）");
     let buf;
     try { buf = fs.readFileSync(file); } catch (e) { continue; }
     if (buf.length < 200) continue;
@@ -207,12 +207,12 @@ function extractFromDisk(counter) {
 async function extractViaCdp(counter) {
   const portFile = path.join(process.env.APPDATA || "", "Postman", "DevToolsActivePort");
   if (!fs.existsSync(portFile)) {
-    throw new Error("DevToolsActivePort not found. 请先通过安装脚本启动 Postman。");
+    throw new Error("找不到 DevToolsActivePort。请先通过 postman-zh.bat start 启动 Postman。");
   }
   const port = fs.readFileSync(portFile, "utf8").split(/\r?\n/)[0].trim();
   const targets = await (await fetch("http://127.0.0.1:" + port + "/json/list")).json();
   const pages = targets.filter((t) => t.type === "page" && t.webSocketDebuggerUrl);
-  if (!pages.length) throw new Error("no debuggable pages");
+  if (!pages.length) throw new Error("没有找到可调试的 Postman 页面。");
 
   let resourceCount = 0;
   for (const page of pages) {
@@ -231,7 +231,7 @@ async function extractViaCdp(counter) {
       let done = 0;
       for (const script of picked) {
         done += 1;
-        if (done % 10 === 0) console.error("  fetching " + done + "/" + picked.length);
+        if (done % 10 === 0) console.error("  正在获取 " + done + "/" + picked.length);
         try {
           const src = await cdp.send("Debugger.getScriptSource", { scriptId: script.scriptId });
           if (src && src.scriptSource) {
@@ -241,7 +241,7 @@ async function extractViaCdp(counter) {
         } catch (e) {}
       }
     } catch (error) {
-      console.error("skip page: " + error.message);
+      console.error("已跳过页面：" + error.message);
     } finally {
       if (cdp) cdp.close();
     }
@@ -286,6 +286,7 @@ async function main() {
 }
 
 main().catch((error) => {
+  console.error("提取界面文案失败：");
   console.error(error && error.stack || error);
   process.exit(1);
 });

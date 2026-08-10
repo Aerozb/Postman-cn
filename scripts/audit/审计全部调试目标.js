@@ -58,7 +58,7 @@ function parseTypes(raw) {
 
 async function json(url) {
   const response = await fetch(url);
-  if (!response.ok) throw new Error(`HTTP ${response.status}: ${url}`);
+  if (!response.ok) throw new Error(`HTTP 请求失败：状态码 ${response.status}，地址 ${url}`);
   return response.json();
 }
 
@@ -67,9 +67,9 @@ async function connect(wsUrl) {
   const pending = new Map();
   let id = 1;
   await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("CDP websocket connection timeout")), 10000);
+    const timer = setTimeout(() => reject(new Error("连接 CDP WebSocket 超时。")), 10000);
     ws.addEventListener("open", () => { clearTimeout(timer); resolve(); }, { once: true });
-    ws.addEventListener("error", () => { clearTimeout(timer); reject(new Error("CDP websocket connection failed")); }, { once: true });
+    ws.addEventListener("error", () => { clearTimeout(timer); reject(new Error("连接 CDP WebSocket 失败。")); }, { once: true });
   });
   ws.addEventListener("message", (event) => {
     let message;
@@ -86,7 +86,7 @@ async function connect(wsUrl) {
       const callId = id++;
       ws.send(JSON.stringify({ id: callId, method, params, ...(sessionId ? { sessionId } : {}) }));
       return new Promise((resolve, reject) => {
-        const timer = setTimeout(() => { pending.delete(callId); reject(new Error(`CDP timeout: ${method}`)); }, timeout);
+        const timer = setTimeout(() => { pending.delete(callId); reject(new Error(`CDP 命令执行超时：${method}`)); }, timeout);
         pending.set(callId, { resolve, reject, timer });
       });
     },
@@ -96,7 +96,7 @@ async function connect(wsUrl) {
 
 async function evaluate(send, expression) {
   const result = await send("Runtime.evaluate", { expression, returnByValue: true, awaitPromise: true });
-  if (result.exceptionDetails) throw new Error(result.exceptionDetails.text || "Runtime.evaluate failed");
+  if (result.exceptionDetails) throw new Error(result.exceptionDetails.text || "Runtime.evaluate 执行失败");
   return result.result && result.result.value;
 }
 
@@ -260,14 +260,15 @@ async function selfTest() {
     [dedupeEntries([{ text: "A", kind: "text" }, { text: "A", kind: "text" }]).length, 1]
   ];
   const failed = checks.filter(([actual, expected]) => actual !== expected);
-  if (failed.length) throw new Error(`self-test failed: ${JSON.stringify(failed)}`);
+  if (failed.length) throw new Error(`自检失败：${JSON.stringify(failed)}`);
+  process.stdout.write("全部调试目标审计脚本自检完成，以下为结果摘要：\n");
   process.stdout.write(JSON.stringify({ ok: true, checks: checks.length }, null, 2) + "\n");
 }
 
 async function main() {
   if (flag("--self-test")) return selfTest();
   const portFile = value("--port-file", path.join(process.env.APPDATA || "", "Postman", "DevToolsActivePort"));
-  if (!fs.existsSync(portFile)) throw new Error(`DevToolsActivePort not found: ${portFile}`);
+  if (!fs.existsSync(portFile)) throw new Error(`未找到 DevToolsActivePort 文件：${portFile}`);
   const lines = fs.readFileSync(portFile, "utf8").split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
   const port = Number(value("--port", lines[0]));
   const browserPath = lines[1];
@@ -335,11 +336,13 @@ async function main() {
   const out = path.resolve(value("--out", path.join(__dirname, "..", "..", "..", "_generated", "all-cdp-targets-audit.json")));
   fs.mkdirSync(path.dirname(out), { recursive: true });
   fs.writeFileSync(out, JSON.stringify(report, null, 2) + "\n", "utf8");
+  process.stdout.write("全部调试目标审计完成，以下为结果摘要：\n");
   process.stdout.write(JSON.stringify({ out, summary: report.summary }, null, 2) + "\n");
   if (flag("--fail-on-errors") && report.summary.errors) process.exitCode = 2;
 }
 
 main().catch((error) => {
+  console.error("全部调试目标审计失败，详细信息如下：");
   console.error(error && error.stack || error);
   process.exitCode = 1;
 });
