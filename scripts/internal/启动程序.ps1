@@ -11,6 +11,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "进程工具.ps1")
 
 # --- Locate Postman.exe ---
 # Auto-detect the Squirrel install root (the dir that holds app-x.y.z folders).
@@ -63,7 +64,7 @@ if (Test-Path -LiteralPath $portFile) {
 }
 
 Write-Host "[Postman 汉化] 正在启动：$exe"
-Start-Process -FilePath $exe -ArgumentList "--remote-debugging-port=0"
+Start-PostmanDetached -FilePath $exe -ArgumentList "--remote-debugging-port=0"
 
 if ($NoWait) {
   Write-Host "[Postman 汉化] 已启动；已按 -NoWait 跳过等待。端口文件将写入：$portFile"

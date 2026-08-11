@@ -18,6 +18,7 @@ $packageRoot = $repoRoot
 $workspaceRoot = Split-Path -Parent $repoRoot
 $workspaceParent = Split-Path -Parent $workspaceRoot
 $scriptsRoot = Join-Path $repoRoot "scripts"
+. (Join-Path $scriptRoot "进程工具.ps1")
 
 try {
   [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
@@ -758,7 +759,7 @@ if ($RestoreOriginal) {
   Remove-InstallArtifacts -UnpackedDir $unpackedDir -PatchedAsar $patchedAsar -AppAsar $appAsar
   if (-not $NoRestart) {
     Write-Step "正在启动 Postman。"
-    Start-Process -FilePath (Join-Path $appDir "Postman.exe")
+    Start-PostmanDetached -FilePath (Join-Path $appDir "Postman.exe")
   }
   Write-Step "操作完成。"
   exit 0
@@ -812,7 +813,7 @@ if (-not $NoRestart) {
     $args += "--remote-debugging-port=0"
   }
   Write-Step "正在启动 Postman。"
-  Start-Process -FilePath (Join-Path $appDir "Postman.exe") -ArgumentList $args
+  Start-PostmanDetached -FilePath (Join-Path $appDir "Postman.exe") -ArgumentList $args
 }
 
 if ($Verify) {

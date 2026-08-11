@@ -46,6 +46,8 @@ function hasFlag(name) {
   return process.argv.includes(name);
 }
 
+const SHOW_DETAILS = hasFlag("--details");
+
 function isPostmanPageUrl(value) {
   return POSTMAN_PAGE_URL_RE.test(String(value || ""));
 }
@@ -490,7 +492,8 @@ async function waitForPostmanTarget(port, timeoutMs) {
     } catch (_) {}
     await sleep(1000);
   }
-  throw new Error(`没有找到 Postman 页面目标。当前目标：${JSON.stringify(lastTargets)}`);
+  const targetDetails = SHOW_DETAILS ? ` 当前目标：${JSON.stringify(lastTargets)}` : "";
+  throw new Error(`没有找到 Postman 页面目标。${targetDetails}`);
 }
 
 async function main() {
@@ -1421,7 +1424,8 @@ async function main() {
     });
 
     if (evaluation.exceptionDetails) {
-      throw new Error(JSON.stringify(evaluation.exceptionDetails));
+      const evaluationDetails = SHOW_DETAILS ? `：${JSON.stringify(evaluation.exceptionDetails)}` : "";
+      throw new Error(`Postman 页面执行验证代码时返回异常${evaluationDetails}`);
     }
 
     const result = evaluation.result && evaluation.result.value;
@@ -1456,7 +1460,8 @@ async function main() {
     } else if (result.translationProbe.untranslated && result.translationProbe.untranslated.length) {
       failures.push(`翻译探针发现未翻译文案：${result.translationProbe.untranslated.join(", ")}`);
     } else if (result.translationProbe.englishHits && result.translationProbe.englishHits.length) {
-      failures.push(`翻译探针发现英文残留：${JSON.stringify(result.translationProbe.englishHits)}`);
+      const probeDetails = SHOW_DETAILS ? `：${JSON.stringify(result.translationProbe.englishHits)}` : "";
+      failures.push(`翻译探针发现英文残留${probeDetails}`);
     }
     if (result.error) {
       failures.push(result.error);
@@ -1468,23 +1473,29 @@ async function main() {
       failures.push("没有采集到右键菜单文案。");
     }
     if (expectUpdatesDisabled && (!result.updatePatch || !result.updatePatch.disabled)) {
-      failures.push(`自动更新拦截补丁未生效：${JSON.stringify(result.updatePatch)}`);
+      const updateDetails = SHOW_DETAILS ? `：${JSON.stringify(result.updatePatch)}` : "";
+      failures.push(`自动更新拦截补丁未生效${updateDetails}`);
     }
     if (!result.externalUrlPatch || !result.externalUrlPatch.installed) {
-      failures.push(`外部链接引号补丁未安装：${JSON.stringify(result.externalUrlPatch)}`);
+      const externalUrlDetails = SHOW_DETAILS ? `：${JSON.stringify(result.externalUrlPatch)}` : "";
+      failures.push(`外部链接引号补丁未安装${externalUrlDetails}`);
     }
     if (!result.mainMenuPatch || !result.mainMenuPatch.installed) {
-      failures.push(`应用菜单汉化补丁不完整：${JSON.stringify(result.mainMenuPatch)}`);
+      const mainMenuDetails = SHOW_DETAILS ? `：${JSON.stringify(result.mainMenuPatch)}` : "";
+      failures.push(`应用菜单汉化补丁不完整${mainMenuDetails}`);
     }
 
-    console.log("汉化验证详情：");
-    console.log(escapeForConsole(result));
+    if (SHOW_DETAILS) {
+      console.log("汉化验证详情：");
+      console.log(escapeForConsole(result));
+    }
 
     if (failures.length) {
       console.error("[Postman 汉化] 验证失败");
       for (const failure of failures) {
         console.error(`- ${failure}`);
       }
+      console.error("需要完整诊断时，请运行 postman-zh.bat verify --details。");
       process.exit(1);
     }
 
@@ -1497,7 +1508,13 @@ async function main() {
 if (require.main === module) {
   main().catch((error) => {
     console.error("[Postman 汉化] 验证过程出错");
-    console.error(error && error.stack || error);
+    const message = error && error.message ? error.message : String(error);
+    console.error(`- ${message}`);
+    if (SHOW_DETAILS && error && error.stack) {
+      console.error(error.stack);
+    } else {
+      console.error("需要完整诊断时，请运行 postman-zh.bat verify --details。");
+    }
     process.exit(1);
   });
 }

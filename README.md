@@ -31,7 +31,7 @@ Postman 桌面版汉化补丁，适用于 Windows 10/11 与 Postman 12.x。
 ```powershell
 .\postman-zh.bat collect       # 导出运行时漏翻
 .\postman-zh.bat collect -Clear
-.\postman-zh.bat verify        # 单独验证
+.\postman-zh.bat verify        # 单独验证；加 --details 查看完整诊断
 .\postman-zh.bat start         # 启动并等待 CDP 调试端口
 .\postman-zh.bat stop
 .\postman-zh.bat static-scan   # 扫描磁盘缓存中的 UI 文案

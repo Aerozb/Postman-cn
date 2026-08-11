@@ -105,7 +105,7 @@ Postman 中文汉化工具
   install       安装汉化、关闭自动更新并验证（默认命令）
   restore       还原英文原版
   collect       导出运行时收集到的漏翻；加 -Clear 同时清空记录
-  verify        只验证当前 Postman 汉化状态
+  verify        只验证当前 Postman 汉化状态；加 --details 查看完整诊断
   start         启动 Postman 并等待 CDP 调试端口
   stop          彻底关闭 Postman 进程
   fix-browser   修复系统浏览器 URL 参数引号

@@ -73,6 +73,7 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
 | `scripts/internal/修复浏览器链接.ps1` | 修复系统 URL 协议处理器的引号问题。 |
 | `scripts/internal/关闭程序.ps1` | 循环关闭全部 Postman 进程。 |
 | `scripts/internal/启动程序.ps1` | 启动 Postman 并等待当前 CDP 端口就绪。 |
+| `scripts/internal/进程工具.ps1` | 让 Postman 脱离安装控制台启动并丢弃其内部日志。 |
 
 安装命令常用参数：
 ```
@@ -90,7 +91,7 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
 | `scripts/data/合并译文.js` | 合并 `_generated/trans-*.json` 译文。 |
 | `scripts/runtime/收集漏翻.js` | 导出运行时漏翻清单。 |
 | `scripts/runtime/探测更新页面.js` | 探测更新页。 |
-| `scripts/验证汉化.js` | 安装验证实现，由 `verify` 或 `install` 调用。 |
+| `scripts/验证汉化.js` | 安装验证实现，由 `verify` 或 `install` 调用；`verify --details` 输出完整诊断。 |
 
 ### 审计（Node，走 CDP，需 Postman 带 `--remote-debugging-port=0` 启动）
 `scripts/audit/` 下的脚本通过 CDP 模拟点击、悬停和右键遍历页面。使用 `postman-zh.bat audit <名称>` 调用，不要直接记内部文件名。
