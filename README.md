@@ -18,7 +18,7 @@ Postman 桌面版汉化补丁，适用于 Windows 10/11 与 Postman 12.x。
 
 ## 使用统一脚本入口
 
-仓库根目录只有一个用户入口：[postman-zh.bat](./postman-zh.bat)。安装 Node.js 22+ 后双击它即可安装最新版汉化，操作完成后窗口会自动关闭；也可以在 PowerShell 中带命令运行：
+仓库根目录只有一个用户入口：[postman-zh.bat](./postman-zh.bat)。安装 Node.js 22+ 后双击它会弹出交互菜单，输入序号选择要做的操作，直接回车就是最常用的「安装汉化」，输入 `q` 退出；操作结束后按回车关闭窗口。也可以在 PowerShell 中带命令运行（带命令时不显示菜单）：
 
 ```powershell
 .\postman-zh.bat install       # 安装汉化、关闭自动更新并验证

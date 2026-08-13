@@ -1,6 +1,6 @@
 ﻿param(
   [Parameter(Position = 0)]
-  [string]$Command = 'install',
+  [string]$Command = '',
 
   [string]$PostmanDir,
   [int]$TimeoutSec = 60,
@@ -30,8 +30,21 @@ try {
   [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 } catch {}
 
+# 菜单模式（双击 bat、未带命令）下，收尾要停一下让用户看清结果，
+# 否则 postman-zh.bat 无参时执行的是 `exit`，窗口会直接关掉。
+$script:MenuMode = $false
+
 function Stop-WithCode {
   param([int]$Code = 0)
+  if ($script:MenuMode) {
+    Write-Host ''
+    if ($Code -eq 0) {
+      Write-Host '操作结束。' -ForegroundColor Green
+    } else {
+      Write-Host "操作结束，退出码 $Code。" -ForegroundColor Yellow
+    }
+    try { Read-Host '按回车键关闭窗口' | Out-Null } catch {}
+  }
   exit $Code
 }
 
@@ -98,11 +111,11 @@ function Show-Help {
   Write-Host @'
 Postman 中文汉化工具
 
-唯一入口：双击 postman-zh.bat，或在 PowerShell 中运行：
+唯一入口：双击 postman-zh.bat（弹出交互菜单），或在 PowerShell 中运行：
   .\postman-zh.bat <命令> [参数]
 
 常用命令：
-  install       安装汉化、关闭自动更新并验证（默认命令）
+  install       安装汉化、关闭自动更新并验证（菜单里直接回车即为此项）
   restore       还原英文原版
   collect       导出运行时收集到的漏翻；加 -Clear 同时清空记录
   verify        只验证当前 Postman 汉化状态；加 --details 查看完整诊断
@@ -137,7 +150,121 @@ Postman 中文汉化工具
 '@
 }
 
+# 按终端显示宽度右侧补空格。中文/全角字符占两列，直接用 -f 的 {0,-14}
+# 会按字符数补齐，导致中英混排的菜单项（如“启动 Postman”）对不齐。
+function Format-MenuCell {
+  param([string]$Text, [int]$Width)
+
+  $displayWidth = 0
+  foreach ($ch in $Text.ToCharArray()) {
+    $code = [int]$ch
+    # CJK 及全角标点区间按两列计算，其余按一列
+    if (($code -ge 0x1100 -and $code -le 0x115F) -or
+        ($code -ge 0x2E80 -and $code -le 0xA4CF) -or
+        ($code -ge 0xAC00 -and $code -le 0xD7A3) -or
+        ($code -ge 0xF900 -and $code -le 0xFAFF) -or
+        ($code -ge 0xFE30 -and $code -le 0xFE6F) -or
+        ($code -ge 0xFF00 -and $code -le 0xFF60) -or
+        ($code -ge 0xFFE0 -and $code -le 0xFFE6)) {
+      $displayWidth += 2
+    } else {
+      $displayWidth += 1
+    }
+  }
+
+  $pad = $Width - $displayWidth
+  if ($pad -lt 1) { $pad = 1 }
+  return $Text + (' ' * $pad)
+}
+
+# 双击 postman-zh.bat（不带任何命令）时显示的交互菜单。
+# 返回值：@{ Command = '<命令>'; Arguments = @(...) }，或 $null 表示用户选择退出。
+function Show-Menu {
+  $items = @(
+    @{ Key = '1';  Command = 'install';     Label = '安装汉化';         Note = '打补丁、关闭自动更新并验证（最常用）' }
+    @{ Key = '2';  Command = 'verify';      Label = '验证汉化状态';     Note = '只检查，不改动' }
+    @{ Key = '3';  Command = 'restore';     Label = '还原英文原版';     Note = '撤销汉化，恢复官方英文界面' }
+    @{ Key = '4';  Command = 'start';       Label = '启动 Postman';     Note = '启动并等待 CDP 调试端口' }
+    @{ Key = '5';  Command = 'stop';        Label = '关闭 Postman';     Note = '循环杀干净全部进程' }
+    @{ Key = '6';  Command = 'collect';     Label = '导出运行时漏翻';   Note = '导出用户实际遇到的漏翻文案' }
+    @{ Key = '7';  Command = 'static-scan'; Label = '静态扫描界面文案'; Note = '扫出未翻译候选，供补词条' }
+    @{ Key = '8';  Command = 'merge';       Label = '合并译文';         Note = '把 _generated/trans-*.json 并入词典' }
+    @{ Key = '9';  Command = 'audit';       Label = '深度审计界面';     Note = '需要再选一个审计名称' }
+    @{ Key = '10'; Command = 'fix-browser'; Label = '修复浏览器链接';   Note = '仅在登录页外部链接异常时用' }
+    @{ Key = '11'; Command = 'publish';     Label = '发布（维护者）';   Note = '推送代码到 GitHub 并发 Release' }
+    @{ Key = 'h';  Command = 'help';        Label = '查看完整命令帮助'; Note = '' }
+  )
+
+  Write-Host ''
+  Write-Host '=== Postman 中文汉化工具 ===' -ForegroundColor Cyan
+  Write-Host '请输入序号选择操作，直接回车执行【安装汉化】，输入 q 退出。'
+  Write-Host ''
+  foreach ($item in $items) {
+    $line = '  {0,-3} {1}{2}' -f $item.Key, (Format-MenuCell $item.Label 20), $item.Note
+    if ($item.Command -eq 'publish') {
+      Write-Host $line -ForegroundColor Yellow
+    } else {
+      Write-Host $line
+    }
+  }
+  Write-Host ''
+
+  $choice = ''
+  try { $choice = (Read-Host '请选择').Trim() } catch { $choice = '' }
+  if ($choice -eq 'q' -or $choice -eq 'Q') { return $null }
+  if ($choice -eq '') { $choice = '1' }
+
+  $picked = $items | Where-Object { $_.Key -eq $choice.ToLower() } | Select-Object -First 1
+  if (-not $picked) {
+    Write-Host "无效选择：$choice" -ForegroundColor Red
+    return $null
+  }
+
+  $arguments = @()
+  if ($picked.Command -eq 'audit') {
+    $auditKeys = @(
+      'all-targets', 'deep-areas', 'entry-modals', 'import', 'lightweight', 'navigation',
+      'new-collection', 'new-request', 'phased', 'targeted', 'targeted-surfaces'
+    )
+    Write-Host ''
+    Write-Host '请选择审计名称：'
+    for ($i = 0; $i -lt $auditKeys.Count; $i++) {
+      Write-Host ('  {0,-3} {1}' -f ($i + 1), $auditKeys[$i])
+    }
+    Write-Host ''
+    $auditChoice = ''
+    try { $auditChoice = (Read-Host '请输入序号或名称').Trim() } catch { $auditChoice = '' }
+    $auditName = $null
+    if ($auditChoice -match '^\d+$') {
+      $index = [int]$auditChoice - 1
+      if ($index -ge 0 -and $index -lt $auditKeys.Count) { $auditName = $auditKeys[$index] }
+    } elseif ($auditKeys -contains $auditChoice) {
+      $auditName = $auditChoice
+    }
+    if (-not $auditName) {
+      Write-Host "无效的审计名称：$auditChoice" -ForegroundColor Red
+      return $null
+    }
+    $arguments = @($auditName)
+  }
+
+  Write-Host ''
+  Write-Host "正在执行：$($picked.Label)" -ForegroundColor Cyan
+  Write-Host ''
+  return @{ Command = $picked.Command; Arguments = $arguments }
+}
+
 try {
+  if (-not $Command) {
+    $script:MenuMode = $true
+    $selection = Show-Menu
+    if (-not $selection) { Stop-WithCode 0 }
+    $Command = $selection.Command
+    if ($selection.Arguments.Count -gt 0) {
+      $RemainingArguments = @($selection.Arguments) + @($RemainingArguments)
+    }
+  }
+
   $validCommands = @('install', 'restore', 'collect', 'verify', 'start', 'stop', 'fix-browser', 'static-scan', 'merge', 'probe', 'scan', 'audit', 'publish', 'help')
   if ($validCommands -notcontains $Command) {
     Write-Host "未知命令：$Command"

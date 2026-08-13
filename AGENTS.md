@@ -65,6 +65,8 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
 .\postman-zh.bat restore
 ```
 
+**不带命令运行（或双击 bat）会显示交互菜单**，覆盖 install/verify/restore/start/stop/collect/static-scan/merge/audit/fix-browser/publish；选 `audit` 会再问一次审计名称。菜单只是 `统一入口.ps1` 里 `Show-Menu` 对同一批子命令的包装，带命令调用的行为完全不变。菜单模式下结尾会 `Read-Host` 暂停，方便双击的用户看结果。
+
 实现按用途归档在 `scripts/` 下，不要从根目录再新增 `.bat` 或转发用 `.ps1`。
 
 ### 内部 PowerShell 实现
