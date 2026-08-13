@@ -27,6 +27,8 @@ function hasFlag(name) {
   return process.argv.includes(name);
 }
 
+const SHOW_DETAILS = hasFlag("--details");
+
 function argList(name, fallback = null) {
   const value = argValue(name, null);
   if (!value) {
@@ -83,28 +85,46 @@ async function connectCdp(wsUrl) {
     }
     const callbacks = pending.get(message.id);
     pending.delete(message.id);
+    clearTimeout(callbacks.timer);
     if (message.error) {
-      callbacks.reject(new Error(message.error.message || JSON.stringify(message.error)));
+      const details = SHOW_DETAILS ? ` 诊断：${JSON.stringify(message.error)}` : "";
+      callbacks.reject(new Error(`${message.error.message || "CDP 命令执行失败。"}${details}`));
     } else {
       callbacks.resolve(message.result);
     }
   });
 
+  const rejectPending = () => {
+    for (const callbacks of pending.values()) {
+      clearTimeout(callbacks.timer);
+      callbacks.reject(new Error("CDP 连接已关闭。"));
+    }
+    pending.clear();
+  };
+  ws.addEventListener("close", rejectPending);
+
   return {
     send(method, params = {}) {
       const id = nextId++;
-      ws.send(JSON.stringify({ id, method, params }));
       return new Promise((resolve, reject) => {
-        pending.set(id, { resolve, reject });
-        setTimeout(() => {
+        const timer = setTimeout(() => {
           if (pending.has(id)) {
             pending.delete(id);
             reject(new Error(`CDP 命令执行超时：${method}`));
           }
         }, 30000);
+        pending.set(id, { resolve, reject, timer });
+        try {
+          ws.send(JSON.stringify({ id, method, params }));
+        } catch (error) {
+          clearTimeout(timer);
+          pending.delete(id);
+          reject(error);
+        }
       });
     },
     close() {
+      rejectPending();
       try {
         ws.close();
       } catch (_) {}
@@ -150,7 +170,8 @@ async function waitForPostmanTarget(port, timeoutMs, options = {}) {
     } catch (_) {}
     await sleep(800);
   }
-  throw new Error(`未找到${requireRequestEditor ? "请求编辑器" : "Postman 页面"}调试目标。当前目标：${JSON.stringify(lastTargets)}`);
+  const details = SHOW_DETAILS ? ` 当前目标：${JSON.stringify(lastTargets)}` : "";
+  throw new Error(`未找到${requireRequestEditor ? "请求编辑器" : "Postman 页面"}调试目标。${details}`);
 }
 
 async function evaluate(cdp, expression, awaitPromise = false) {
@@ -160,7 +181,9 @@ async function evaluate(cdp, expression, awaitPromise = false) {
     returnByValue: true
   });
   if (result.exceptionDetails) {
-    throw new Error(result.exceptionDetails.text || JSON.stringify(result.exceptionDetails));
+    const message = result.exceptionDetails.text || "页面脚本执行失败。";
+    const details = SHOW_DETAILS ? ` 诊断：${JSON.stringify(result.exceptionDetails)}` : "";
+    throw new Error(`${message}${details}`);
   }
   return result.result.value;
 }
@@ -1340,8 +1363,7 @@ async function main() {
       fs.writeFileSync(`${outBase}.json`, JSON.stringify(output, null, 2), "utf8");
     }
 
-    console.log("新建请求界面审计完成，以下为结果摘要：");
-    console.log(JSON.stringify({
+    const summary = {
       out: `${outBase}.json`,
       screenshot: `${outBase}.png`,
       screenshotError: output.screenshotError,
@@ -1358,14 +1380,21 @@ async function main() {
       verificationFailures,
       hitCount: output.hits.length,
       hits: output.hits.slice(0, 40).map((item) => item.text)
-    }, null, 2));
+    };
+    console.log(`新建请求界面审计完成：发现 ${summary.hitCount} 条待复核文本，报告已保存到 ${summary.out}。`);
+    if (SHOW_DETAILS) {
+      console.log(JSON.stringify(summary, null, 2));
+    }
   } finally {
     cdp.close();
   }
 }
 
 main().catch((error) => {
-  console.error("新建请求界面审计失败，详细信息如下：");
-  console.error(error && error.stack || error);
+  const message = String(error && error.message || error).replace(/\s+/g, " ").trim();
+  console.error(`新建请求界面审计失败：${message}`);
+  if (SHOW_DETAILS && error && error.stack) {
+    console.error(error.stack);
+  }
   process.exit(1);
 });

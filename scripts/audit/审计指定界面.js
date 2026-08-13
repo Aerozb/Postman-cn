@@ -12,6 +12,12 @@ function argValue(name, fallback = null) {
   return fallback;
 }
 
+function hasFlag(name) {
+  return process.argv.includes(name);
+}
+
+const SHOW_DETAILS = hasFlag("--details");
+
 function resolveOutBase(value) {
   const requested = value || "postman-audit";
   const hasDirectory = path.isAbsolute(requested) || requested.includes("/") || requested.includes("\\");
@@ -47,6 +53,14 @@ async function connectCdp(wsUrl) {
   const pending = new Map();
   const ws = new WebSocket(wsUrl);
 
+  function rejectPending(error) {
+    for (const callbacks of pending.values()) {
+      clearTimeout(callbacks.timer);
+      callbacks.reject(error);
+    }
+    pending.clear();
+  }
+
   await new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error("连接 CDP WebSocket 超时。")), 10000);
     ws.addEventListener("open", () => {
@@ -66,6 +80,7 @@ async function connectCdp(wsUrl) {
     }
     const callbacks = pending.get(message.id);
     pending.delete(message.id);
+    clearTimeout(callbacks.timer);
     if (message.error) {
       callbacks.reject(new Error(message.error.message || JSON.stringify(message.error)));
     } else {
@@ -73,21 +88,26 @@ async function connectCdp(wsUrl) {
     }
   });
 
+  ws.addEventListener("close", () => {
+    rejectPending(new Error("CDP WebSocket 已关闭。"));
+  });
+
   return {
     send(method, params = {}) {
       const id = nextId++;
       ws.send(JSON.stringify({ id, method, params }));
       return new Promise((resolve, reject) => {
-        pending.set(id, { resolve, reject });
-        setTimeout(() => {
+        const timer = setTimeout(() => {
           if (pending.has(id)) {
             pending.delete(id);
             reject(new Error(`CDP 命令执行超时：${method}`));
           }
         }, 20000);
+        pending.set(id, { resolve, reject, timer });
       });
     },
     close() {
+      rejectPending(new Error("CDP 连接已关闭。"));
       try {
         ws.close();
       } catch (_) {}
@@ -100,35 +120,60 @@ function norm(text) {
 }
 
 const ALLOWED_WORDS = new Set(
-  "postman api apis url uri http https get post put patch delete head options cookie cookies json xml html javascript oauth jwt bearer websocket graphql grpc mcp socket io ctrl alt shift tab enter esc ai postbot vault llm curl ssl tls tcp udp"
+  "postman api apis url uri http https get post put patch delete head options cookie cookies json xml html javascript oauth jwt bearer websocket graphql grpc mcp socket io ctrl alt shift tab enter esc ai postbot vault llm curl ssl tls tcp udp git sdk rbac"
     .concat(" f x ms rest mqtt none params raw binary urlencoded www form content type tiny validator getpostman interceptor x-www-form-urlencoded content-type")
     .split(/\s+/)
 );
 
 const ALLOWED_LINE = /^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS|Cookie|Postman|API|HTTP|URL|Ctrl|Alt|Shift|Tab|Enter|Esc|JSON|XML|HTML|JavaScript|GraphQL|gRPC|WebSocket|MCP|Postbot|Vault|AI|LLM|cURL|SSL|TLS)$/i;
+const SHORTCUT_CHORD = /(?:Ctrl|Alt|Shift|Cmd|Command|Win)(?:\s*\+\s*(?:Ctrl|Alt|Shift|Cmd|Command|Win|Del|Esc|Enter|Tab|Space|F\d{1,2}|[A-Z0-9`\\]))+/gi;
 
-function englishHits(text) {
-  const lines = norm(text)
-    .split(/(?<=[。！？.!?])\s+|\n+/)
-    .map(norm)
-    .filter(Boolean);
+function englishHits(sources, step) {
   const hits = [];
+  const seen = new Set();
 
-  for (const line of lines) {
-    if (!/[A-Za-z]{2,}/.test(line)) {
-      continue;
-    }
-    if (ALLOWED_LINE.test(line)) {
-      continue;
-    }
-    const words = (line.match(/[A-Za-z][A-Za-z'’-]*/g) || []).map((word) => word.toLowerCase());
-    const unknown = words.filter((word) => !ALLOWED_WORDS.has(word));
-    if (unknown.length) {
-      hits.push(line);
+  for (const source of sources) {
+    const fragments = String(source.text || "")
+      .split(/(?<=[。！？.!?])\s+/)
+      .map(norm)
+      .filter(Boolean);
+
+    for (const line of fragments) {
+      if (!/[A-Za-z]{2,}/.test(line) || ALLOWED_LINE.test(line)) {
+        continue;
+      }
+      if (source.kind === "attribute" && source.attribute === "aria-label" && /(?:的头像|团队标志)$/.test(line)) {
+        continue;
+      }
+      const textWithoutShortcuts = line.replace(SHORTCUT_CHORD, " ");
+      const words = (textWithoutShortcuts.match(/[A-Za-z][A-Za-z'’-]*/g) || []).map((word) => word.toLowerCase());
+      const unknown = words.filter((word) => !ALLOWED_WORDS.has(word));
+      if (!unknown.length) {
+        continue;
+      }
+      const key = `${source.kind}|${source.attribute || ""}|${line}`;
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      const hit = { text: line, step, kind: source.kind };
+      if (source.attribute) {
+        hit.attribute = source.attribute;
+      }
+      if (source.tag) {
+        hit.tag = source.tag;
+      }
+      if (Number.isInteger(source.index)) {
+        hit.index = source.index;
+      }
+      hits.push(hit);
+      if (hits.length >= 30) {
+        return hits;
+      }
     }
   }
 
-  return Array.from(new Set(hits)).slice(0, 30);
+  return hits;
 }
 
 async function mouse(cdp, type, x, y, button = "left") {
@@ -174,43 +219,65 @@ async function pressEsc(cdp) {
 async function collectState(cdp, step) {
   const expression = String.raw`(() => {
     const norm = (text) => String(text || "").replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
-    const overlays = Array.from(document.querySelectorAll('[role="tooltip"],[role="menu"],[role="dialog"],.ReactModal__Overlay,[data-testid*="menu"],[data-testid*="modal"]'))
-      .map((el) => norm(el.innerText || el.textContent))
-      .filter(Boolean)
-      .slice(0, 12);
-    const attrs = Array.from(document.querySelectorAll('[aria-label],[placeholder],input,textarea,button,a,[role="button"],[role="tab"],[role="menuitem"]'))
-      .map((el) => {
+    const isVisible = (el) => {
+      if (!el || !(el instanceof Element)) return false;
+      const style = getComputedStyle(el);
+      return style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity || 1) !== 0 && el.getClientRects().length > 0;
+    };
+    const isPrivateText = (el) => {
+      if (!el || !el.closest) return true;
+      if (el.closest("input,textarea,select,[contenteditable='true'],[role='textbox'],.CodeMirror,.cm-editor,.monaco-editor,.ace_editor,.ProseMirror,.pm-response-body,.response-body,[data-testid*='request-body'],[data-testid*='response-body'],[data-testid*='code-editor']")) {
+        return true;
+      }
+      const keyValue = el.closest(".key-value-form-row,.key-value-cell,.key-value-form-column,.key-value-form-editor-sortable,.auto-suggest-group");
+      return !!(keyValue && !el.closest(".header-row,.key-value-form-header-row,.key-value-cell__placeholder,.goto-bulk-editor,.bulk-editor-preset__controls"));
+    };
+    const sources = [];
+    const overlaySelector = '[role="tooltip"],[role="menu"],[role="dialog"],.ReactModal__Overlay,[data-testid*="menu"],[data-testid*="modal"]';
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    let textIndex = 0;
+    while (walker.nextNode() && textIndex < 1200) {
+      const node = walker.currentNode;
+      const parent = node.parentElement;
+      const text = norm(node.nodeValue);
+      if (!text || !isVisible(parent) || isPrivateText(parent)) continue;
+      const overlay = parent.closest(overlaySelector);
+      sources.push({ text, kind: overlay ? "overlay" : "body", tag: overlay ? overlay.tagName : parent.tagName, index: textIndex });
+      textIndex += 1;
+    }
+    if (norm(document.title)) {
+      sources.unshift({ text: norm(document.title), kind: "title", index: 0 });
+    }
+    let attributeCount = 0;
+    Array.from(document.querySelectorAll('[aria-label],[placeholder],input,textarea,button,a,[role="button"],[role="tab"],[role="menuitem"]'))
+      .forEach((el, index) => {
+        if (attributeCount >= 240) {
+          return;
+        }
         const explicit = norm(el.getAttribute("aria-label") || el.getAttribute("placeholder") || el.title || "");
         if (explicit) {
-          return explicit;
+          const attribute = el.getAttribute("aria-label") ? "aria-label" : el.getAttribute("placeholder") ? "placeholder" : "title";
+          sources.push({ text: explicit, kind: "attribute", attribute, tag: el.tagName, index });
+          attributeCount += 1;
         }
-        const type = String(el.getAttribute("type") || "").toLowerCase();
-        if (el.tagName === "INPUT" && /^(radio|checkbox|hidden|button|submit|reset)$/.test(type)) {
-          return "";
-        }
-        return norm(el.value || "");
-      })
-      .filter(Boolean)
-      .slice(0, 140);
+      });
     return {
       title: document.title,
       url: location.href,
-      body: norm(document.body && document.body.innerText || ""),
-      overlays,
-      attrs
+      sources,
+      textNodeCount: textIndex,
+      attributeCount
     };
   })()`;
   const result = await cdp.send("Runtime.evaluate", { expression, returnByValue: true });
   const value = result.result.value;
-  const combined = [value.title, value.body].concat(value.overlays, value.attrs).join("\n");
   return {
     step,
     title: value.title,
     url: value.url,
-    hits: englishHits(combined),
-    overlays: value.overlays,
-    attrs: value.attrs.slice(0, 60),
-    bodyPreview: value.body.slice(0, 1400)
+    hits: englishHits(value.sources || [], step),
+    textNodeCount: value.textNodeCount,
+    attributeCount: value.attributeCount
   };
 }
 
@@ -297,7 +364,7 @@ const ACTIONS = [
 
 async function main() {
   const timeoutMs = Number(argValue("--timeout-ms", "60000"));
-  const delayMs = Number(argValue("--delay-ms", "260"));
+  const delayMs = Number(argValue("--delay-ms", "800"));
   const outBase = resolveOutBase(argValue("--out", "postman-targeted-audit"));
   const targetTitle = argValue("--target-title", "未命名请求|新建请求|HTTP Request|Untitled Request|Postman");
   const portFile = resolvePortFile();
@@ -341,7 +408,15 @@ async function main() {
     cdp.close();
   }
 
-  const hits = Array.from(new Set(log.flatMap((entry) => entry.hits || [])));
+  const hits = [];
+  const seenHits = new Set();
+  for (const hit of log.flatMap((entry) => entry.hits || [])) {
+    const key = `${hit.step}|${hit.kind}|${hit.attribute || ""}|${hit.text}`;
+    if (!seenHits.has(key)) {
+      seenHits.add(key);
+      hits.push(hit);
+    }
+  }
   const output = {
     target: { title: target.title, url: target.url },
     hitCount: hits.length,
@@ -349,17 +424,57 @@ async function main() {
     log
   };
   fs.writeFileSync(`${outBase}.json`, JSON.stringify(output, null, 2), "utf8");
-  console.log("指定界面审计完成，以下为结果摘要：");
-  console.log(JSON.stringify({
+  const summary = {
     out: `${outBase}.json`,
     screenshot: `${outBase}.png`,
     hitCount: hits.length,
-    hits
-  }, null, 2));
+    hits: hits.slice(0, 80)
+  };
+  console.log(`指定界面审计完成：发现 ${summary.hitCount} 条待复核文本，报告已保存到 ${summary.out}。`);
+  if (SHOW_DETAILS) {
+    console.log(JSON.stringify(summary, null, 2));
+  }
 }
 
-main().catch((error) => {
-  console.error("指定界面审计失败，详细信息如下：");
-  console.error(error && error.stack || error);
-  process.exit(1);
+function selfTest() {
+  const generatedScan = String(collectState);
+  const expectedOut = path.resolve(__dirname, "..", "..", "..", "_generated", "自检报告");
+  const checks = [
+    [/\bel\.value\b/.test(generatedScan), false],
+    [/input-value/.test(generatedScan), false],
+    [/document\.body\s*(?:&&|\?)\s*document\.body\.innerText/.test(generatedScan), false],
+    [/bodyPreview|bodyLines/.test(generatedScan), false],
+    [/contenteditable='true'/.test(generatedScan), true],
+    [/key-value-form-row/.test(generatedScan), true],
+    [resolveOutBase("自检报告"), expectedOut],
+    [englishHits([{ text: "Ctrl+K", kind: "body" }], "self-test").length, 0],
+    [englishHits([{ text: "询问 AICtrl+Alt+P", kind: "body" }], "self-test").length, 0],
+    [englishHits([{ text: "连接 Git", kind: "body" }], "self-test").length, 0],
+    [englishHits([{ text: "SDK 生成", kind: "body" }], "self-test").length, 0],
+    [englishHits([{ text: "基础版基于角色的访问控制（RBAC）", kind: "body" }], "self-test").length, 0],
+    [englishHits([{ text: "aerozb 的头像", kind: "attribute", attribute: "aria-label" }], "self-test").length, 0],
+    [englishHits([{ text: "Press Ctrl+K to search", kind: "body" }], "self-test").length, 1],
+    [englishHits([{ text: "Description", kind: "body" }], "self-test").length, 1],
+    [Number(argValue("--delay-ms", "800")) >= 800, true]
+  ];
+  const failed = checks.filter(([actual, expected]) => actual !== expected);
+  if (failed.length) {
+    throw new Error(`自检失败，共 ${failed.length} 项不符合预期。`);
+  }
+  const summary = { ok: true, checks: checks.length };
+  if (SHOW_DETAILS) {
+    console.log(JSON.stringify(summary, null, 2));
+  } else {
+    console.log(`指定界面审计脚本自检通过，共 ${checks.length} 项。`);
+  }
+}
+
+Promise.resolve().then(() => hasFlag("--self-test") ? selfTest() : main()).catch((error) => {
+  const message = norm(error && error.message || error);
+  if (SHOW_DETAILS) {
+    console.error(JSON.stringify({ ok: false, error: message, stack: error && error.stack || null }, null, 2));
+  } else {
+    console.error("指定界面审计失败，请确认 Postman 已启动；可使用 --details 查看详细信息。");
+  }
+  process.exitCode = 1;
 });

@@ -39,7 +39,8 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
       docs\  汉化教程.md  维护指南.md
       AGENTS.md  CLAUDE.md  README.md
       postman-zh.bat                  ← 普通用户唯一入口（双击）
-    _generated\                       ← 所有脚本产物输出到这里（可再生，可被随时删除）
+    _generated\                       ← 审计、扫描和翻译临时产物（可再生，可被随时删除）
+    _release\                         ← `publish` 生成的正式发布包
 ```
 
 **重要**：`_generated` 必须与 `Postman-cn` **同级**，所有扫描产物都写在那里。它里面全是可再生产物，词典本体在 `payload/zh-localize.js`，不受影响。若装了清理工具，建议把 `Desktop\Postman` 加白名单。
@@ -141,7 +142,7 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
 
 2. **`data-placeholder` 必须在 `ATTRS` 列表里**。评论框等富文本编辑器用它渲染占位符，漏了评论面板占位符就不翻译。
 
-3. **禁更新补丁策略**：`-DisableUpdates` **不要**改 `isUpdateEnabled`（会让"设置>更新"页报"出现了一些问题"连接错误）。正确做法是只把 `downloadUpdate` 补丁成直接回报 `updateNotAvailable`→ 更新页正常显示"已是最新版本"，且不会自动更新覆盖汉化。补丁用版本无关的锚点，找不到足够锚点时应报错而非假装成功。
+3. **禁更新补丁策略**：`-DisableUpdates` **不要**改 `isUpdateEnabled`（会让"设置>更新"页报"出现了一些问题"连接错误）。当前实现同时安装运行时更新守卫，并用版本无关锚点拦截 `downloadUpdate`、`restartAppToUpdate` 等下载和重启路径；更新页仍应正常显示"已是最新版本"。找不到可确认的源码锚点时应报错，而不是假装成功。
 
 4. **菜单汉化用全局 `Menu.buildFromTemplate` 包装器**（prepend 到 `main.js`），不依赖压缩后的变量名锚点，跨版本稳定。若要加原生菜单词条，改这个包装器里的词典，且**只能用 `\u` 转义**中文，避免打包后 `main.js` 编码问题。
 

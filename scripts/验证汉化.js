@@ -60,12 +60,23 @@ function escapeForConsole(value) {
   return JSON.stringify(value, null, 2);
 }
 
-async function getJson(url) {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`HTTP 请求失败：状态码 ${response.status}，地址 ${url}`);
+async function getJson(url, timeoutMs = 5000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) {
+      throw new Error(`HTTP 请求失败：状态码 ${response.status}，地址 ${url}`);
+    }
+    return await response.json();
+  } catch (error) {
+    if (error && error.name === "AbortError") {
+      throw new Error(`HTTP 请求超过 ${timeoutMs} 毫秒，已取消。`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
   }
-  return response.json();
 }
 
 function resolvePortFile() {
@@ -424,7 +435,12 @@ async function connectCdp(wsUrl) {
   const ws = new WebSocket(wsUrl);
 
   await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("连接 CDP WebSocket 超时。")), 10000);
+    const timer = setTimeout(() => {
+      try {
+        ws.close();
+      } catch (_) {}
+      reject(new Error("连接 CDP WebSocket 超时。"));
+    }, 10000);
     ws.addEventListener("open", () => {
       clearTimeout(timer);
       resolve();
@@ -442,28 +458,48 @@ async function connectCdp(wsUrl) {
     }
     const callbacks = pending.get(message.id);
     pending.delete(message.id);
+    clearTimeout(callbacks.timer);
     if (message.error) {
-      callbacks.reject(new Error(message.error.message || JSON.stringify(message.error)));
+      const details = SHOW_DETAILS
+        ? ` 诊断：${message.error.message || JSON.stringify(message.error)}`
+        : "";
+      callbacks.reject(new Error(`CDP 命令执行失败。${details}`));
     } else {
       callbacks.resolve(message.result);
     }
   });
 
+  const rejectPending = () => {
+    for (const callbacks of pending.values()) {
+      clearTimeout(callbacks.timer);
+      callbacks.reject(new Error("CDP 连接已关闭。"));
+    }
+    pending.clear();
+  };
+  ws.addEventListener("close", rejectPending);
+
   return {
     send(method, params = {}) {
       const id = nextId++;
-      ws.send(JSON.stringify({ id, method, params }));
       return new Promise((resolve, reject) => {
-        pending.set(id, { resolve, reject });
-        setTimeout(() => {
+        const timer = setTimeout(() => {
           if (pending.has(id)) {
             pending.delete(id);
             reject(new Error(`CDP 命令执行超时：${method}`));
           }
         }, 15000);
+        pending.set(id, { resolve, reject, timer });
+        try {
+          ws.send(JSON.stringify({ id, method, params }));
+        } catch (error) {
+          clearTimeout(timer);
+          pending.delete(id);
+          reject(error);
+        }
       });
     },
     close() {
+      rejectPending();
       try {
         ws.close();
       } catch (_) {}
@@ -926,6 +962,7 @@ async function main() {
         "Continue with Enterprise Plan",
         "Advanced RBAC & organization controls",
         "Governance, audit logs & reporting",
+        "Private runners (tests and Flows)",
         "Start Trial",
         "API monitoring",
         "Unlimited Collection Runner & Performance Testing runs",
@@ -1267,13 +1304,33 @@ async function main() {
         "Delete workspace",
         "Once deleted, a workspace is gone forever along with its data."
       ];
+      const translationProbeExpectations = [
+        ["capture cookies using Interceptor", "使用 Interceptor 捕获 Cookie"],
+        ["e.g. read:org", "例如 read:org"],
+        ["HashiCorp integration", "HashiCorp 集成"],
+        ["Drag and drop or choose a .proto file from your local system.", "拖放或从本地系统选择 .proto 文件。"],
+        ['while resolving "import" directives.', '解析“import”指令时。']
+      ];
+      const translationPreservationTargets = [
+        "OverviewController",
+        "Add My Collections Backup"
+      ];
       const menuEnglishPattern = /New Request|Duplicate Tab|Selected Tab|Recently Closed Tabs|Close Tab|Force Close|Close Other|Close All|Reveal in Sidebar|Clone|flow link|analytics/i;
       const bodyText = document.body ? document.body.innerText : "";
       const localizer = window.__POSTMAN_ZH_LOCALIZER__;
       const translationProbe = {
         available: !!(localizer && typeof localizer.translate === "function"),
         untranslated: [],
-        englishHits: []
+        englishHits: [],
+        unexpectedTranslations: [],
+        preservationFailures: [],
+        keyValueEditor: {
+          available: !!(localizer && typeof localizer.walk === "function" && document.body),
+          headerActual: [],
+          placeholderActual: [],
+          dataActual: [],
+          failures: []
+        }
       };
       if (translationProbe.available) {
         translationProbe.untranslated = translationProbeTargets.filter((text) => {
@@ -1358,9 +1415,70 @@ async function main() {
           ].filter((needle) => String(output || "").includes(needle));
           return hits.length ? { input: text, output, hits } : null;
         }).filter(Boolean);
+        translationProbe.unexpectedTranslations = translationProbeExpectations.map(([input, expected]) => {
+          const output = localizer.translate(input);
+          return output === expected ? null : { input, expected, output };
+        }).filter(Boolean);
+        translationProbe.preservationFailures = translationPreservationTargets.map((input) => {
+          const output = localizer.translate(input);
+          return output === input ? null : { input, output };
+        }).filter(Boolean);
+
+        if (translationProbe.keyValueEditor.available) {
+          const fixture = document.createElement("div");
+          fixture.hidden = true;
+          fixture.setAttribute("data-postman-zh-validation", "key-value-editor");
+          fixture.innerHTML = [
+            '<div class="key-value-form-editor-sortable">',
+            '  <div class="key-value-form-row header-row">',
+            '    <span data-probe="header">Key</span>',
+            '    <span data-probe="header">Value</span>',
+            '    <span data-probe="header">Description</span>',
+            '  </div>',
+            '  <div class="key-value-form-row">',
+            '    <span class="key-value-cell__placeholder" data-probe="placeholder">Key</span>',
+            '    <span class="key-value-cell__placeholder" data-probe="placeholder">Value</span>',
+            '    <span class="key-value-cell__placeholder" data-probe="placeholder">Description</span>',
+            '  </div>',
+            '  <div class="key-value-form-row">',
+            '    <span data-probe="data">Key</span>',
+            '    <span data-probe="data">Value</span>',
+            '    <span data-probe="data">Description</span>',
+            '  </div>',
+            '</div>'
+          ].join("");
+          document.body.appendChild(fixture);
+          try {
+            localizer.walk(fixture);
+            const values = (selector) => Array.from(fixture.querySelectorAll(selector)).map((el) => el.textContent);
+            translationProbe.keyValueEditor.headerActual = values('[data-probe="header"]');
+            translationProbe.keyValueEditor.placeholderActual = values('[data-probe="placeholder"]');
+            translationProbe.keyValueEditor.dataActual = values('[data-probe="data"]');
+            const expectations = [
+              ["header", translationProbe.keyValueEditor.headerActual, ["键", "值", "描述"]],
+              ["placeholder", translationProbe.keyValueEditor.placeholderActual, ["键", "值", "描述"]],
+              ["data", translationProbe.keyValueEditor.dataActual, ["Key", "Value", "Description"]]
+            ];
+            for (const [scope, actual, expected] of expectations) {
+              if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+                translationProbe.keyValueEditor.failures.push({ scope, expected, actual });
+              }
+            }
+          } finally {
+            fixture.remove();
+          }
+        } else {
+          translationProbe.keyValueEditor.failures.push({
+            scope: "fixture",
+            expected: "可调用的 walk() 和 document.body",
+            actual: "不可用"
+          });
+        }
       } else {
         translationProbe.untranslated = translationProbeTargets;
         translationProbe.englishHits = translationProbeTargets.map((text) => ({ input: text, output: text, hits: ["翻译探针不可用"] }));
+        translationProbe.unexpectedTranslations = translationProbeExpectations.map(([input, expected]) => ({ input, expected, output: input }));
+        translationProbe.preservationFailures = translationPreservationTargets.map((input) => ({ input, output: "翻译探针不可用" }));
       }
       const tabs = Array.from(document.querySelectorAll("[data-tab-id]")).slice(0, 10).map((el) => {
         const rect = el.getBoundingClientRect();
@@ -1417,6 +1535,12 @@ async function main() {
       return output;
     })()`;
 
+    try {
+      new Function(`return ${expression};`);
+    } catch (error) {
+      throw new Error(`验证器生成的浏览器代码存在语法错误：${error.message}`);
+    }
+
     const evaluation = await cdp.send("Runtime.evaluate", {
       expression,
       returnByValue: true,
@@ -1457,11 +1581,27 @@ async function main() {
     }
     if (!result.translationProbe || !result.translationProbe.available) {
       failures.push("翻译探针不可用。");
-    } else if (result.translationProbe.untranslated && result.translationProbe.untranslated.length) {
-      failures.push(`翻译探针发现未翻译文案：${result.translationProbe.untranslated.join(", ")}`);
-    } else if (result.translationProbe.englishHits && result.translationProbe.englishHits.length) {
-      const probeDetails = SHOW_DETAILS ? `：${JSON.stringify(result.translationProbe.englishHits)}` : "";
-      failures.push(`翻译探针发现英文残留${probeDetails}`);
+    } else {
+      if (result.translationProbe.untranslated && result.translationProbe.untranslated.length) {
+        failures.push(`翻译探针发现未翻译文案：${result.translationProbe.untranslated.join(", ")}`);
+      }
+      if (result.translationProbe.englishHits && result.translationProbe.englishHits.length) {
+        const probeDetails = SHOW_DETAILS ? `：${JSON.stringify(result.translationProbe.englishHits)}` : "";
+        failures.push(`翻译探针发现英文残留${probeDetails}`);
+      }
+      if (result.translationProbe.unexpectedTranslations && result.translationProbe.unexpectedTranslations.length) {
+        const probeDetails = SHOW_DETAILS ? `：${JSON.stringify(result.translationProbe.unexpectedTranslations)}` : "";
+        failures.push(`技术词混排翻译结果不符合预期（${result.translationProbe.unexpectedTranslations.length} 项）${probeDetails}`);
+      }
+      if (result.translationProbe.preservationFailures && result.translationProbe.preservationFailures.length) {
+        const probeDetails = SHOW_DETAILS ? `：${JSON.stringify(result.translationProbe.preservationFailures)}` : "";
+        failures.push(`标识符或不完整动态短语被误翻（${result.translationProbe.preservationFailures.length} 项）${probeDetails}`);
+      }
+      if (!result.translationProbe.keyValueEditor || result.translationProbe.keyValueEditor.failures.length) {
+        const keyValueFailures = result.translationProbe.keyValueEditor && result.translationProbe.keyValueEditor.failures || [];
+        const probeDetails = SHOW_DETAILS ? `：${JSON.stringify(keyValueFailures)}` : "";
+        failures.push(`键值编辑器表头翻译或数据保护异常${probeDetails}`);
+      }
     }
     if (result.error) {
       failures.push(result.error);

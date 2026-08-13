@@ -47,6 +47,8 @@ Postman 桌面版汉化补丁，适用于 Windows 10/11 与 Postman 12.x。
 
 脚本会自动备份 `resources\app.asar` 为 `app.asar.original`，从备份解包、注入汉化、重新打包并启动验证。Postman 更新后再次运行 `install` 即可。
 
+`install` 只修改目标 Postman 版本目录，不会改动系统 HTTP/HTTPS 处理程序。仅在登录页外部链接确有异常时，才单独运行 `fix-browser`。
+
 ## 常见问题
 
 - `GET`、`POST`、`API`、`JSON`、快捷键和产品名等技术词会刻意保留英文。

@@ -27,6 +27,9 @@ function hasFlag(name) {
   return process.argv.includes(name);
 }
 
+const SHOW_DETAILS = hasFlag("--details");
+const SKIPPED_LABELS = /Start Trial|Start trial|Trial|Continue with Team Plan|Sign Out|Sign out|Log out|Delete account|Upgrade|Upgrade plan|Request a demo|Checkout|Billing|Payment|purchase|Pay annually|Pay monthly|Request an approver|Add subscription|Add billing information|Add payment method|Exit|Quit|Close window|Close Window|Minimize|Maximize|Restore down|Restore Down|Save|Send|Create|Add|Apply|Reset|Retry|Run|Connect|Disconnect|Publish|Submit|Confirm|Delete|Remove|Clear|Discard|Rename|Import|Upload|升级|开始试用|试用|付费|付款|结账|账单|支付|订阅|套餐|计划|退出|关闭窗口|最小化|最大化|向下还原|保存|发送|创建|新建|添加|应用|重置|重试|运行|连接|断开连接|发布|提交|确认|确定|删除|移除|清除|放弃|重命名|导入|上传/i;
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -71,28 +74,46 @@ async function connectCdp(wsUrl) {
     }
     const callbacks = pending.get(message.id);
     pending.delete(message.id);
+    clearTimeout(callbacks.timer);
     if (message.error) {
-      callbacks.reject(new Error(message.error.message || JSON.stringify(message.error)));
+      const details = SHOW_DETAILS ? ` 诊断：${JSON.stringify(message.error)}` : "";
+      callbacks.reject(new Error(`${message.error.message || "CDP 命令执行失败。"}${details}`));
     } else {
       callbacks.resolve(message.result);
     }
   });
 
+  const rejectPending = () => {
+    for (const callbacks of pending.values()) {
+      clearTimeout(callbacks.timer);
+      callbacks.reject(new Error("CDP 连接已关闭。"));
+    }
+    pending.clear();
+  };
+  ws.addEventListener("close", rejectPending);
+
   return {
     send(method, params = {}) {
       const id = nextId++;
-      ws.send(JSON.stringify({ id, method, params }));
       return new Promise((resolve, reject) => {
-        pending.set(id, { resolve, reject });
-        setTimeout(() => {
+        const timer = setTimeout(() => {
           if (pending.has(id)) {
             pending.delete(id);
             reject(new Error(`CDP 命令执行超时：${method}`));
           }
         }, 45000);
+        pending.set(id, { resolve, reject, timer });
+        try {
+          ws.send(JSON.stringify({ id, method, params }));
+        } catch (error) {
+          clearTimeout(timer);
+          pending.delete(id);
+          reject(error);
+        }
       });
     },
     close() {
+      rejectPending();
       try {
         ws.close();
       } catch (_) {}
@@ -163,7 +184,8 @@ async function waitForPostmanTarget(port, timeoutMs, options = {}) {
     } catch (_) {}
     await sleep(1000);
   }
-  throw new Error(`未找到 Postman 页面调试目标。当前目标：${JSON.stringify(lastTargets)}`);
+  const details = SHOW_DETAILS ? ` 当前目标：${JSON.stringify(lastTargets)}` : "";
+  throw new Error(`未找到 Postman 页面调试目标。${details}`);
 }
 
 async function evaluate(cdp, expression, awaitPromise = false) {
@@ -249,7 +271,7 @@ function pageScript(options = {}) {
     const CLICKABLE_SCOPE = "__CLICKABLE_SCOPE__";
     const INCLUDE_CONTENT = __INCLUDE_CONTENT__;
     const SKIP_TEXT = /\b(Start Trial|Continue with Team Plan|Sign Out|Sign out|Log out|Delete account|Upgrade plan|Request a demo|Checkout|Billing|Payment|purchase|Pay annually|Pay monthly|Request an approver|Exit|Quit|Close window|Close Window|Minimize|Maximize|Restore down|Restore Down)\b/i;
-    const SAFE_TEXT = /^(Close|Cancel|Done|Back|Go back|Dismiss|Got it|OK|Okay|No|Show|Hide|Expand|Collapse|More|Menu|Import|New|Create|Settings|History|Collections|Environments|Home|Workspaces|Search|Save|Share|View|Open|Select|Add|Edit|Manage|Filter|Sort|Refresh|Retry|Reset|Apply|Copy|Duplicate|Rename|Send|Connect|Disconnect|Choose|Browse)/i;
+    const SAFE_TEXT = /^(Close|Cancel|Done|Back|Go back|Dismiss|Got it|No|Show|Hide|Expand|Collapse|More|Menu|Settings|History|Collections|Environments|Home|Workspaces|Search|Share|View|Open|Select|Edit|Manage|Filter|Sort|Refresh|Copy|Duplicate|Choose|关闭|取消|完成|返回|忽略|知道了|否|显示|隐藏|展开|折叠|更多|菜单|设置|历史|集合|环境|首页|工作区|搜索|分享|查看|打开|选择|编辑|管理|筛选|排序|刷新|复制)/i;
     const ALLOWED_WORDS = new Set([
       "postman", "getpostman", "api", "apis", "url", "uri", "http", "https", "websocket", "graphql", "grpc", "mqtt", "mqtts", "mcp", "socket", "socket.io", "io",
       "json", "xml", "html", "javascript", "oauth", "bearer", "jwt", "curl", "grpcurl", "wsdl", "openapi", "swagger",
@@ -476,15 +498,12 @@ function pageScript(options = {}) {
         }
       }
 
-      const attrSelector = "[aria-label],[title],[placeholder],[alt],input[type='button'],input[type='submit'],input[type='reset']";
+      const attrSelector = "[aria-label],[title],[placeholder],[alt]";
       for (const el of Array.from(document.querySelectorAll(attrSelector)).filter(visible)) {
         for (const attr of ["aria-label", "title", "placeholder", "alt"]) {
           if (el.hasAttribute(attr)) {
             add(el.getAttribute(attr), "attr", Object.assign({ attr, tag: el.tagName, role: el.getAttribute("role") || "" }, rectOf(el)));
           }
-        }
-        if (el.matches("input[type='button'], input[type='submit'], input[type='reset']")) {
-          add(el.getAttribute("value"), "attr", Object.assign({ attr: "value", tag: el.tagName, role: el.getAttribute("role") || "" }, rectOf(el)));
         }
       }
 
@@ -603,7 +622,7 @@ function skipReasonForTarget(item, state, skippedLabels, includeRisky, includeCo
     return "content-page-target";
   }
   if (!includeRisky && skippedLabels.test(text)) {
-    return "risky-account-billing-or-window-action";
+    return "state-changing-or-risky-action";
   }
   if (!includeRisky && /\b(Browse|Choose File|Choose Files|Select File|Select Files|Upload File|Upload Files|Open File|Open Folder|Import File)\b|浏览|选择文件|上传文件|打开文件|打开文件夹/i.test(text)) {
     return "external-file-picker";
@@ -680,7 +699,6 @@ async function main() {
   const target = await waitForPostmanTarget(port, timeoutMs, { targetTitle });
   const cdp = await connectCdp(target.webSocketDebuggerUrl);
 
-  const skippedLabels = /Start Trial|Start trial|Trial|Continue with Team Plan|Sign Out|Sign out|Log out|Delete account|Upgrade|Upgrade plan|Request a demo|Checkout|Billing|Payment|purchase|Pay annually|Pay monthly|Request an approver|Add subscription|Add billing information|Add payment method|Exit|Quit|Close window|Close Window|Minimize|Maximize|Restore down|Restore Down|升级|开始试用|试用|付费|付款|结账|账单|支付|订阅|套餐|计划|退出|关闭窗口|最小化|最大化|向下还原/i;
   const log = [];
   const allHits = new Map();
 
@@ -739,7 +757,7 @@ async function main() {
   }
 
   async function clickOneTarget(scope, item, state, index, parentStep) {
-    const skipReason = skipReasonForTarget(item, state, skippedLabels, includeRisky, includeContent);
+    const skipReason = skipReasonForTarget(item, state, SKIPPED_LABELS, includeRisky, includeContent);
     const entry = {
       step: index,
       parentStep,
@@ -829,7 +847,7 @@ async function main() {
 
       let overlayState = await collect("overlay", false);
       const overlayTargets = sortedTargets(overlayState)
-        .filter((candidate) => !skipReasonForTarget(candidate, overlayState, skippedLabels, includeRisky, includeContent))
+        .filter((candidate) => !skipReasonForTarget(candidate, overlayState, SKIPPED_LABELS, includeRisky, includeContent))
         .filter((candidate) => {
           const key = targetKey("overlay", overlayState, candidate);
           if (seen.has(key)) return false;
@@ -886,8 +904,7 @@ async function main() {
       }
     };
     fs.writeFileSync(`${outBase}.json`, JSON.stringify(output, null, 2), "utf8");
-    console.log("可交互界面扫描完成，以下为结果摘要：");
-    console.log(JSON.stringify({
+    const summary = {
       out: `${outBase}.json`,
       screenshot: `${outBase}.png`,
       clickableCount: initial.clickables.length,
@@ -898,14 +915,54 @@ async function main() {
       includeContent,
       hitCount: output.hits.length,
       hits: output.hits.slice(0, 30).map((item) => item.text)
-    }, null, 2));
+    };
+    console.log(`可交互界面扫描完成：发现 ${summary.hitCount} 条待复核文本，报告已保存到 ${summary.out}。`);
+    if (SHOW_DETAILS) {
+      console.log(JSON.stringify(summary, null, 2));
+    }
   } finally {
     cdp.close();
   }
 }
 
-main().catch((error) => {
-  console.error("可交互界面扫描失败，详细信息如下：");
-  console.error(error && error.stack || error);
+function selfTest() {
+  const generated = pageScript({ includeClickables: true, fullText: true, clickableScope: "full", includeContent: false });
+  new Function(`return (${generated});`);
+  const state = {
+    title: "未命名请求 - 我的工作区",
+    url: "https://desktop.postman.com/",
+    size: { width: 1280, height: 800 }
+  };
+  const target = (text, cx = 300, cy = 120) => ({ text, cx, cy, x: cx - 10, y: cy - 10, w: 20, h: 20 });
+  const expectedOut = path.resolve(__dirname, "..", "..", "..", "_generated", "自检报告");
+  const checks = [
+    [/\bel\.value\b/.test(generated), false],
+    [/input-value/.test(generated), false],
+    [resolveOutBase("自检报告.json"), expectedOut],
+    [skipReasonForTarget(target("Delete account"), state, SKIPPED_LABELS, false, false), "state-changing-or-risky-action"],
+    [skipReasonForTarget(target("Choose File"), state, SKIPPED_LABELS, false, false), "external-file-picker"],
+    [skipReasonForTarget(target("Postman API Network"), state, SKIPPED_LABELS, false, false), "content-page-entry"],
+    [skipReasonForTarget(target("关闭", 1260, 20), state, SKIPPED_LABELS, false, false), "window-control"],
+    [skipReasonForTarget(target("保存"), state, SKIPPED_LABELS, false, false), "state-changing-or-risky-action"],
+    [skipReasonForTarget(target("发送"), state, SKIPPED_LABELS, false, false), "state-changing-or-risky-action"],
+    [skipReasonForTarget(target("查看"), state, SKIPPED_LABELS, false, false), null]
+  ];
+  const failed = checks.filter(([actual, expected]) => actual !== expected);
+  if (failed.length) {
+    throw new Error(`自检失败，共 ${failed.length} 项不符合预期。`);
+  }
+  if (SHOW_DETAILS) {
+    console.log(JSON.stringify({ ok: true, checks: checks.length }, null, 2));
+  } else {
+    console.log(`可交互界面扫描脚本自检通过，共 ${checks.length} 项。`);
+  }
+}
+
+Promise.resolve().then(() => hasFlag("--self-test") ? selfTest() : main()).catch((error) => {
+  const message = String(error && error.message || error).replace(/\s+/g, " ").trim();
+  console.error(`可交互界面扫描失败：${message}`);
+  if (SHOW_DETAILS && error && error.stack) {
+    console.error(error.stack);
+  }
   process.exit(1);
 });

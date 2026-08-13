@@ -18,22 +18,22 @@ description: 深度审计并修复本仓库的 Postman 中文汉化。用于补�
 2. 先在 `payload/zh-localize.js` 搜索现有词条和可能的半翻译变体。
 3. 按 `AGENTS.md` 的词典规则修改 `EXACT`、`PHRASES`、`RULES` 或 `EDITABLE_EXACT`；登录授权页面才修改 `payload/zh-auth-webview-preload.js`。
 4. 对含弯撇号、非断行空格或先前部分替换的文本补齐真实 DOM 变体。
-5. 运行 `postman-zh.bat install`，确认安装器和验证器均成功。
+5. 运行 `.\postman-zh.bat install`，确认安装器和验证器均成功。
 6. 重走用户报告的界面路径，再运行最贴近该页面的定向审计。
 7. 最后运行轻量广扫，确认没有真实英文短语残留。
 
 ## 审计选择
 
-- 快速巡检：`postman-zh.bat audit lightweight`
-- 新建请求：`postman-zh.bat audit new-request`
-- 新建集合：`postman-zh.bat audit new-collection`
-- 导入界面：`postman-zh.bat audit import`
-- 导航与设置：`postman-zh.bat audit navigation`
-- 深层界面：`postman-zh.bat audit deep-areas`
-- 易漏交互面：`postman-zh.bat audit targeted-surfaces`
-- 全部调试目标：`postman-zh.bat audit all-targets`
+- 快速巡检：`.\postman-zh.bat audit lightweight`
+- 新建请求：`.\postman-zh.bat audit new-request`
+- 新建集合：`.\postman-zh.bat audit new-collection`
+- 导入界面：`.\postman-zh.bat audit import`
+- 导航与设置：`.\postman-zh.bat audit navigation`
+- 深层界面：`.\postman-zh.bat audit deep-areas`
+- 易漏交互面：`.\postman-zh.bat audit targeted-surfaces`
+- 全部调试目标：`.\postman-zh.bat audit all-targets`
 
-需要 Postman 运行时，先执行 `postman-zh.bat start`，不要复用上一次的 CDP 端口。查看全部命令和中文说明时执行 `postman-zh.bat help`。
+需要 Postman 运行时，先执行 `.\postman-zh.bat start`，不要复用上一次的 CDP 端口。查看全部命令和中文说明时执行 `.\postman-zh.bat help`。
 
 ## 判定规则
 
@@ -46,7 +46,7 @@ description: 深度审计并修复本仓库的 Postman 中文汉化。用于补�
 
 - 用户指出的文本已在实际界面显示为中文。
 - 对应定向审计没有真实英文残留。
-- `postman-zh.bat verify` 显示“验证通过”。
-- `postman-zh.bat install` 完整成功，且安装后的 `app.asar` 哈希验证通过。
+- `.\postman-zh.bat verify` 显示“验证通过”。
+- `.\postman-zh.bat install` 完整成功，且安装后的 `app.asar` 哈希验证通过。
 - 所有改过的 JavaScript 和 PowerShell 脚本通过语法检查。
 - `git diff --check` 通过，且没有把 `_generated`、`app.asar`、截图或用户数据加入 Git。

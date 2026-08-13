@@ -12,15 +12,34 @@ const argv = process.argv.slice(2);
 const arg = (name, fallback) => { const i = argv.indexOf(name); return i >= 0 && argv[i + 1] ? argv[i + 1] : fallback; };
 const flag = (name) => argv.includes(name);
 
+function resolveOutPath(requested, fallback) {
+  const value = requested || fallback;
+  const hasDirectory = path.isAbsolute(value) || value.includes("/") || value.includes("\\");
+  let resolved = hasDirectory
+    ? path.resolve(value)
+    : path.resolve(__dirname, "..", "..", "..", "_generated", value);
+  if (!hasDirectory && !path.extname(resolved)) resolved += ".json";
+  return resolved;
+}
+
 async function connect(url) {
   const ws = new WebSocket(url); let id = 1; const pending = new Map();
-  await new Promise((resolve, reject) => { ws.addEventListener("open", resolve, { once: true }); ws.addEventListener("error", reject, { once: true }); });
+  const clearPending = (error) => {
+    for (const item of pending.values()) { clearTimeout(item.timer); if (error) item.reject(error); }
+    pending.clear();
+  };
+  await new Promise((resolve, reject) => {
+    const timer = setTimeout(() => { try { ws.close(); } catch (_) {} reject(new Error("连接 CDP WebSocket 超时。")); }, 10000);
+    ws.addEventListener("open", () => { clearTimeout(timer); resolve(); }, { once: true });
+    ws.addEventListener("error", () => { clearTimeout(timer); reject(new Error("连接 CDP WebSocket 失败。")); }, { once: true });
+  });
   ws.addEventListener("message", (event) => {
-    const msg = JSON.parse(event.data); if (!msg.id || !pending.has(msg.id)) return;
+    let msg; try { msg = JSON.parse(event.data); } catch (_) { return; } if (!msg.id || !pending.has(msg.id)) return;
     const p = pending.get(msg.id); pending.delete(msg.id); clearTimeout(p.timer);
     msg.error ? p.reject(new Error(msg.error.message)) : p.resolve(msg.result);
   });
-  return { send(method, params = {}) { const callId = id++; ws.send(JSON.stringify({ id: callId, method, params })); return new Promise((resolve, reject) => { const timer = setTimeout(() => { pending.delete(callId); reject(new Error(`CDP 命令执行超时：${method}`)); }, 60000); pending.set(callId, { resolve, reject, timer }); }); }, close() { try { ws.close(); } catch (_) {} } };
+  ws.addEventListener("close", () => clearPending(new Error("CDP WebSocket 已关闭。")), { once: true });
+  return { send(method, params = {}) { const callId = id++; ws.send(JSON.stringify({ id: callId, method, params })); return new Promise((resolve, reject) => { const timer = setTimeout(() => { if (!pending.has(callId)) return; pending.delete(callId); reject(new Error(`CDP 命令执行超时：${method}`)); }, 60000); pending.set(callId, { resolve, reject, timer }); }); }, close() { clearPending(new Error("CDP 连接已关闭。")); try { ws.close(); } catch (_) {} } };
 }
 
 async function evaluate(cdp, expression) {
@@ -87,11 +106,11 @@ const requesterTabActiveScript = (tabId) => `(() => {
 // These controls are intentionally excluded from all-tabs probes.  The filter
 // is label-based and applies to both translated and original UI text.
 function dangerousControl(text) {
-  return /(?:关闭|退出|删除|移除|注销|清除|放弃|终止|停止|销毁|close|exit|delete|remove|quit|discard|terminate|shutdown|sign\s*out)/i.test(String(text || ""));
+  return /(?:关闭|退出|删除|移除|注销|清除|放弃|终止|停止|销毁|保存|发送|创建|新建|添加|应用|重置|重试|运行|连接|断开连接|发布|提交|确认|确定|重命名|导入|上传|close|exit|delete|remove|quit|discard|terminate|shutdown|sign\s*out|save|send|create|add|apply|reset|retry|run|connect|disconnect|publish|submit|confirm|rename|import|upload)/i.test(String(text || ""));
 }
 
 const scanScript = (scope = "all") => `(() => {
-  const SCOPE=${JSON.stringify(scope)}, ATTRS=["title","aria-label","aria-description","aria-placeholder","placeholder","alt","label","value","data-original-title","data-tippy-content","data-tooltip","data-tooltip-content","data-tooltip-title","data-tooltip-text","data-tooltip-label","data-aether-tooltip","data-tab-name"];
+  const SCOPE=${JSON.stringify(scope)}, ATTRS=["title","aria-label","aria-description","aria-placeholder","placeholder","alt","label","data-original-title","data-tippy-content","data-tooltip","data-tooltip-content","data-tooltip-title","data-tooltip-text","data-tooltip-label","data-aether-tooltip","data-tab-name"];
   const norm=s=>String(s||"").replace(/\\u00a0/g," ").replace(/\\s+/g," ").trim();
   const visible=el=>{if(!(el instanceof Element))return false;const r=el.getBoundingClientRect(),s=getComputedStyle(el);return r.width>2&&r.height>2&&r.bottom>0&&r.right>0&&r.top<innerHeight&&r.left<innerWidth&&s.display!=="none"&&s.visibility!=="hidden"&&Number(s.opacity)!==0};
   const roots=[], seen=new Set();
@@ -104,16 +123,16 @@ const scanScript = (scope = "all") => `(() => {
     for(const el of root.querySelectorAll("*")){
       if(/^(SCRIPT|STYLE|NOSCRIPT|TEMPLATE)$/.test(el.tagName))continue;
       if(SCOPE==="overlay"&&!inOverlay(el))continue;
-      if(visible(el)&&el.childNodes)for(const n of el.childNodes)if(n.nodeType===3&&norm(n.nodeValue).length<=1000)add(n.nodeValue,"text",trail,el);
+      const privateControl=/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName);
+      if(!privateControl&&visible(el)&&el.childNodes)for(const n of el.childNodes)if(n.nodeType===3&&norm(n.nodeValue).length<=1000)add(n.nodeValue,"text",trail,el);
       for(const a of ATTRS)if(el.hasAttribute&&el.hasAttribute(a)){
-        if(a==="value"&&/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))continue;
         add(el.getAttribute(a),"attribute",trail,el,{attribute:a});
       }
-      if((el.tagName==="INPUT"||el.tagName==="TEXTAREA"||el.tagName==="SELECT")&&norm(el.value))add(el.value,"input-value",trail,el);
       if(visible(el)){
         const r=el.getBoundingClientRect(), role=norm(el.getAttribute("role")), style=getComputedStyle(el);
-        if(el.matches("button,a,input,textarea,select,summary,[role=button],[role=tab],[role=menuitem],[role=option],[role=combobox],[aria-label],[title]")||style.cursor==="pointer")targets.push({x:r.x+r.width/2,y:r.y+r.height/2,text:norm(el.getAttribute("aria-label")||el.getAttribute("title")||el.innerText||el.textContent).slice(0,180),tag:el.tagName,role,trail});
-        if(el.scrollHeight>el.clientHeight+24&&r.height>40&&r.width>60)scrolls.push({x:r.x+r.width/2,y:r.y+r.height/2,max:el.scrollHeight-el.clientHeight,text:norm(el.innerText||el.textContent).slice(0,100),trail});
+        const safeText=norm(el.getAttribute("aria-label")||el.getAttribute("title")||el.getAttribute("placeholder")||(privateControl?"":el.innerText||el.textContent));
+        if(el.matches("button,a,input,textarea,select,summary,[role=button],[role=tab],[role=menuitem],[role=option],[role=combobox],[aria-label],[title]")||style.cursor==="pointer")targets.push({x:r.x+r.width/2,y:r.y+r.height/2,text:safeText.slice(0,180),tag:el.tagName,role,trail});
+        if(el.scrollHeight>el.clientHeight+24&&r.height>40&&r.width>60)scrolls.push({x:r.x+r.width/2,y:r.y+r.height/2,max:el.scrollHeight-el.clientHeight,text:(privateControl?"":safeText).slice(0,100),trail});
       }
     }
   }
@@ -128,7 +147,7 @@ function english(text) {
 }
 
 async function main() {
-  const out = path.resolve(arg("--out", path.join(__dirname, "..", "..", "..", "_generated", "postman-phased-audit.json")));
+  const out = resolveOutPath(arg("--out", null), "postman-phased-audit.json");
   const delay = Number(arg("--delay-ms", "450")), hoverLimit = Number(arg("--max-hovers", "120")), clickLimit = Number(arg("--max-dropdowns", "30")), contextLimit = Number(arg("--max-context", "30"));
   const allTabs = flag("--all-tabs"), maxTabs = Math.max(0, Number(arg("--max-tabs", "50"))), tabDelay = Math.max(0, Number(arg("--tab-delay-ms", String(delay))));
   const phaseOnly = arg("--phase", "all"); const enabled = (p) => phaseOnly === "all" || phaseOnly.split(",").includes(p);
@@ -187,16 +206,42 @@ async function main() {
       let state = await snap("baseline");
       if(enabled("scroll")){ for(const sc of state.scrolls){ for(const ratio of [0,.25,.5,.75,1]){ await mouse(cdp,"mouseMoved",sc.x,sc.y); await cdp.send("Input.dispatchMouseEvent",{type:"mouseWheel",x:sc.x,y:sc.y,deltaX:0,deltaY:ratio===0?-100000:100000}); await sleep(Math.max(120,delay/2)); await snap(`scroll:${sc.text}:${ratio}`); } } }
       state=await evaluate(cdp,scanScript("all"));
-      if(enabled("hover")){ for(const [i,t] of state.targets.slice(0,hoverLimit).entries()){ try{await mouse(cdp,"mouseMoved",t.x,t.y);await sleep(delay);await snap(`hover:${i}:${t.text}`,"overlay")}catch(e){errors.push({phase:"hover",target:t,error:e.message})} } }
-      const dropdowns=state.targets.filter(t=>/combobox|option/i.test(t.role)||/select|dropdown|options|environment|method/i.test(t.text));
+      const safeTargets=state.targets.filter(t=>!dangerousControl(t.text));
+      if(enabled("hover")){ for(const [i,t] of safeTargets.slice(0,hoverLimit).entries()){ try{await mouse(cdp,"mouseMoved",t.x,t.y);await sleep(delay);await snap(`hover:${i}:${t.text}`,"overlay")}catch(e){errors.push({phase:"hover",target:t,error:e.message})} } }
+      const dropdowns=safeTargets.filter(t=>/combobox|option/i.test(t.role)||/select|dropdown|options|environment|method/i.test(t.text));
       if(enabled("dropdown")){ for(const [i,t] of dropdowns.slice(0,clickLimit).entries()){ try{await click(cdp,t);await sleep(delay);await snap(`dropdown:${i}:${t.text}`,"overlay");await esc(cdp)}catch(e){errors.push({phase:"dropdown",target:t,error:e.message})} } }
-      if(enabled("context")){ for(const [i,t] of state.targets.slice(0,contextLimit).entries()){ try{await click(cdp,t,"right");await sleep(delay);await snap(`context:${i}:${t.text}`,"overlay");await esc(cdp)}catch(e){errors.push({phase:"context",target:t,error:e.message})} } }
-      if(enabled("dialogs")){ state=await evaluate(cdp,scanScript("all")); const openers=state.targets.filter(t=>/settings|import|new|more|manage|edit|view|help|info|certificate|proxy|cookie/i.test(t.text)); for(const [i,t] of openers.slice(0,clickLimit).entries()){try{await click(cdp,t);await sleep(delay);await snap(`dialog:${i}:${t.text}`,"overlay");await esc(cdp)}catch(e){errors.push({phase:"dialogs",target:t,error:e.message})}} }
+      if(enabled("context")){ for(const [i,t] of safeTargets.slice(0,contextLimit).entries()){ try{await click(cdp,t,"right");await sleep(delay);await snap(`context:${i}:${t.text}`,"overlay");await esc(cdp)}catch(e){errors.push({phase:"context",target:t,error:e.message})} } }
+      if(enabled("dialogs")){ state=await evaluate(cdp,scanScript("all")); const openers=state.targets.filter(t=>!dangerousControl(t.text)&&/settings|more|manage|edit|view|help|info|certificate|proxy|cookie/i.test(t.text)); for(const [i,t] of openers.slice(0,clickLimit).entries()){try{await click(cdp,t);await sleep(delay);await snap(`dialog:${i}:${t.text}`,"overlay");await esc(cdp)}catch(e){errors.push({phase:"dialogs",target:t,error:e.message})}} }
       await snap("final");
     }
   } finally { cdp.close(); }
   const findings=new Map(); for(const s of snapshots)for(const h of s.findings){const k=h.kind+"|"+h.attribute+"|"+h.text;const v=findings.get(k)||{...h,count:0,phases:[],tabs:[]};v.count++;if(v.phases.length<20)v.phases.push(s.phase);if(s.tabId&&!v.tabs.some(t=>t.tabId===s.tabId))v.tabs.push({tabId:s.tabId,tabName:s.tabName});findings.set(k,v)}
   const report={generatedAt:new Date().toISOString(),target:{title:target.title,url:target.url},options:{phaseOnly,delay,hoverLimit,clickLimit,contextLimit,allTabs,maxTabs,tabDelay},tabs:auditedTabs,summary:{snapshots:snapshots.length,tabs:auditedTabs.length,findings:findings.size,errors:errors.length},findings:[...findings.values()].sort((a,b)=>b.count-a.count),snapshots,errors};
-  fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,JSON.stringify(report,null,2));console.log("分阶段流程审计完成，以下为结果摘要：");console.log(JSON.stringify({out,summary:report.summary,top:report.findings.slice(0,30).map(x=>x.text)},null,2));
+  fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,JSON.stringify(report,null,2));
+  const summary={out,summary:report.summary,top:report.findings.slice(0,30).map(x=>x.text)};
+  if(flag("--details"))console.log(JSON.stringify(summary,null,2));
+  else console.log(`分阶段流程审计完成：生成 ${report.summary.snapshots} 个快照，发现 ${report.summary.findings} 条候选，报告已写入 ${out}`);
 }
-main().catch(e=>{console.error("分阶段流程审计失败，详细信息如下：");console.error(e.stack||e);process.exit(1)});
+function selfTest(){
+  const generated=scanScript("all");
+  new Function(`return (${generated});`); // generated browser expression parse check
+  const checks=[
+    [/\bel\.value\b/.test(generated),false],
+    [resolveOutPath("自检报告","unused.json"),path.resolve(__dirname,"..","..","..","_generated","自检报告.json")],
+    [dangerousControl("删除"),true],
+    [dangerousControl("发送"),true],
+    [dangerousControl("保存"),true],
+    [dangerousControl("查看"),false]
+  ];
+  const failed=checks.filter(([actual,expected])=>actual!==expected);
+  if(failed.length)throw new Error(`自检失败，共 ${failed.length} 项不符合预期。`);
+  if(flag("--details"))console.log(JSON.stringify({ok:true,checks:checks.length},null,2));
+  else console.log(`分阶段流程审计脚本自检通过，共 ${checks.length} 项。`);
+}
+
+Promise.resolve().then(()=>flag("--self-test")?selfTest():main()).catch(e=>{
+  const message=String(e&&e.message||e).replace(/\s+/g," ").trim();
+  if(flag("--details"))console.error(JSON.stringify({ok:false,error:message,stack:e&&e.stack||null},null,2));
+  else console.error("分阶段流程审计失败，请确认 Postman 已启动；可使用 --details 查看详细信息。");
+  process.exitCode=1;
+});

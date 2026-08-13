@@ -13,7 +13,7 @@
     }
   } catch (error) {
     try {
-      console.warn("Postman zh auth webview preload failed", error);
+      console.warn("Postman 汉化：授权 WebView 预加载失败", error);
     } catch (_) {}
   }
 })();

@@ -14,8 +14,8 @@
 //
 // Coverage:
 //   * ordinary DOM, open shadow DOM and same-origin iframes;
-//   * visible text nodes, 20 UI attributes and current input values;
-//   * Accessibility tree names/descriptions/values (also useful for closed
+//   * visible text nodes and non-sensitive UI attributes;
+//   * Accessibility tree names/descriptions (also useful for closed
 //     component internals exposed through Chromium accessibility);
 //   * requester tabs, top navigation, sidebar panels, workspace pages,
 //     Apps/API/Performance/Runner surfaces and every Settings tab;
@@ -33,6 +33,16 @@ const arg = (name, fallback) => {
 };
 const flag = (name) => argv.includes(name);
 
+function resolveOutPath(requested, fallback) {
+  const value = requested || fallback;
+  const hasDirectory = path.isAbsolute(value) || value.includes("/") || value.includes("\\");
+  let resolved = hasDirectory
+    ? path.resolve(value)
+    : path.resolve(__dirname, "..", "..", "..", "_generated", value);
+  if (!hasDirectory && !path.extname(resolved)) resolved += ".json";
+  return resolved;
+}
+
 function norm(value) {
   return String(value || "").replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
 }
@@ -41,22 +51,31 @@ async function connect(wsUrl) {
   const ws = new WebSocket(wsUrl);
   const pending = new Map();
   let nextId = 1;
+  const clearPending = (error) => {
+    for (const item of pending.values()) {
+      clearTimeout(item.timer);
+      if (error) item.reject(error);
+    }
+    pending.clear();
+  };
 
   await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("连接 Postman CDP 超时。")), 10000);
+    const timer = setTimeout(() => { try { ws.close(); } catch (_) {} reject(new Error("连接 Postman CDP 超时。")); }, 10000);
     ws.addEventListener("open", () => { clearTimeout(timer); resolve(); }, { once: true });
     ws.addEventListener("error", () => { clearTimeout(timer); reject(new Error("连接 Postman CDP 失败。")); }, { once: true });
   });
 
   ws.addEventListener("message", (event) => {
-    const message = JSON.parse(event.data);
+    let message;
+    try { message = JSON.parse(event.data); } catch (_) { return; }
     if (!message.id || !pending.has(message.id)) return;
     const item = pending.get(message.id);
     pending.delete(message.id);
     clearTimeout(item.timer);
-    if (message.error) item.reject(new Error(message.error.message || JSON.stringify(message.error)));
+    if (message.error) item.reject(new Error(message.error.message || "CDP 返回未知错误。"));
     else item.resolve(message.result);
   });
+  ws.addEventListener("close", () => clearPending(new Error("CDP WebSocket 已关闭。")), { once: true });
 
   return {
     send(method, params = {}, sessionId = null) {
@@ -64,6 +83,7 @@ async function connect(wsUrl) {
       ws.send(JSON.stringify({ id, method, params, ...(sessionId ? { sessionId } : {}) }));
       return new Promise((resolve, reject) => {
         const timer = setTimeout(() => {
+          if (!pending.has(id)) return;
           pending.delete(id);
           reject(new Error(`CDP 命令执行超时：${method}`));
         }, 60000);
@@ -71,6 +91,7 @@ async function connect(wsUrl) {
       });
     },
     close() {
+      clearPending(new Error("CDP 连接已关闭。"));
       try { ws.close(); } catch (_) {}
     }
   };
@@ -144,7 +165,7 @@ async function dismissNestedOverlay(cdp, delay) {
 
 const ATTRIBUTES = [
   "title", "aria-label", "aria-description", "aria-placeholder", "placeholder",
-  "alt", "label", "value", "data-original-title", "data-tippy-content",
+  "alt", "label", "data-original-title", "data-tippy-content",
   "data-tooltip", "data-tooltip-content", "data-tooltip-title", "data-tooltip-text",
   "data-tooltip-label", "data-aether-tooltip", "data-tab-name",
   "aria-valuetext", "aria-roledescription"
@@ -240,8 +261,9 @@ const scanScript = (scope = "all") => String.raw`(() => {
       if (SCOPE === "overlay" && !insideOverlay(el)) continue;
       const visible = localVisible(el, entry);
       const rect = visible ? packedRect(el, entry) : null;
+      const privateControl = /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName);
 
-      if (visible) {
+      if (visible && !privateControl) {
         for (const node of el.childNodes || []) {
           if (node.nodeType === 3) addHit(node.nodeValue, "text", entry, el);
         }
@@ -249,12 +271,7 @@ const scanScript = (scope = "all") => String.raw`(() => {
 
       for (const attribute of visible ? ATTRS : []) {
         if (!el.hasAttribute || !el.hasAttribute(attribute)) continue;
-        if (attribute === "value" && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) continue;
         addHit(el.getAttribute(attribute), "attribute", entry, el, attribute);
-      }
-
-      if (visible && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) && norm(el.value)) {
-        addHit(el.value, "input-value", entry, el, "value");
       }
 
       if (!visible) continue;
@@ -262,7 +279,7 @@ const scanScript = (scope = "all") => String.raw`(() => {
       const testid = norm(el.getAttribute("data-testid"));
       const text = norm(
         el.getAttribute("aria-label") || el.getAttribute("title") ||
-        el.getAttribute("placeholder") || el.innerText || el.textContent || testid
+        el.getAttribute("placeholder") || (privateControl ? "" : el.innerText || el.textContent) || testid
       ).slice(0, 260);
       const href = norm(el.getAttribute("href"));
       const hasPopup = norm(el.getAttribute("aria-haspopup"));
@@ -509,7 +526,8 @@ async function accessibilityFindings(cdp) {
     for (const node of result.nodes || []) {
       if (node.ignored) continue;
       const role = axValue(node, "role");
-      for (const [kind, key] of [["ax-name", "name"], ["ax-description", "description"], ["ax-value", "value"]]) {
+      if (/^(?:textbox|searchbox|combobox|spinbutton|slider)$/i.test(role)) continue;
+      for (const [kind, key] of [["ax-name", "name"], ["ax-description", "description"]]) {
         const text = axValue(node, key);
         if (englishCandidate(text)) findings.push({ text, kind, role, backendDOMNodeId: node.backendDOMNodeId || null });
       }
@@ -610,7 +628,7 @@ const DEEP_PAGE_SURFACES = [
 ];
 
 async function main() {
-  const out = path.resolve(arg("--out", path.join(__dirname, "..", "..", "..", "_generated", "postman-navigation-surfaces.json")));
+  const out = resolveOutPath(arg("--out", null), "postman-navigation-surfaces.json");
   const delay = Math.max(80, Number(arg("--delay-ms", "380")));
   const maxRequesterTabs = Math.max(0, Number(arg("--max-requester-tabs", "40")));
   const maxSurfaces = Math.max(1, Number(arg("--max-surfaces", "45")));
@@ -1058,16 +1076,17 @@ async function main() {
 
   fs.mkdirSync(path.dirname(out), { recursive: true });
   fs.writeFileSync(out, JSON.stringify(report, null, 2), "utf8");
-  console.log("导航界面审计完成，以下为结果摘要：");
-  console.log(JSON.stringify({
+  const summary = {
     out,
     summary: report.summary,
     usage: used,
     top: findings.slice(0, 60).map(item => item.text)
-  }, null, 2));
+  };
+  if (flag("--details")) console.log(JSON.stringify(summary, null, 2));
+  else console.log(`导航界面审计完成：覆盖 ${report.summary.surfaces} 个界面，发现 ${report.summary.findings} 条候选，报告已写入 ${out}`);
 }
 
-if (flag("--self-test")) {
+function selfTest() {
   for (const [name, expression] of [
     ["scan-all", scanScript("all")],
     ["scan-overlay", scanScript("overlay")],
@@ -1095,12 +1114,17 @@ if (flag("--self-test")) {
   if (!pickTarget(fakeState, WORKSPACE_SURFACES[0])) throw new Error("自检失败：未匹配到精确文本导航目标。");
   if (!pickTarget(fakeState, SIDEBAR_SURFACES[0])) throw new Error("自检失败：未匹配到侧边栏 testid 导航目标。");
   if (safeInteractive(fakeState.targets[2])) throw new Error("自检失败：破坏性控件通过了点击防护。");
-  console.log("导航界面审计脚本自检完成，以下为结果摘要：");
-  console.log(JSON.stringify({ ok: true, generatedScripts: 7, navigationGuards: 3 }, null, 2));
-} else {
-  main().catch((error) => {
-    console.error("导航界面审计失败，详细信息如下：");
-    console.error(error && error.stack || error);
-    process.exit(1);
-  });
+  if (/\bel\.value\b/.test(scanScript("all"))) throw new Error("自检失败：浏览器扫描仍会读取输入控件当前值。");
+  if (!/textbox\|searchbox\|combobox/.test(String(accessibilityFindings))) throw new Error("自检失败：无障碍树未过滤私密输入控件。");
+  if (resolveOutPath("自检报告", "unused.json") !== path.resolve(__dirname, "..", "..", "..", "_generated", "自检报告.json")) throw new Error("自检失败：裸输出名未写入 _generated。");
+  const summary = { ok: true, generatedScripts: 7, navigationGuards: 5 };
+  if (flag("--details")) console.log(JSON.stringify(summary, null, 2));
+  else console.log("导航界面审计脚本自检通过，共 6 项防护。");
 }
+
+Promise.resolve().then(() => flag("--self-test") ? selfTest() : main()).catch((error) => {
+  const message = norm(error && error.message || String(error));
+  if (flag("--details")) console.error(JSON.stringify({ ok: false, error: message, stack: error && error.stack || null }, null, 2));
+  else console.error("导航界面审计失败，请确认 Postman 已启动；可使用 --details 查看详细信息。");
+  process.exitCode = 1;
+});

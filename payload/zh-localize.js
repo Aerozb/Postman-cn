@@ -383,7 +383,7 @@
     "per month": "每月",
     "paid plan": "付费套餐",
     "Pro plan": "Pro 套餐",
-    "Team plan": "Team 套餐",
+    "Team plan": "团队套餐",
     "Enterprise plan": "Enterprise 套餐",
     "You can also learn about": "你还可以了解",
     "You can also learn how to": "你还可以了解如何",
@@ -508,7 +508,7 @@
     "Something went wrong while fetching environments. Please try again!": "获取环境时出错，请重试！",
     "This field contains the data usually contained in the request body.": "此字段包含通常位于请求正文中的数据。",
     "Collection Editors are reviewing your request for additional access.": "集合编辑者正在审核你的额外访问请求。",
-    "Agent Mode isn't available to external partners viewing a workspace.": "查看工作区的外部合作伙伴无法使用 Agent Mode。",
+    "Agent Mode isn't available to external partners viewing a workspace.": "查看工作区的外部合作伙伴无法使用智能代理模式。",
     "Something went wrong while validating create integration constraints": "校验创建集成约束时出错",
     "Something went wrong while fetching git tags. Please try again later": "获取 git 标签时出错，请稍后再试",
     "Creating pull request for environment is not supported in local mode": "本地模式不支持为环境创建拉取请求",
@@ -641,7 +641,7 @@
     "Something went wrong. Please try again!": "出了点问题，请重试！",
     "Explore Public Flows, curated by Postman": "探索由 Postman 精选的公开 Flows",
     "Only you have access to this mock server": "只有你能访问此模拟服务器",
-    "Your Agent Mode history will appear here": "你的 Agent Mode 历史记录将显示在这里",
+    "Your Agent Mode history will appear here": "你的智能代理模式历史记录将显示在这里",
     "Average response time for this endpoint.": "此端点的平均响应时间。",
     "No pull requests found for this project.": "未找到此项目的拉取请求。",
     "Update environments for similar requests?": "为相似请求更新环境？",
@@ -768,7 +768,7 @@
     "Something went wrong while fetching remote git integration data": "获取远程 Git 集成数据时出错",
     "Something went wrong while cloning this flow. Please try again.": "克隆此 Flow 时出错，请重试。",
     "Something went wrong while getting new builds, please try again": "获取新构建时出错，请重试",
-    "Agent Mode encountered an error. You can try starting a new chat.": "Agent Mode 遇到错误。你可以尝试开启新的对话。",
+    "Agent Mode encountered an error. You can try starting a new chat.": "智能代理模式遇到错误。你可以尝试开启新的对话。",
     "This mock server has been modified since you last opened the tab.": "自你上次打开该标签页后，此模拟服务器已被修改。",
     "There are no public Workspaces, APIs and Collections to highlight.": "没有可推荐的公开工作区、API 和集合。",
     "Unable to respond to this request at the moment. Please try again.": "当前无法响应此请求，请重试。",
@@ -1219,12 +1219,12 @@
     "Failed to save collection run results. Please try running the collection again or contact support if the problem continues.": "保存集合运行结果失败。请重新运行集合，若问题持续请联系支持。",
     "The unique identifier (UID) of the performance test run to stop. Use listPerformanceRunsForCollection to find active run IDs.": "要停止的性能测试运行的唯一标识符（UID）。使用 listPerformanceRunsForCollection 查找活动运行 ID。",
     "Invoke the gRPC request that's open in the current tab. This will send the request to the gRPC server and return the response.": "调用当前标签页中打开的 gRPC 请求。将向 gRPC 服务器发送请求并返回响应。",
-    "Connect to the MCP request that's open in the current tab. This is unrelated to MCP servers that are configured in Agent Mode.": "连接到当前标签页中打开的 MCP 请求。这与 Agent Mode 中配置的 MCP 服务器无关。",
+    "Connect to the MCP request that's open in the current tab. This is unrelated to MCP servers that are configured in Agent Mode.": "连接到当前标签页中打开的 MCP 请求。这与智能代理模式中配置的 MCP 服务器无关。",
     "ID of the mock server to start (inline mode). Use listMockServers to find available IDs. Ignored when simulationId is provided.": "要启动的模拟服务器 ID（内联模式）。使用 listMockServers 查找可用 ID。提供 simulationId 时忽略此项。",
     "The updated request description. This typically explains what the request does, the input parameters, and the expected responses.": "更新后的请求描述。通常说明该请求的作用、输入参数和预期响应。",
     "List all collections in the current workspace. You'll get the name of each collection and the path where the collection is saved.": "列出当前工作区中的所有集合。你将获得每个集合的名称及其保存路径。",
     "Send the GraphQL request that's open in the current tab. This will send the request to the GraphQL server and return the response.": "发送当前标签页中打开的 GraphQL 请求。将向 GraphQL 服务器发送请求并返回响应。",
-    "Disconnect from the MCP request that's open in the current tab. This is unrelated to MCP servers that are configured in Agent Mode.": "断开当前标签页中打开的 MCP 请求的连接。这与 Agent Mode 中配置的 MCP 服务器无关。",
+    "Disconnect from the MCP request that's open in the current tab. This is unrelated to MCP servers that are configured in Agent Mode.": "断开当前标签页中打开的 MCP 请求的连接。这与智能代理模式中配置的 MCP 服务器无关。",
     "Send an MQTT request. If the client is not connected it will first connect. The response is the message that was sent to the broker.": "发送 MQTT 请求。若客户端未连接，会先建立连接。响应是发送给 broker 的消息。",
     "Read the raw WebSocket or Socket.IO request that's open in the current tab. This will return the request details without sending it.": "读取当前标签页中打开的原始 WebSocket 或 Socket.IO 请求。将返回请求详情但不发送。",
     "ID of the mock server to run against (inline mode). Use listMockServers to find available IDs. Ignored when simulationId is provided.": "要运行的目标模拟服务器 ID（内联模式）。使用 listMockServers 查找可用 ID。提供 simulationId 时忽略此项。",
@@ -1238,7 +1238,7 @@
     "The threshold value for comparison. Units: milliseconds for response times, percentage (0-100) for error rate, requests/second for throughput.": "用于比较的阈值。单位：响应时间为毫秒，错误率为百分比（0-100），吞吐量为每秒请求数。",
     "Whether to subscribe to the event when the connection is established. If the request is connected this will subscribe or unsubscribe to the event.": "建立连接时是否订阅该事件。若请求已连接，这将订阅或取消订阅该事件。",
     "The authentication configuration for the request. When editing auth, retain all existing auth keys and values while adding/removing any specific key.": "该请求的认证配置。编辑认证时，保留所有现有认证键值，同时添加/删除任何特定键。",
-    "Get the list of tools available for the MCP request that's open in the current tab. This is unrelated to MCP servers that are configured in Agent Mode.": "获取当前标签页中打开的 MCP 请求可用的工具列表。这与 Agent Mode 中配置的 MCP 服务器无关。",
+    "Get the list of tools available for the MCP request that's open in the current tab. This is unrelated to MCP servers that are configured in Agent Mode.": "获取当前标签页中打开的 MCP 请求可用的工具列表。这与智能代理模式中配置的 MCP 服务器无关。",
     "My Postman cloud agent hit a rate limit. Help me understand how to switch to the desktop agent, check my plan limits, and avoid this in future requests.": "我的 Postman 云代理触发了速率限制。帮我了解如何切换到桌面代理、查看套餐限制，并在今后的请求中避免此问题。",
     "Inline CSV data including the header row. The file is written to the dataset's .resources/ directory. When provided, the source parameter is not needed.": "含表头行的内联 CSV 数据。文件写入数据集的 .resources/ 目录。提供此项时不需要 source 参数。",
     "Permanently deletes one or more folders from a collection. This action cannot be undone. Use searchPostman tool to find folder and collection IDs by name.": "从集合中永久删除一个或多个文件夹。此操作无法撤销。使用 searchPostman 工具按名称查找文件夹和集合 ID。",
@@ -6142,7 +6142,7 @@
     "The value of the variable to update": "要更新的变量的值",
     "The name of the workspace to create": "要创建的工作区名称",
     "Request headers as key-value pairs.": "请求头（键值对形式）。",
-    "Basic authentication configuration.": "Basic 身份验证配置。",
+    "Basic authentication configuration.": "基本身份验证配置。",
     "New name for the simulation config.": "仿真配置的新名称。",
     "State-of-art image generation model": "最先进的图像生成模型",
     "The id of the workspace to fork into": "派生目标工作区的 ID",
@@ -7487,7 +7487,7 @@
     "Use Direct Requester": "使用直接请求器",
     "Hide all connections": "隐藏所有连接",
     "Show Experimental AI": "显示实验性 AI",
-    "Show HTTP Request v1": "显示 HTTP Request v1",
+    "Show HTTP Request v1": "显示 HTTP 请求 v1",
     "Log Postbot Payloads": "记录 Postbot 负载",
     "Simulate Permissions": "模拟权限",
     "Click to view output": "点击查看输出",
@@ -12560,7 +12560,7 @@
     "plan includes:": "计划包含：",
     "Team collaboration": "团队协作",
     "Unlimited workspace & collection viewers": "不限数量的工作区和集合查看者",
-    "Basic Role Based Access Control (RBAC)": "基础基于角色的访问控制 (RBAC)",
+    "Basic Role Based Access Control (RBAC)": "基础版基于角色的访问控制（RBAC）",
     "SDK generation": "SDK 生成",
     "Simple security (add-on)": "基础安全（附加项）",
     "API monitoring": "API 监控",
@@ -12575,6 +12575,7 @@
     "Advanced RBAC & organization controls": "高级 RBAC 和组织控制",
     "Advanced Security Administration (add-on)": "高级安全管理（附加项）",
     "Governance, audit logs & reporting": "治理、审计日志和报告",
+    "Private runners (tests and Flows)": "私有运行器（测试和流程）",
     "Private runners (tests and flows)": "私有运行器（测试和流程）",
     "Private runners (tests and 流程)": "私有运行器（测试和流程）",
     "Unlimited private & partner workspaces": "不限数量的私有和合作伙伴工作区",
@@ -14524,8 +14525,8 @@
     "SSL certificate verification": "SSL 证书验证",
     "SSL/TLS key log": "SSL/TLS 密钥日志",
     "Runs triggered for this collection via Collection Runner and Postman CLI.": "此集合通过集合运行器和 Postman CLI 触发运行。",
-    "Postman's echo service": "Postman 的 echo 服务",
-    "Postman’s echo service": "Postman 的 echo 服务",
+    "Postman's echo service": "Postman 的回显服务",
+    "Postman’s echo service": "Postman 的回显服务",
     "Analytics Overview": "分析概览",
     "Upgrade to Postman Enterprise": "升级到 Postman 企业版",
     "to view all Workspace Reports": "以查看所有工作区报告",
@@ -14571,6 +14572,41 @@
     "— Updates a component. Operations include updating the name of a component or managing its archived state. Archived components aren't deleted and can't be edited or published, but their existing versions remain accessible.": "— 更新组件。操作包括更新组件名称或管理其归档状态。已归档组件不会被删除，也不能编辑或发布，但其现有版本仍可访问。",
     "API categories": "API 类别",
     "Cookie notice": "Cookie 声明",
+    "Diagnose": "诊断",
+    "Switch agent": "切换代理",
+    "Missing input URL": "缺少输入 URL",
+    "Fix errors": "修复错误",
+    "Fix script errors": "修复脚本错误",
+    "Help me get past this": "帮我解决这个问题",
+    "Run type": "运行类型",
+    "Datafiles": "数据文件",
+    "Iteration data": "迭代数据",
+    "Use locally": "本地使用",
+    "Open in new tab": "在新标签页中打开",
+    "Assertion failed": "断言失败",
+    "Create new dataset": "新建数据集",
+    "Continue in Postman": "在 Postman 中继续",
+    "Remove file from run": "从运行中移除文件",
+    "Run custom range of rows": "运行自定义行范围",
+    "Error while parsing the file.": "解析文件时出错。",
+    "Looks like a server error.": "似乎发生了服务器错误。",
+    "Your test script threw an error.": "测试脚本发生错误。",
+    "Your pre-request script threw an error.": "请求前脚本发生错误。",
+    "Upgrade to unlock Governance": "升级以解锁治理功能",
+    "Upgrade to unlock API Governance": "升级以解锁 API 治理功能",
+    "Dismiss namespace banner": "关闭命名空间横幅",
+    "Conversation options": "对话选项",
+    "My Workspace": "我的工作区",
+    "Personal Workspace": "个人工作区",
+    "New Collection": "新建集合",
+    "New Environment": "新建环境",
+    "New Request": "新建请求",
+    "Overview": "概览",
+    "Collections": "集合",
+    "Environments": "环境",
+    "Specs": "规范",
+    "Flows": "流程",
+    "Monitor": "监视器",
     "Download the app": "下载应用",
     "Explore public": "探索公开内容",
     "Legal and Security": "法律与安全",
@@ -15465,16 +15501,6 @@
   ];
 
   PHRASES = PHRASES.concat([
-    ["My Workspace", "我的工作区"],
-    ["Personal Workspace", "个人工作区"],
-    ["New Collection", "新建集合"],
-    ["New Environment", "新建环境"],
-    ["New Request", "新建请求"],
-    ["Overview", "概览"],
-    ["Collections", "集合"],
-    ["Environments", "环境"],
-    ["Specs", "规范"],
-    ["Flows", "流程"],
     ["You need to be online to access all features in this workspace.", "你需要联网才能访问此工作区的所有功能。"],
     ["This workspace contains all your collections and environments, as well as any monitors, mock servers or integrations created on them.", "此工作区包含你的所有集合和环境，以及基于它们创建的监视器、模拟服务器或集成。"],
     ["Use Agent Mode", "使用智能代理模式"],
@@ -15560,7 +15586,6 @@
     ["Echo service", "回显服务"],
     ["Create Monitor", "创建监视器"],
     ["Monitor name", "监视器名称"],
-    ["Monitor", "监视器"],
     ["webhooks", "网络钩子"],
     ["another recipient email", "另一个收件人邮箱"],
     ["Welcome to Insights", "欢迎使用洞察"],
@@ -16028,7 +16053,15 @@
       return (meridiem.toUpperCase() === "AM" ? "上午 " : "下午 ") + hour + ":" + minute + (second ? ":" + second : "");
     }],
     [/^Ran yesterday at\s+(.+)$/i, "昨天运行于 $1"],
-    [/^Ran on\s+(.+)$/i, "运行于 $1"],
+    [/^Ran on\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(\d{4})$/i, function (_match, month, day, year) {
+      var months = { January: 1, February: 2, March: 3, April: 4, May: 5, June: 6, July: 7, August: 8, September: 9, October: 10, November: 11, December: 12 };
+      var normalizedMonth = month.charAt(0).toUpperCase() + month.slice(1).toLowerCase();
+      return "运行于 " + year + "年" + months[normalizedMonth] + "月" + Number(day) + "日";
+    }],
+    [/^Ran on\s+(.+)$/i, function (_match, dateText) {
+      var translated = normalize(translate(dateText));
+      return translated !== normalize(dateText) ? "运行于 " + translated : _match;
+    }],
     [/^查看\s+all runs$/i, "查看所有运行"],
     [/^Iteration\s+(\d+)$/i, "迭代 $1"],
     [/^Empty\s+(?:request|请求)\s+URL$/i, "空请求 URL"],
@@ -16093,7 +16126,10 @@
     [/^Page\s+(\d+)\s+of\s+(\d+)$/i, "第 $1 页，共 $2 页"],
     [/^(\d+)\s+results?\s+available\.Use Up and Down to choose options, press Enter to select the currently focused option, press Escape to exit the menu, press Tab to select the option and exit the menu\.$/i, "$1 个结果可用。按上下方向键选择选项，按 Enter 选择当前聚焦的选项，按 Escape 退出菜单，按 Tab 选择选项并退出菜单。"],
     [/^Showing\s+(\d+)\s+of\s+(\d+)$/i, "显示 $1 / $2"],
-    [/^Status:\s*(.+)$/i, "状态：$1"],
+    [/^Status:\s*(.+)$/i, function (_match, status) {
+      var translated = normalize(translate(status));
+      return translated !== normalize(status) ? "状态：" + translated : _match;
+    }],
     [/^Time:\s*(.+)$/i, "耗时：$1"],
     [/^Size:\s*(.+)$/i, "大小：$1"],
     [/^(\d+)\s+VUs$/i, "$1 个虚拟用户"],
@@ -16222,52 +16258,47 @@
       return workspace ? "欢迎使用洞察 - " + workspace : "欢迎使用洞察";
     }],
     [/^Select row (\d+)$/i, "选择第 $1 行"],
-    [/^Remove ([\w.-]+)$/, function (_match, name) {
-      return "移除 " + normalize(translate(name));
-    }],
     [/^(\d+(?:\.\d+)?)% complete$/i, "已完成 $1%"],
     [/^Saved\s+(.+)$/i, function (_match, rest) {
       var t = normalize(translate(rest));
-      return /[一-鿿]/.test(t) ? "已保存 " + t : _match;
+      return isFullyLocalizedRemainder(rest, t) ? "已保存 " + t : _match;
     }],
     [/^Delete\s+(.+)$/i, function (_match, rest) {
       var t = normalize(translate(rest));
-      return /[一-鿿]/.test(t) ? "删除 " + t : _match;
+      return isFullyLocalizedRemainder(rest, t) ? "删除 " + t : _match;
     }],
     [/^Remove\s+(.+)$/i, function (_match, rest) {
       var t = normalize(translate(rest));
-      return /[一-鿿]/.test(t) ? "移除 " + t : _match;
+      return isFullyLocalizedRemainder(rest, t) ? "移除 " + t : _match;
     }],
     [/^Rename\s+(.+)$/i, function (_match, rest) {
       var t = normalize(translate(rest));
-      return /[一-鿿]/.test(t) ? "重命名 " + t : _match;
+      return isFullyLocalizedRemainder(rest, t) ? "重命名 " + t : _match;
     }],
     [/^Create\s+(.+)$/i, function (_match, rest) {
       var t = normalize(translate(rest));
-      return /[一-鿿]/.test(t) ? "创建 " + t : _match;
+      return isFullyLocalizedRemainder(rest, t) ? "创建 " + t : _match;
     }],
     [/^Add\s+(.+)$/i, function (_match, rest) {
       var t = normalize(translate(rest));
-      return /[一-鿿]/.test(t) ? "添加 " + t : _match;
+      return isFullyLocalizedRemainder(rest, t) ? "添加 " + t : _match;
     }],
     [/^Open\s+(.+)$/i, function (_match, rest) {
       var t = normalize(translate(rest));
-      return /[一-鿿]/.test(t) ? "打开 " + t : _match;
+      return isFullyLocalizedRemainder(rest, t) ? "打开 " + t : _match;
     }],
     [/^Copy\s+(.+)$/i, function (_match, rest) {
       var t = normalize(translate(rest));
-      return /[一-鿿]/.test(t) ? "复制 " + t : _match;
+      return isFullyLocalizedRemainder(rest, t) ? "复制 " + t : _match;
     }],
     [/^View\s+(.+)$/i, function (_match, rest) {
       var t = normalize(translate(rest));
-      return /[一-鿿]/.test(t) ? "查看 " + t : _match;
-    }]
-  ];
-
-  PHRASES = PHRASES.concat([
+      return isFullyLocalizedRemainder(rest, t) ? "查看 " + t : _match;
+    }],
     [/^(\d+)\s+results?\s+available\.?$/i, "$1 个结果可用。"],
     [/^option\s+(.+?)\s+selected\.?$/i, function (_match, option) {
-      return "选项 " + normalize(translate(option)) + " 已选中。";
+      var translated = normalize(translate(option));
+      return isFullyLocalizedRemainder(option, translated) ? "选项 " + translated + " 已选中。" : _match;
     }],
     [/^Explore\s+(GraphQL|WebSocket|Socket\.IO)\s+with\s+Postman\s+的回显服务$/i, function (_match, protocol) {
       return "使用 Postman 探索 " + protocol + " 的回显服务";
@@ -16281,7 +16312,7 @@
     [/^公开\s+(\d+)\s+查看\s+MCP Catalog$/i, "公开 $1 查看 MCP 目录"],
     [/^Your MCPs\s*(\d+)$/i, "你的 MCP $1"],
     [/^Your MCPs\s*(\d+)\s+Generate Server$/i, "你的 MCP $1 生成服务器"]
-  ]);
+  ];
 
   var ATTRS = [
     "title",
@@ -16300,7 +16331,9 @@
     "data-tooltip-text",
     "data-tooltip-label",
     "data-aether-tooltip",
-    "data-tab-name"
+    "data-tab-name",
+    "aria-valuetext",
+    "aria-roledescription"
   ];
 
   var SKIP_SELECTOR = [
@@ -16325,7 +16358,7 @@
     ".response-body"
   ].join(",");
 
-  var TECHNICAL_EXACT = /^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS|TRACE|CONNECT|JSON|XML|HTML|HTTP|HTTPS|URL|URI|JWT|OAuth|API|cURL|GraphQL|gRPC|WebSocket|Socket\.IO|SSE|TCP|TLS|SSL|SHA-?256|MD5|UTF-?8|base64)$/i;
+  var TECHNICAL_EXACT = /^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS|TRACE|CONNECT|JSON|XML|HTML|HTTP|HTTPS|URL|URI|JWT|OAuth|API|cURL|GraphQL|gRPC|WebSocket|Socket\.IO|SSE|TCP|TLS|SSL|SHA-?256|MD5|UTF-?8|base64|Cookie|Cookies|MCP|MQTT|RBAC|SDK|Git|AI|AWS|Postman)$/i;
   var LOOKS_LIKE_DATA = /^(https?:\/\/|wss?:\/\/|localhost\b|127\.0\.0\.1|::1|[A-Z0-9_]+=[^\s]+|[\w.-]+@[\w.-]+\.\w+|[\w.-]+\.(com|cn|net|org|io|dev|local)\b)/i;
 
   function preserveOuter(original, replacement) {
@@ -16336,6 +16369,47 @@
 
   function normalize(text) {
     return String(text).replace(/[\u200b-\u200d\ufeff]/g, "").replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
+  }
+
+  function isFullyLocalizedRemainder(original, translated) {
+    var source = normalize(original);
+    var result = normalize(translated);
+    if (!result || result === source || !/[\u3400-\u9fff]/.test(result)) {
+      return false;
+    }
+    var words = result.match(/[A-Za-z][A-Za-z'’-]*/g) || [];
+    return !words.some(function (word) {
+      return !/^(API|APIs|URL|URI|HTTP|HTTPS|JSON|XML|OAuth|JWT|AWS|GraphQL|gRPC|WebSocket|Socket|IO|Cookie|Cookies|SDK|AI|Git|MCP|MQTT|RBAC|GET|POST|PUT|PATCH|DELETE|HTML|PDF|CPU|VU|P90|P95|P99|ms|Postman|Ctrl|Alt|Shift|Cmd|Meta|Win|Left|Right|Up|Down|Enter|Escape|Tab|TLS|SSL|CA|v\d+)$/i.test(word);
+    });
+  }
+
+  function replaceLiteralPhrase(input, phrase, replacement) {
+    if (!phrase || typeof replacement !== "string") {
+      return input;
+    }
+    var needsLeftBoundary = /[A-Za-z0-9_]$/.test(phrase.charAt(0));
+    var needsRightBoundary = /^[A-Za-z0-9_]/.test(phrase.charAt(phrase.length - 1));
+    var result = "";
+    var cursor = 0;
+    var searchFrom = 0;
+    var changed = false;
+    var index;
+    while ((index = input.indexOf(phrase, searchFrom)) !== -1) {
+      var before = index > 0 ? input.charAt(index - 1) : "";
+      var afterIndex = index + phrase.length;
+      var after = afterIndex < input.length ? input.charAt(afterIndex) : "";
+      var leftOk = !needsLeftBoundary || !/[A-Za-z0-9_]/.test(before);
+      var rightOk = !needsRightBoundary || !/[A-Za-z0-9_]/.test(after);
+      if (leftOk && rightOk) {
+        result += input.slice(cursor, index) + replacement;
+        cursor = afterIndex;
+        searchFrom = afterIndex;
+        changed = true;
+      } else {
+        searchFrom = index + 1;
+      }
+    }
+    return changed ? result + input.slice(cursor) : input;
   }
 
   function cleanupMixedTranslation(text) {
@@ -16828,7 +16902,7 @@
     if (hasChinese) {
       var mixedWords = text.match(/[A-Za-z][A-Za-z'-]*/g) || [];
       if (!mixedWords.some(function (word) {
-        return word.length >= 2 && !/^(API|URL|URI|HTTP|HTTPS|JSON|XML|OAuth|JWT|AWS|GraphQL|gRPC|WebSocket|Cookie|SDK|AI|Git|GET|POST|PUT|PATCH|DELETE|HTML|PDF|CPU|VU|P90|P95|P99|ms|Postman|Ctrl|Alt|Shift|Cmd|Meta|Win|Left|Right|Up|Down|Enter|Escape|Tab)$/i.test(word);
+        return word.length >= 2 && !/^(API|APIs|URL|URI|HTTP|HTTPS|JSON|XML|OAuth|JWT|AWS|GraphQL|gRPC|WebSocket|Cookie|Cookies|SDK|AI|Git|MCP|MQTT|RBAC|GET|POST|PUT|PATCH|DELETE|HTML|PDF|CPU|VU|P90|P95|P99|ms|Postman|Ctrl|Alt|Shift|Cmd|Meta|Win|Left|Right|Up|Down|Enter|Escape|Tab)$/i.test(word);
       })) {
         return false;
       }
@@ -16924,7 +16998,13 @@
 
     var replaced = trimmed;
     for (var j = 0; j < PHRASES.length; j += 1) {
-      replaced = replaced.split(PHRASES[j][0]).join(PHRASES[j][1]);
+      var phrasePattern = PHRASES[j][0];
+      var phraseReplacement = PHRASES[j][1];
+      if (phrasePattern instanceof RegExp) {
+        replaced = replaced.replace(phrasePattern, phraseReplacement);
+      } else if (typeof phraseReplacement === "string") {
+        replaced = replaceLiteralPhrase(replaced, phrasePattern, phraseReplacement);
+      }
     }
     replaced = cleanupMixedTranslation(replaced);
     replaced = cleanupEnterpriseTrialMixedTranslation(replaced);
@@ -17921,7 +18001,6 @@
   }
 
   var observedShadowRoots = typeof WeakSet !== "undefined" ? new WeakSet() : null;
-  var shadowRootObservers = [];
   function observeShadowRoot(root) {
     if (!root || root.nodeType !== 11) {
       return;
@@ -17946,7 +18025,6 @@
       } else {
         root.__postmanZhObserved = true;
       }
-      shadowRootObservers.push(shadowObserver);
     } catch (e) {}
   }
 
@@ -17979,7 +18057,13 @@
   }
 
   function walkSameOriginIframes(root) {
-    if (!root || !root.querySelectorAll) {
+    if (!root) {
+      return;
+    }
+    if (root.nodeType === 1 && String(root.tagName || "").toUpperCase() === "IFRAME") {
+      attachIframeLocalization(root);
+    }
+    if (!root.querySelectorAll) {
       return;
     }
     var frames;
@@ -18036,40 +18120,6 @@
           } catch (e) {}
         }, { once: true });
       }
-    } catch (e) {}
-  }
-
-  function installDomMutationSafetyPatch() {
-    try {
-      if (!window.Node || !Node.prototype || Node.prototype.__postmanZhDomMutationSafe) {
-        return;
-      }
-
-      var originalRemoveChild = Node.prototype.removeChild;
-      var originalInsertBefore = Node.prototype.insertBefore;
-
-      if (typeof originalRemoveChild === "function") {
-        Node.prototype.removeChild = function (child) {
-          if (child && child.parentNode !== this) {
-            return child;
-          }
-          return originalRemoveChild.call(this, child);
-        };
-      }
-
-      if (typeof originalInsertBefore === "function") {
-        Node.prototype.insertBefore = function (newNode, referenceNode) {
-          if (referenceNode && referenceNode.parentNode !== this) {
-            return this.appendChild(newNode);
-          }
-          return originalInsertBefore.call(this, newNode, referenceNode);
-        };
-      }
-
-      Object.defineProperty(Node.prototype, "__postmanZhDomMutationSafe", {
-        value: true,
-        configurable: true
-      });
     } catch (e) {}
   }
 
@@ -18146,7 +18196,6 @@
   }
 
   function run() {
-    installDomMutationSafetyPatch();
     installShadowRootLocalization();
     patchLocale();
     installElectronMenuLocalization();

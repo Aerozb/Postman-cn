@@ -3,6 +3,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const SHOW_DETAILS = process.argv.includes("--details");
 
 // --out names the JSON report. Bare names use the sibling _generated folder;
 // paths with a directory use the caller's working directory. The screenshot
@@ -81,7 +82,13 @@ async function connectCdp(wsUrl) {
           if (pending.has(id)) { pending.delete(id); reject(new Error(`CDP 方法执行超时：${method}`)); }
         }, timeoutMs);
         pending.set(id, { resolve, reject, timer });
-        ws.send(JSON.stringify({ id, method, params }));
+        try {
+          ws.send(JSON.stringify({ id, method, params }));
+        } catch (error) {
+          clearTimeout(timer);
+          pending.delete(id);
+          reject(error);
+        }
       });
     },
     close() { try { ws.close(); } catch (_) {} }
@@ -90,7 +97,11 @@ async function connectCdp(wsUrl) {
 
 async function evaluate(cdp, expression) {
   const result = await cdp.send("Runtime.evaluate", { expression, returnByValue: true, awaitPromise: true });
-  if (result.exceptionDetails) throw new Error(JSON.stringify(result.exceptionDetails));
+  if (result.exceptionDetails) {
+    const message = result.exceptionDetails.text || "页面脚本执行失败。";
+    const details = SHOW_DETAILS ? ` 诊断：${JSON.stringify(result.exceptionDetails)}` : "";
+    throw new Error(`${message}${details}`);
+  }
   return result.result.value;
 }
 
@@ -172,11 +183,11 @@ async function main() {
         const r = n.getBoundingClientRect();
         const svgTitle = n.querySelector && n.querySelector("svg title");
         const label = norm(n.getAttribute("aria-label")) || norm(n.getAttribute("title")) || norm(n.innerText) || norm(svgTitle && svgTitle.textContent);
-        const meta = [label, n.getAttribute("data-testid"), n.className, n.outerHTML && n.outerHTML.slice(0, 300)].map(norm).join(" ");
+        const meta = [label, n.getAttribute("data-testid"), n.className, n.tagName].map(norm).join(" ");
         return { label, meta, x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height };
       }).filter((i) => i.w > 2 && i.h > 2 && i.y < 60);
     })()`);
-      console.error(`顶部区域发现 ${headerButtons.length} 个可交互候选。`);
+      if (SHOW_DETAILS) console.error(`顶部区域发现 ${headerButtons.length} 个可交互候选。`);
       let gear = headerButtons.find((i) => /设置|settings|gear|cog/i.test(i.meta));
       if (!gear) {
         gear = await evaluate(cdp, `(() => {
@@ -214,7 +225,7 @@ async function main() {
       });
       return out.slice(0, 60);
     })()`);
-      console.error(`设置菜单中发现 ${overlayItems.length} 个候选项，尝试坐标点击兜底。`);
+      if (SHOW_DETAILS) console.error(`设置菜单中发现 ${overlayItems.length} 个候选项，尝试坐标点击兜底。`);
       const entryItem = overlayItems.find((i) => /^(应用设置|设置|Settings)$/.test(i.t));
       const entry = entryItem ? { x: entryItem.x, y: entryItem.y } : null;
       if (!entry) throw new Error("没有找到设置菜单项。");
@@ -252,18 +263,24 @@ async function main() {
       report.screenshot = screenshotPath;
     } catch (error) {
       report.screenshotError = error && error.message || String(error);
-      console.error(`截图失败，已跳过：${report.screenshotError}`);
+      if (SHOW_DETAILS) console.error(`截图失败，已跳过：${report.screenshotError}`);
     }
     fs.writeFileSync(reportPath, JSON.stringify(report, null, 2), "utf8");
-    console.log(`更新页面验证通过，报告已保存：${reportPath}`);
-    console.log(JSON.stringify({ verified: true, language: report.language, report: reportPath, clickedTab, screenshot: report.screenshot, screenshotError: report.screenshotError, textPreview: text.slice(0, 600) }, null, 2));
+    const screenshotNote = report.screenshotError ? "，截图失败但已跳过" : "";
+    console.log(`更新页面验证通过${screenshotNote}，报告已保存到 ${reportPath}。`);
+    if (SHOW_DETAILS) {
+      console.log(JSON.stringify(report, null, 2));
+    }
   } finally {
     cdp.close();
   }
 }
 
 main().catch((error) => {
-  console.error("探测更新页面失败：");
-  console.error(error && error.stack || error);
+  const message = String(error && error.message || error).replace(/\s+/g, " ").trim();
+  console.error(`探测更新页面失败：${message}`);
+  if (SHOW_DETAILS && error && error.stack) {
+    console.error(error.stack);
+  }
   process.exit(1);
 });

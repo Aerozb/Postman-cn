@@ -18,26 +18,41 @@ const arg = (name, fallback) => {
 const flag = name => argv.includes(name);
 const norm = value => String(value || "").replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
 
+function resolveOutPath(requested, fallback) {
+  const value = requested || fallback;
+  const hasDirectory = path.isAbsolute(value) || value.includes('/') || value.includes('\\');
+  let resolved = hasDirectory
+    ? path.resolve(value)
+    : path.resolve(__dirname, '..', '..', '..', '_generated', value);
+  if (!hasDirectory && !path.extname(resolved)) resolved += '.json';
+  return resolved;
+}
+
 async function connect(wsUrl) {
   const ws = new WebSocket(wsUrl);
   const pending = new Map(); let id = 0;
+  const clearPending = error => {
+    for (const item of pending.values()) { clearTimeout(item.timer); if (error) item.reject(error); }
+    pending.clear();
+  };
   await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("连接 CDP 超时。")), 10000);
+    const timer = setTimeout(() => { try { ws.close(); } catch (_) {} reject(new Error("连接 CDP 超时。")); }, 10000);
     ws.addEventListener("open", () => { clearTimeout(timer); resolve(); }, { once: true });
     ws.addEventListener("error", () => { clearTimeout(timer); reject(new Error("连接 CDP 失败。")); }, { once: true });
   });
   ws.addEventListener("message", event => {
-    const msg = JSON.parse(event.data); if (!msg.id || !pending.has(msg.id)) return;
+    let msg; try { msg = JSON.parse(event.data); } catch (_) { return; } if (!msg.id || !pending.has(msg.id)) return;
     const item = pending.get(msg.id); pending.delete(msg.id); clearTimeout(item.timer);
-    if (msg.error) item.reject(new Error(msg.error.message || JSON.stringify(msg.error))); else item.resolve(msg.result);
+    if (msg.error) item.reject(new Error(msg.error.message || "CDP 返回未知错误。")); else item.resolve(msg.result);
   });
-  return { send(method, params = {}, sessionId = null) {
+  ws.addEventListener("close", () => clearPending(new Error("CDP WebSocket 已关闭。")), { once: true });
+  return { send(method, params = {}, sessionId = null, timeout = 60000) {
     const callId = ++id; ws.send(JSON.stringify({ id: callId, method, params, ...(sessionId ? {sessionId} : {}) }));
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => { pending.delete(callId); reject(new Error(`CDP 命令执行超时：${method}`)); }, 60000);
+      const timer = setTimeout(() => { if (!pending.has(callId)) return; pending.delete(callId); reject(new Error(`CDP 命令执行超时：${method}`)); }, timeout);
       pending.set(callId, { resolve, reject, timer });
     });
-  }, close() { try { ws.close(); } catch (_) {} } };
+  }, close() { clearPending(new Error("CDP 连接已关闭。")); try { ws.close(); } catch (_) {} } };
 }
 
 async function connectTarget(port, browserPath, target) {
@@ -47,11 +62,15 @@ async function connectTarget(port, browserPath, target) {
     if (!attached || !attached.sessionId) { root.close(); throw new Error("Target.attachToTarget 未返回会话 ID"); }
     const sessionId = attached.sessionId;
     return {
-      send(method, params = {}) { return root.send(method, params, sessionId); },
+      send(method, params = {}, timeout = 60000) { return root.send(method, params, sessionId, timeout); },
       close() { root.close(); }
     };
   }
-  return connect(target.webSocketDebuggerUrl);
+  const direct = await connect(target.webSocketDebuggerUrl);
+  return {
+    send(method, params = {}, timeout = 60000) { return direct.send(method, params, null, timeout); },
+    close() { direct.close(); }
+  };
 }
 
 async function evaluate(cdp, expression) {
@@ -92,7 +111,7 @@ async function dismiss(cdp, delay) {
 
 const scanScript = String.raw`(() => {
   const norm = value => String(value || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
-  const attrs = ['title','aria-label','aria-description','aria-placeholder','placeholder','alt','label','value',
+  const attrs = ['title','aria-label','aria-description','aria-placeholder','placeholder','alt','label',
     'data-original-title','data-tippy-content','data-tooltip','data-tooltip-content','data-tooltip-title',
     'data-tooltip-text','data-tooltip-label','data-aether-tooltip','data-tab-name','aria-valuetext','aria-roledescription'];
   const roots = []; const visited = new Set();
@@ -112,16 +131,15 @@ const scanScript = String.raw`(() => {
     for (const el of root.querySelectorAll('*')) {
       if (!visible(el)) continue;
       const role = el.getAttribute('role') || ''; const testid = el.getAttribute('data-testid') || el.getAttribute('data-test-id') || '';
-      const popup = el.getAttribute('aria-haspopup') || ''; const txt = norm(el.innerText || el.textContent || '');
+      const popup = el.getAttribute('aria-haspopup') || ''; const privateControl = /^(INPUT|TEXTAREA|SELECT)$/i.test(el.tagName);
+      const txt = norm(privateControl ? '' : el.innerText || el.textContent || '');
+      const targetText = norm(el.getAttribute('aria-label') || el.getAttribute('title') || el.getAttribute('placeholder') || txt);
       // Leaf text and labelled controls catch visible menu/dialog copy without giant parent duplicates.
       if (txt && (el.children.length === 0 || role || testid || /^(BUTTON|INPUT|TEXTAREA|OPTION|A|LABEL)$/i.test(el.tagName))) addHit(txt, 'text', null, el, trail);
       for (const attr of attrs) { const value = el.getAttribute(attr); if (value) addHit(value, 'attr', attr, el, trail); }
-      if (/^(INPUT|TEXTAREA|SELECT)$/i.test(el.tagName) || role === 'combobox') {
-        if (el.value) addHit(el.value, 'input-value', 'value', el, trail);
-      }
       if (role || testid || popup || /^(BUTTON|A|INPUT|TEXTAREA|SELECT)$/i.test(el.tagName)) {
-        const r = rect(el); const key = [testid, role, txt, Math.round(r.x), Math.round(r.y)].join('|');
-        if (!seenTarget.has(key) && r.x > -10 && r.y > -10) { seenTarget.add(key); targets.push({x:r.x,y:r.y,w:r.w,h:r.h,text:txt.slice(0,300),tag:el.tagName,role,testid,hasPopup:popup,disabled:el.disabled || el.getAttribute('aria-disabled') === 'true',title:el.getAttribute('title')||'',aria:el.getAttribute('aria-label')||''}); }
+        const r = rect(el); const key = [testid, role, targetText, Math.round(r.x), Math.round(r.y)].join('|');
+        if (!seenTarget.has(key) && r.x > -10 && r.y > -10) { seenTarget.add(key); targets.push({x:r.x,y:r.y,w:r.w,h:r.h,text:targetText.slice(0,300),tag:el.tagName,role,testid,hasPopup:popup,disabled:el.disabled || el.getAttribute('aria-disabled') === 'true',title:el.getAttribute('title')||'',aria:el.getAttribute('aria-label')||''}); }
       }
       if (/dialog|menu|listbox|tooltip|alertdialog/i.test(role) || el.getAttribute('aria-modal') === 'true' || /modal|popover|menu|dialog/i.test(testid)) overlays.push({role,testid,text:txt.slice(0,600)});
     }
@@ -142,12 +160,10 @@ function candidate(value) {
 function axValue(node,key){const value=node&&node[key];return norm(value&&typeof value==='object'&&'value'in value?value.value:value);}
 async function accessibilityFindings(cdp){
   try{
-    const tree=await Promise.race([
-      cdp.send('Accessibility.getFullAXTree'),
-      new Promise((_,reject)=>setTimeout(()=>reject(new Error('Accessibility.getFullAXTree 软超时')),8000))
-    ]); const out=[]; const seen=new Set();
+    const tree=await cdp.send('Accessibility.getFullAXTree',{},8000); const out=[]; const seen=new Set();
     for(const node of tree.nodes||[]){
-      for(const [kind,key] of [['ax-name','name'],['ax-description','description'],['ax-value','value']]){
+      const role=axValue(node,'role'); if(/^(?:textbox|searchbox|combobox|spinbutton|slider)$/i.test(role))continue;
+      for(const [kind,key] of [['ax-name','name'],['ax-description','description']]){
         const value=axValue(node,key); if(!value||!candidate(value))continue; const id=kind+'|'+value; if(seen.has(id))continue; seen.add(id); out.push({text:value,kind,attribute:null,trail:'accessibility'});
       }
     }
@@ -171,7 +187,7 @@ function pick(state, patterns, opts = {}) {
 }
 
 async function main() {
-  const out = path.resolve(arg('--out', path.join(__dirname, '..', '..', '..', '_generated', 'postman-entry-modals.json')));
+  const out = resolveOutPath(arg('--out', null), 'postman-entry-modals.json');
   const delay = Math.max(120, Number(arg('--delay-ms', '420')));
   const maxAx = Math.max(0, Number(arg('--max-ax', '8'))); let axUsed=0;
   const portFile = path.join(process.env.APPDATA || '', 'Postman', 'DevToolsActivePort');
@@ -245,15 +261,27 @@ async function main() {
   const findings = [...merged.values()].sort((a,b)=>b.count-a.count||a.text.localeCompare(b.text));
   const report = {generatedAt:new Date().toISOString(),target:{id:target.id,title:target.title,url:target.url},options:{delay,maxAx},coverage:{axScans:axUsed},summary:{snapshots:snapshots.length,actions:actions.length,successfulActions:actions.filter(a=>a.ok).length,findings:findings.length,errors:errors.length},findings,actions,snapshots,errors};
   fs.mkdirSync(path.dirname(out),{recursive:true}); fs.writeFileSync(out,JSON.stringify(report,null,2),'utf8');
-  console.log('入口弹窗审计完成，以下为结果摘要：');
-  console.log(JSON.stringify({out,summary:report.summary,top:findings.slice(0,100).map(f=>f.text)},null,2));
+  const summary={out,summary:report.summary,top:findings.slice(0,100).map(f=>f.text)};
+  if(flag('--details'))console.log(JSON.stringify(summary,null,2));
+  else console.log(`入口弹窗审计完成：执行 ${report.summary.actions} 次探测，发现 ${report.summary.findings} 条候选，报告已写入 ${out}`);
 }
 
-if (flag('--self-test')) {
+function selfTest() {
   new Function(`return (${scanScript});`); // generated browser expression parse check
   const fake={targets:[{text:'设置',testid:'settings-button',hasPopup:'menu',x:10,y:10,w:20,h:20,disabled:false},{text:'删除',testid:'delete-button',hasPopup:'menu',x:10,y:10,w:20,h:20,disabled:false}]};
   if (!pick(fake,[/^设置$/],{top:true,maxY:60})) throw new Error('自检失败：未选中预期目标');
   if (pick(fake,[/^删除$/])) throw new Error('自检失败：危险操作防护未生效');
-  console.log('入口弹窗审计脚本自检完成，以下为结果摘要：');
-  console.log(JSON.stringify({ok:true,generatedScripts:1,guards:1},null,2));
-} else main().catch(error=>{console.error('入口弹窗审计失败，详细信息如下：');console.error(error&&error.stack||error);process.exit(1);});
+  if(/\bel\.value\b/.test(scanScript))throw new Error('自检失败：浏览器扫描仍会读取输入控件当前值');
+  if(!/textbox\|searchbox\|combobox/.test(String(accessibilityFindings)))throw new Error('自检失败：无障碍树未过滤私密输入控件');
+  if(resolveOutPath('自检报告','unused.json')!==path.resolve(__dirname,'..','..','..','_generated','自检报告.json'))throw new Error('自检失败：裸输出名未写入 _generated');
+  const summary={ok:true,generatedScripts:1,guards:4};
+  if(flag('--details'))console.log(JSON.stringify(summary,null,2));
+  else console.log('入口弹窗审计脚本自检通过，共 4 项防护。');
+}
+
+Promise.resolve().then(() => flag('--self-test') ? selfTest() : main()).catch(error=>{
+  const message=norm(error&&error.message||String(error));
+  if(flag('--details'))console.error(JSON.stringify({ok:false,error:message,stack:error&&error.stack||null},null,2));
+  else console.error('入口弹窗审计失败，请确认 Postman 已启动；可使用 --details 查看详细信息。');
+  process.exitCode=1;
+});

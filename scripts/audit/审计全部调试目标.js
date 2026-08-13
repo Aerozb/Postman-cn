@@ -17,6 +17,16 @@ const flag = (name) => argv.includes(name);
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const norm = (s) => String(s == null ? "" : s).replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
 
+function resolveOutPath(requested, fallback) {
+  const value = requested || fallback;
+  const hasDirectory = path.isAbsolute(value) || value.includes("/") || value.includes("\\");
+  let resolved = hasDirectory
+    ? path.resolve(value)
+    : path.resolve(__dirname, "..", "..", "..", "_generated", value);
+  if (!hasDirectory && !path.extname(resolved)) resolved += ".json";
+  return resolved;
+}
+
 const ATTRS = [
   "title", "aria-label", "aria-description", "aria-placeholder", "placeholder",
   "alt", "label", "data-original-title", "data-tippy-content", "data-tooltip",
@@ -66,8 +76,18 @@ async function connect(wsUrl) {
   const ws = new WebSocket(wsUrl);
   const pending = new Map();
   let id = 1;
+  const clearPending = (error) => {
+    for (const item of pending.values()) {
+      clearTimeout(item.timer);
+      if (error) item.reject(error);
+    }
+    pending.clear();
+  };
   await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("连接 CDP WebSocket 超时。")), 10000);
+    const timer = setTimeout(() => {
+      try { ws.close(); } catch (_) {}
+      reject(new Error("连接 CDP WebSocket 超时。"));
+    }, 10000);
     ws.addEventListener("open", () => { clearTimeout(timer); resolve(); }, { once: true });
     ws.addEventListener("error", () => { clearTimeout(timer); reject(new Error("连接 CDP WebSocket 失败。")); }, { once: true });
   });
@@ -78,19 +98,27 @@ async function connect(wsUrl) {
     const p = pending.get(message.id);
     pending.delete(message.id);
     clearTimeout(p.timer);
-    if (message.error) p.reject(new Error(message.error.message || JSON.stringify(message.error)));
+    if (message.error) p.reject(new Error(message.error.message || "CDP 返回未知错误。"));
     else p.resolve(message.result || {});
   });
+  ws.addEventListener("close", () => clearPending(new Error("CDP WebSocket 已关闭。")), { once: true });
   return {
     send(method, params = {}, sessionId = null, timeout = 45000) {
       const callId = id++;
       ws.send(JSON.stringify({ id: callId, method, params, ...(sessionId ? { sessionId } : {}) }));
       return new Promise((resolve, reject) => {
-        const timer = setTimeout(() => { pending.delete(callId); reject(new Error(`CDP 命令执行超时：${method}`)); }, timeout);
+        const timer = setTimeout(() => {
+          if (!pending.has(callId)) return;
+          pending.delete(callId);
+          reject(new Error(`CDP 命令执行超时：${method}`));
+        }, timeout);
         pending.set(callId, { resolve, reject, timer });
       });
     },
-    close() { try { ws.close(); } catch (_) {} }
+    close() {
+      clearPending(new Error("CDP 连接已关闭。"));
+      try { ws.close(); } catch (_) {}
+    }
   };
 }
 
@@ -136,13 +164,13 @@ const scanExpression = (overlayOnly = false) => String.raw`(() => {
       const elements = container.nodeType === 1 ? [container, ...container.querySelectorAll("*")] : Array.from(container.querySelectorAll("*"));
       for (const el of elements) {
         if (!visible(el)) continue;
-        for (const node of el.childNodes) if (node.nodeType === 3) add(node.nodeValue, "text", item.trail, el);
+        const privateControl = /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName);
+        if (!privateControl) for (const node of el.childNodes) if (node.nodeType === 3) add(node.nodeValue, "text", item.trail, el);
         for (const attr of ATTRS) if (el.hasAttribute && el.hasAttribute(attr)) add(el.getAttribute(attr), "attr", item.trail, el, attr);
-        if (/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) && el.value) add(el.value, "input-value", item.trail, el, "value");
         if (!overlayOnly) {
           const r = el.getBoundingClientRect();
           const packed = { x: r.left + r.width / 2, y: r.top + r.height / 2, tag: el.tagName.toLowerCase(),
-            label: norm(el.getAttribute("aria-label") || el.getAttribute("title") || el.textContent).slice(0, 180) };
+            label: norm(el.getAttribute("aria-label") || el.getAttribute("title") || el.getAttribute("placeholder") || (privateControl ? "" : el.textContent)).slice(0, 180) };
           if (el.matches("button,[role=button],[role=tab],[role=img],[title],[aria-label],[data-tooltip],[data-tippy-content]") && r.width <= 500 && r.height <= 180) hovers.push(packed);
           if (el.matches("button[aria-haspopup=menu],button[aria-haspopup=listbox],[role=button][aria-haspopup=menu],[role=button][aria-haspopup=listbox]") && !el.disabled && el.getAttribute("aria-disabled") !== "true") menus.push(packed);
         }
@@ -168,9 +196,11 @@ async function axScan(send) {
     const tree = await send("Accessibility.getFullAXTree", { depth: 60 }, 15000);
     const out = [];
     for (const node of tree.nodes || []) {
-      for (const field of ["name", "description", "value", "roleDescription"]) {
+      const role = norm(node.role && node.role.value);
+      if (/^(?:textbox|searchbox|combobox|spinbutton|slider)$/i.test(role)) continue;
+      for (const field of ["name", "description", "roleDescription"]) {
         const text = norm(node[field] && node[field].value);
-        if (text) out.push({ text, kind: `ax-${field}`, role: node.role && node.role.value || null });
+        if (text) out.push({ text, kind: `ax-${field}`, role: role || null });
       }
     }
     return dedupeEntries(out);
@@ -250,6 +280,7 @@ async function auditTarget(send, target, options) {
 }
 
 async function selfTest() {
+  const generatedScan = scanExpression(false);
   const checks = [
     [norm("  A\u00a0 B "), "A B"],
     [englishFinding("API"), false],
@@ -257,12 +288,17 @@ async function selfTest() {
     [englishFinding("连接 your account"), true],
     [targetPriority({ type: "iframe", url: "https://connect.us.integrations.postmancloud.com/ui" }), 0],
     [parseTypes("page,iframe").has("iframe"), true],
-    [dedupeEntries([{ text: "A", kind: "text" }, { text: "A", kind: "text" }]).length, 1]
+    [dedupeEntries([{ text: "A", kind: "text" }, { text: "A", kind: "text" }]).length, 1],
+    [/\bel\.value\b/.test(generatedScan), false],
+    [/\["name", "description", "roleDescription"\]/.test(String(axScan)), true],
+    [/textbox\|searchbox\|combobox/.test(String(axScan)), true],
+    [resolveOutPath("自检报告", "unused.json"), path.resolve(__dirname, "..", "..", "..", "_generated", "自检报告.json")]
   ];
   const failed = checks.filter(([actual, expected]) => actual !== expected);
-  if (failed.length) throw new Error(`自检失败：${JSON.stringify(failed)}`);
-  process.stdout.write("全部调试目标审计脚本自检完成，以下为结果摘要：\n");
-  process.stdout.write(JSON.stringify({ ok: true, checks: checks.length }, null, 2) + "\n");
+  if (failed.length) throw new Error(`自检失败，共 ${failed.length} 项不符合预期。`);
+  const summary = { ok: true, checks: checks.length };
+  if (flag("--details")) process.stdout.write(JSON.stringify(summary, null, 2) + "\n");
+  else process.stdout.write(`全部调试目标审计脚本自检通过，共 ${checks.length} 项。\n`);
 }
 
 async function main() {
@@ -333,16 +369,18 @@ async function main() {
     targets: results,
     findings
   };
-  const out = path.resolve(value("--out", path.join(__dirname, "..", "..", "..", "_generated", "all-cdp-targets-audit.json")));
+  const out = resolveOutPath(value("--out", null), "all-cdp-targets-audit.json");
   fs.mkdirSync(path.dirname(out), { recursive: true });
   fs.writeFileSync(out, JSON.stringify(report, null, 2) + "\n", "utf8");
-  process.stdout.write("全部调试目标审计完成，以下为结果摘要：\n");
-  process.stdout.write(JSON.stringify({ out, summary: report.summary }, null, 2) + "\n");
+  const summary = { out, summary: report.summary };
+  if (flag("--details")) process.stdout.write(JSON.stringify(summary, null, 2) + "\n");
+  else process.stdout.write(`全部调试目标审计完成：审计 ${report.summary.audited} 个目标，发现 ${report.summary.findings} 条候选，报告已写入 ${out}\n`);
   if (flag("--fail-on-errors") && report.summary.errors) process.exitCode = 2;
 }
 
 main().catch((error) => {
-  console.error("全部调试目标审计失败，详细信息如下：");
-  console.error(error && error.stack || error);
+  const message = norm(error && error.message || String(error));
+  if (flag("--details")) console.error(JSON.stringify({ ok: false, error: message, stack: error && error.stack || null }, null, 2));
+  else console.error("全部调试目标审计失败，请确认 Postman 已启动；可使用 --details 查看详细信息。");
   process.exitCode = 1;
 });

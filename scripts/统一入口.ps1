@@ -160,7 +160,6 @@ try {
       $params = @{
         Latest = $true
         DisableUpdates = (-not $KeepUpdates)
-        FixBrowserUrlHandler = $true
         Verify = (-not $NoVerify)
       }
       if ($PostmanDir) { $params.PostmanDir = $PostmanDir }
