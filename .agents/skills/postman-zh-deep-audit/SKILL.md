@@ -13,9 +13,16 @@ description: 审计并修复本仓库的 Postman 中文汉化。用于检查实�
 4. 将报告、截图和临时文件写入项目同级 `_generated`，不要放进项目根目录或 `scripts`；输出路径只能使用该目录下的文件名。
 5. 默认输出保持简洁中文；只有显式使用 `--details` 时才打印完整诊断，禁止向普通用户输出大段 JSON 或 Postman/Electron/npm 内部日志。
 6. 审计报告必须通过 `scripts/audit/审计安全.js` 的 `writeAuditReport` 写入；不要把原始 CDP 目标、URL 参数、WebSocket 地址、请求/响应正文、输入值或令牌写入 `_generated`。
-7. 截图默认关闭；确需截图时显式使用 `--screenshot` 并通过 `writeAuditScreenshot` 写入。PNG 像素不会经过 JSON 脱敏，可能包含当前可见的工作区或请求内容。
-8. 无参数 TUI 每次选择并完成一项任务后应直接退出；不要增加 `Read-Host`、`pause` 或其他收尾按键等待。
+7. 截图默认关闭。当前只有 `probe`、`scan` 和 `lightweight`、`new-request`、`new-collection`、`import`、`navigation`、`deep-areas`、`targeted` 审计支持 `--screenshot`，并通过 `writeAuditScreenshot` 写入；PNG 像素不会经过 JSON 脱敏，可能包含当前可见的工作区或请求内容。
+8. 无参数 TUI 使用 `Read-Host` 接收主菜单和审计子菜单选择；每次选中并完成一项任务后应直接退出，禁止增加用于收尾的 `Read-Host`、`pause` 或其他按键等待。
 9. 通用审计不得点击文件、文件夹、上传、浏览或选择文件等会打开 Windows 原生文件选择器的入口。导入界面只用 `audit import` 从 Postman 页面侧审计；不选择本机文件或目录，结束前清理脚本打开的弹窗和菜单。
+
+## 入口行为
+
+- 主菜单提供安装、验证、还原、启动、关闭、漏翻导出、静态扫描、译文合并、深度审计、浏览器链接修复和发布；`h` 查看帮助，`0` 或 `q` 退出，空回车执行安装。
+- 深度审计子菜单提供下方 11 个审计名称；`0` 返回主菜单，`q` 退出整个 TUI。
+- `probe` 和通用 `scan` 只作为维护者 CLI 命令保留，不在普通用户菜单中。
+- 默认终端只显示简洁中文摘要；诊断 JSON 仅在显式传入 `--details` 时输出。
 
 ## 漏翻修复流程
 

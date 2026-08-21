@@ -65,7 +65,9 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
 .\postman-zh.bat restore
 ```
 
-**不带命令运行（或双击 bat）会显示中文交互菜单**，覆盖 install/verify/restore/start/stop/collect/static-scan/merge/audit/fix-browser/publish；选“深度审计界面”后会显示中文审计子菜单，并可返回上一级。菜单只是 `统一入口.ps1` 里 `Show-Menu` 对同一批子命令的包装，带命令调用的行为完全不变。任务结束后直接退出并由 bat 自动关闭窗口，禁止再用 `Read-Host`、`pause` 或其他按键等待阻塞退出。
+**不带命令运行（或双击 bat）会显示中文交互菜单**，主菜单为：1 安装、2 验证、3 还原、4 启动、5 关闭、6 导出漏翻、7 静态扫描、8 合并译文、9 深度审计、10 修复浏览器链接、11 发布、`h` 帮助、`0` 退出；空回车默认安装，`q` 等同退出。选“深度审计界面”后会显示 11 项中文审计子菜单，`0` 返回主菜单。菜单只是 `统一入口.ps1` 里 `Show-Menu` 对同一批子命令的包装，带命令调用的行为完全不变。`probe` 和通用 `scan` 是维护者 CLI 命令，不放入 TUI。
+
+菜单选择可以使用 `Read-Host`。每次选中任务后只执行一次；任务结束必须直接退出并由 bat 自动关闭双击窗口，禁止增加用于收尾的 `Read-Host`、`pause` 或其他按键等待。
 
 默认输出必须是简洁中文，不要打印 Postman/Electron/npm 内部日志或独立的大段 JSON。完整诊断只能由维护者显式传入 `--details` 后显示。
 
@@ -101,7 +103,7 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
 ### 审计（Node，走 CDP，需 Postman 带 `--remote-debugging-port=0` 启动）
 `scripts/audit/` 下的脚本通过 CDP 模拟点击、悬停和右键遍历页面。使用 `postman-zh.bat audit <名称>` 调用，不要直接记内部文件名。
 
-所有审计脚本都通过 `scripts/audit/审计安全.js` 写报告。该模块会裁剪 JSON 中的本机路径、URL 查询参数、WebSocket 地址、请求/响应正文、输入值和令牌；新增审计脚本必须调用 `writeAuditReport`，不能直接 `JSON.stringify` 原始 CDP 数据。截图默认关闭且必须调用 `writeAuditScreenshot`；该函数只限制输出位置和数据格式，不会脱敏 PNG 像素，截图可能包含当前可见的工作区或请求内容。默认终端只输出中文摘要，`--details` 才输出脱敏诊断。
+所有审计脚本都通过 `scripts/audit/审计安全.js` 写报告。该模块会裁剪 JSON 中的本机路径、URL 查询参数、WebSocket 地址、请求/响应正文、输入值和令牌；新增审计脚本必须调用 `writeAuditReport`，不能直接 `JSON.stringify` 原始 CDP 数据。截图默认关闭；当前只有 `probe`、`scan` 和 `lightweight`、`new-request`、`new-collection`、`import`、`navigation`、`deep-areas`、`targeted` 审计实现 `--screenshot`，并必须调用 `writeAuditScreenshot`。该函数只限制输出位置和数据格式，不会脱敏 PNG 像素，截图可能包含当前可见的工作区或请求内容。默认终端只输出中文摘要，`--details` 才输出脱敏诊断。
 
 自动审计不得点击会唤起 Windows 原生文件选择器的入口，包括“文件”“文件夹”“上传”“浏览”“选择文件”“打开文件夹”及其英文标签。只有 `audit import` 可以从 Postman 页面侧安全入口打开应用内导入弹窗；它只检查链接、原始文本和代码仓库等页签，不选择本机文件或目录，并在结束前关闭自己打开的弹窗和临时菜单。`targeted-surfaces` 等通用审计只记录这类控件，不负责点击导入入口。
 

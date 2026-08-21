@@ -125,11 +125,11 @@ Postman 中文汉化工具
   start         启动 Postman 并等待 CDP 调试端口
   stop          彻底关闭 Postman 进程
   fix-browser   修复系统浏览器 URL 参数引号
-  static-scan   扫描 UI 文案；加 --disk 扫描磁盘缓存，否则扫描运行中的页面；--out 裸名称写入 _generated
+  static-scan   扫描 UI 文案；加 --disk 扫描磁盘缓存，否则扫描运行中的页面；支持 --out、--details
   merge         合并 _generated/trans-*.json 译文；加 --check 只检查、不写入
-  probe         检查更新页面；--out 裸名称写入 _generated，--screenshot 才保存截图
-  scan          扫描可点击界面
-  audit <名称>  运行指定深度审计；--out 可用裸名称或 .json（见下方名称）
+  probe         检查更新页面；支持 --out、--details，显式加 --screenshot 才保存截图
+  scan          扫描可点击界面；支持 --out、--details，显式加 --screenshot 才保存截图
+  audit <名称>  运行指定深度审计；支持 --details，--out 可用裸名称或 .json
   publish       调用维护者发布脚本
   help          显示本帮助
 
@@ -146,12 +146,17 @@ Postman 中文汉化工具
   targeted           固定区域审计
   targeted-surfaces  容易漏翻的重点界面
 
-new-request、navigation 和 deep-areas 默认使用受控预算。维护者需要在发布前执行高强度覆盖时，可对相应命令增加 --thorough，例如：
+高级审计默认使用受控预算。维护者需要在发布前执行高强度覆盖时，可对 new-request、navigation、deep-areas、entry-modals、phased、targeted、targeted-surfaces 和 all-targets 增加 --thorough，例如：
   .\postman-zh.bat audit new-request --thorough
   .\postman-zh.bat audit navigation --thorough
   .\postman-zh.bat audit deep-areas --thorough
+  .\postman-zh.bat audit entry-modals --thorough
+  .\postman-zh.bat audit phased --thorough
+  .\postman-zh.bat audit targeted --thorough
+  .\postman-zh.bat audit targeted-surfaces --thorough
+  .\postman-zh.bat audit all-targets --thorough
 
-审计截图默认关闭。显式增加 --screenshot 后生成的 PNG 可能包含当前可见的工作区或请求内容，截图像素不会自动脱敏。
+截图默认关闭。当前支持 --screenshot 的命令为 probe、scan，以及 lightweight、new-request、new-collection、import、navigation、deep-areas、targeted 审计。生成的 PNG 可能包含当前可见的工作区或请求内容，截图像素不会自动脱敏。
 
 安装示例：
   .\postman-zh.bat install
