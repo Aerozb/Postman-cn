@@ -4,28 +4,20 @@
 const fs = require("fs");
 const path = require("path");
 const SHOW_DETAILS = process.argv.includes("--details");
+const SAVE_SCREENSHOT = process.argv.includes("--screenshot");
+const {
+  sanitizeAuditReport,
+  resolveAuditOutputPath,
+  writeAuditReport,
+  writeAuditScreenshot
+} = require("../audit/审计安全.js");
 
-// --out names the JSON report. Bare names use the sibling _generated folder;
-// paths with a directory use the caller's working directory. The screenshot
-// uses the same directory and basename with a .png extension.
+// --out accepts only a filename. Reports and optional screenshots are kept in
+// the workspace-sibling _generated directory.
 function outputPaths() {
   const index = process.argv.indexOf("--out");
-  const generatedDir = path.resolve(__dirname, "..", "..", "..", "_generated");
-  let reportPath = path.join(generatedDir, "update-page-probe.json");
-  if (index >= 0) {
-    const value = process.argv[index + 1];
-    if (!value || value.startsWith("--")) {
-      throw new Error("--out 后必须提供 JSON 报告路径。");
-    }
-    const hasDirectory = path.isAbsolute(value) || value.includes("/") || value.includes("\\");
-    reportPath = hasDirectory ? path.resolve(value) : path.join(generatedDir, value);
-    const extension = path.extname(reportPath);
-    if (!extension) {
-      reportPath += ".json";
-    } else if (extension.toLowerCase() !== ".json") {
-      throw new Error("--out 路径必须使用 .json 扩展名，或不写扩展名。");
-    }
-  }
+  const requested = index >= 0 ? process.argv[index + 1] : null;
+  const reportPath = resolveAuditOutputPath(requested, "update-page-probe.json");
   const parsed = path.parse(reportPath);
   return {
     reportPath,
@@ -99,7 +91,9 @@ async function evaluate(cdp, expression) {
   const result = await cdp.send("Runtime.evaluate", { expression, returnByValue: true, awaitPromise: true });
   if (result.exceptionDetails) {
     const message = result.exceptionDetails.text || "页面脚本执行失败。";
-    const details = SHOW_DETAILS ? ` 诊断：${JSON.stringify(result.exceptionDetails)}` : "";
+    const details = SHOW_DETAILS
+      ? ` 诊断：${JSON.stringify(sanitizeAuditReport(result.exceptionDetails))}`
+      : "";
     throw new Error(`${message}${details}`);
   }
   return result.result.value;
@@ -107,7 +101,6 @@ async function evaluate(cdp, expression) {
 
 async function main() {
   const { reportPath, screenshotPath } = outputPaths();
-  fs.mkdirSync(path.dirname(reportPath), { recursive: true });
   const portFile = path.join(process.env.APPDATA || "", "Postman", "DevToolsActivePort");
   if (!fs.existsSync(portFile)) {
     throw new Error("找不到 DevToolsActivePort。请先通过 postman-zh.bat start 启动 Postman。");
@@ -252,24 +245,26 @@ async function main() {
       throw new Error("更新页面没有显示中文的“已是最新版本”状态。");
     }
 
-    const report = { verified: true, language: "zh-CN", clickedTab, text, screenshot: null, screenshotError: null };
+    const report = { verified: true, language: "zh-CN", clickedTab, textLength: text.length, screenshot: null, screenshotError: null };
+    if (SAVE_SCREENSHOT) {
     try {
       const screenshot = await cdp.send(
         "Page.captureScreenshot",
         { format: "png" },
         30000
       );
-      fs.writeFileSync(screenshotPath, Buffer.from(screenshot.data, "base64"));
+      writeAuditScreenshot(screenshotPath, screenshot.data);
       report.screenshot = screenshotPath;
     } catch (error) {
-      report.screenshotError = error && error.message || String(error);
+      report.screenshotError = sanitizeAuditReport({ error: error && error.message || String(error) }).error;
       if (SHOW_DETAILS) console.error(`截图失败，已跳过：${report.screenshotError}`);
     }
-    fs.writeFileSync(reportPath, JSON.stringify(report, null, 2), "utf8");
+    }
+    writeAuditReport(reportPath, report);
     const screenshotNote = report.screenshotError ? "，截图失败但已跳过" : "";
-    console.log(`更新页面验证通过${screenshotNote}，报告已保存到 ${reportPath}。`);
+    console.log(`更新页面验证通过${screenshotNote}，报告已保存到 _generated/${path.basename(reportPath)}。`);
     if (SHOW_DETAILS) {
-      console.log(JSON.stringify(report, null, 2));
+      console.log(JSON.stringify(sanitizeAuditReport(report), null, 2));
     }
   } finally {
     cdp.close();
@@ -278,9 +273,10 @@ async function main() {
 
 main().catch((error) => {
   const message = String(error && error.message || error).replace(/\s+/g, " ").trim();
-  console.error(`探测更新页面失败：${message}`);
-  if (SHOW_DETAILS && error && error.stack) {
-    console.error(error.stack);
+  if (SHOW_DETAILS) {
+    console.error(JSON.stringify(sanitizeAuditReport({ error: message, stack: error && error.stack || null }), null, 2));
+  } else {
+    console.error("探测更新页面失败，请确认 Postman 已启动；可使用 --details 查看脱敏诊断。");
   }
   process.exit(1);
 });

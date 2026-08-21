@@ -7,11 +7,155 @@
   }
 
   var EXACT = {
+    /* === AI request suggestions === */
+    "Add tests for the response": "为响应添加测试",
+    "Fix the request edit and save": "修复请求编辑和保存",
+    "Fix the 请求 edit and save": "修复请求编辑和保存",
+    "Parameterize variables for reuse": "将变量参数化以便复用",
+    "Add negative-case assertions": "添加反例断言",
+    "Bind auth and headers via variables": "通过变量绑定授权和请求头",
+    "Complete and send the request": "完成并发送请求",
+    "Complete and send the 请求": "完成并发送请求",
+    "Add a response schema test": "添加响应架构测试",
+    "Create a parameterized runner": "创建参数化运行器",
+    "Finish request structure": "完善请求结构",
+    "Finish 请求 structure": "完善请求结构",
+    "Add tests for status + body": "为状态码和正文添加测试",
+    "Finish and send the request": "完成并发送请求",
+    "Finish and send the 请求": "完成并发送请求",
+    "Add auth + required headers": "添加授权和必需请求头",
+    "Create a small Runner data set": "创建一个小型运行器数据集",
+    "Set the HTTP method correctly": "正确设置 HTTP 方法",
+    "Add positive/negative tests": "添加正例/反例测试",
+    "Drive it with example data via Runner": "使用运行器和示例数据驱动请求",
+    "Drive it with example data via 运行器": "使用运行器和示例数据驱动请求",
+    "Finalize the request and save": "完成请求并保存",
+    "Finalize the 请求 and save": "完成请求并保存",
+    "Add a basic Tests script": "添加基础测试脚本",
+    "Finish the request setup": "完成请求设置",
+    "Finish the 请求 setup": "完成请求设置",
+    "Parameterize variable parts": "将变量部分参数化",
+    "Set auth and headers": "设置授权和请求头",
+    "设置 auth and headers": "设置授权和请求头",
+    "Create parameterized request fields": "创建参数化请求字段",
+    "Add schema-level response tests": "添加响应架构级测试",
+    "Create an environment for variables": "创建用于变量的环境",
+    "Define method + required body": "定义请求方法和必需正文",
+    "Define method + required request body": "定义请求方法和必需请求正文",
+    "Set up a first test for it": "为它设置第一个测试",
+    "设置 a first test for it": "为它设置第一个测试",
+    "In this Workspace": "在此工作区中",
+    "Name and save Untitled Request": "为“未命名请求”命名并保存",
+    "Name and save 未命名请求": "为“未命名请求”命名并保存",
+    "Run the first smoke request": "运行第一个冒烟请求",
+    "Run the first smoke 请求": "运行第一个冒烟请求",
+    "Wire an environment to the request": "为请求关联环境",
+    "Wire an environment to the 请求": "为请求关联环境",
+    "Add collection-wide smoke checks": "添加集合级冒烟检查",
+    "Add first requests to New Collection": "向“新建集合”添加首批请求",
+    "Clean up and name your environments": "整理并命名环境",
+    "Create a request chain starter": "创建请求链起点",
+    "Create an environment for base URL": "为基础 URL 创建环境",
+    "Create and map env variables": "创建并映射环境变量",
+    "Create the first request template": "创建第一个请求模板",
+    "Finalize request body & headers": "完善请求正文和请求头",
+    "Finalize 请求 body & headers": "完善请求正文和请求头",
+    "Generating...": "正在生成...",
+    "Import an API into New Collection": "将 API 导入新建集合",
+    "Organize requests into folders": "将请求整理到文件夹中",
+    "Run a collection trial run": "试运行集合",
+    "Set method + add request contract": "设置方法并添加请求契约",
+    "Set method + add 请求 contract": "设置方法并添加请求契约",
+    "Set the request method & URL": "设置请求方法和 URL",
+    "Set the 请求 method & URL": "设置请求方法和 URL",
+    "Turn it into a reusable request pattern": "将其转换为可复用的请求模式",
+    "Turn it into a reusable 请求 pattern": "将其转换为可复用的请求模式",
+    "Add auth to your first request": "为第一个请求添加授权",
+    "Add headers, auth, and sample tests": "添加请求头、授权和示例测试",
+    "Add positive + negative tests": "添加正例和反例测试",
+    "Add request tests for status+schema": "添加状态码和架构测试",
+    "Build a collection smoke test run": "构建集合冒烟测试运行",
+    "Create a data-driven Runner run": "创建数据驱动的运行器任务",
+    "Creating collection description": "正在生成集合描述",
+    "Define auth for the collection": "为集合定义授权",
+    "Found collection New Collection": "已找到集合“新建集合”",
+    "Parameterize body and validate": "参数化正文并进行验证",
+    "Parameterize it with variables": "使用变量将其参数化",
+    "Promote to collection template": "升级为集合模板",
+    "Reading collection...": "正在读取集合...",
+    "Store auth/token in variables": "将授权和令牌存入变量",
+    "Turn method into a reusable param": "将方法转换为可复用参数",
+    "Turn this into an environment-ready call": "将其转换为可使用环境的调用",
+    "Use Overview to document what’s next": "使用概览记录后续计划",
+    "Use Overview to document what's next": "使用概览记录后续计划",
+    "Write a clear and well-structured collection description that briefly explains the purpose of this collection based on the elements it contains": "根据集合所含元素编写清晰且结构良好的描述，简要说明该集合的用途",
+    "Search resources": "搜索资源",
+    "Search 资源": "搜索资源",
+    "Build faster with environments thumbnail": "通过环境加速构建的缩略图",
+    "Invite and assign roles thumbnail": "邀请并分配角色的缩略图",
+    "Test your entire collection thumbnail": "测试整个集合的缩略图",
+    "Build faster with environments": "使用环境加速构建",
+    "Collaborate with unlimited teammates and assign the right access levels.": "与不限数量的团队成员协作，并分配适当的访问级别。",
+    "Postman's Enterprise Trial": "Postman 企业试用版",
+    "Postman’s Enterprise Trial": "Postman 企业试用版",
+    "Postman 的 Enterprise Trial": "Postman 企业试用版",
+    "Postman 的 Enterprise Trial,": "Postman 企业试用版，",
+    "Select dataset": "选择数据集",
+    "Select datasets": "选择数据集",
+    "Select view": "选择视图",
+    "Select a dataset and view in Test data to see data here.": "在“测试数据”中选择数据集和视图，即可在此处查看数据。",
+    "Share with unlimited teammates with": "与不限数量的队友共享",
+    "Share with unlimited teammates": "与不限数量的队友共享",
+    /* === Analytics and API catalog surfaces === */
+    "Internal Workspaces": "内部工作区",
+    "User distribution over time": "用户分布趋势",
+    "Users distribution over time": "用户分布趋势",
+    "用户 distribution over time": "用户分布趋势",
+    "A comprehensive view of your organization analytics and metrics": "全面查看组织的分析数据和指标",
+    "A comprehensive view of your organization 分析 and metrics": "全面查看组织的分析数据和指标",
+    "Active workspaces over time": "活跃工作区趋势",
+    "API requests": "API 请求",
+    "API requests by response code": "按响应码统计的 API 请求",
+    "API requests sent by users": "用户发送的 API 请求",
+    "Current Usage (Last 30 days)": "当前用量（最近 30 天）",
+    "Elements in workspaces over time": "工作区元素趋势",
+    "Explore Postman API": "探索 Postman API",
+    "Monthly snapshot": "月度快照",
+    "Open Postman Public API": "打开 Postman 公共 API",
+    "Open Postman Public Workspace": "打开 Postman 公共工作区",
+    "Percentage": "百分比",
+    "Team member engagement over time": "团队成员参与度趋势",
+    "Top 5 active users by API requests sent": "按 API 请求发送量排名前 5 的活跃用户",
+    "Top 5 collections by API requests sent": "按 API 请求发送量排名前 5 的集合",
+    "Top 5 workspaces by API requests sent": "按 API 请求发送量排名前 5 的工作区",
+    "Total number": "总数",
+    "Use Postman APIs to access this report’s data.": "使用 Postman API 访问此报告的数据。",
+    "Use Postman APIs to access this report's data.": "使用 Postman API 访问此报告的数据。",
+    "Users who used Postman at least once": "至少使用过一次 Postman 的用户",
+    "Workspace with views, creates, edits, or made API requests": "有查看、创建、编辑或发送 API 请求活动的工作区",
+    "System Environments": "系统环境",
+    "Only members with the API Catalog Manager role can access Service discovery page": "只有拥有 API 目录管理员角色的成员才能访问服务发现页面",
+    "Global variables for a workspace are a set of variables that are always available within the scope of that workspace. They can be viewed and edited by anyone in that workspace.": "工作区的全局变量是一组在该工作区范围内始终可用的变量。工作区中的任何人都可以查看和编辑这些变量。",
+    "Learn more about globals": "详细了解全局变量",
+    "了解更多： globals": "详细了解全局变量",
+    "Describe what you want to do in the Private API Network.": "描述你想在私有 API 网络中执行的操作。",
+    "Loading Agent Mode...": "正在加载智能代理模式...",
+    "Loading 智能代理模式...": "正在加载智能代理模式...",
+    "Open Postbot": "打开 Postbot",
+    "option default, selected.": "选项“默认”已选中。",
+    "选项 default 已选中。": "选项“默认”已选中。",
+    "are part of": "属于",
+    "(You)": "（你）",
+    "can access": "可访问",
+    "Total:": "总计：",
+    "Create environments for Team Workspace to save your long API keys or passwords.": "为团队工作区创建环境，以保存较长的 API 密钥或密码。",
+    "Invite and assign roles": "邀请成员并分配角色",
+    "Add WORKSPACE-README": "添加 WORKSPACE-README",
     /* === batch-translated (auto-merged) === */
     "Token expired": "令牌已过期",
     "Token is valid": "令牌有效",
     "Manage tokens": "管理令牌",
-    "Expires in": "过期于",
+    "Expires in": "距离过期还有",
     "Add to URL": "添加到 URL",
     "Auto-refresh token": "自动刷新令牌",
     "Token successfully retrieved": "令牌获取成功",
@@ -12372,7 +12516,7 @@
     "Get a look at how powerful your workspace can be. Use this as inspiration or start your own in just a few clicks.": "看看工作区可以有多强大。你可以把它作为参考，也可以点几下创建自己的工作区。",
     "Start from a template": "从模板开始",
     "Test your entire collection": "测试整个集合",
-    "Run all requests in your collections to efficiently test your endpoints": "运行集合中的所有请求，高效测试端点",
+    "Run all requests in your collections to efficiently test your endpoints": "运行集合中的所有请求，高效测试你的端点。",
     "Try Collection Runner": "试用集合运行器",
     "Try 集合运行器": "试用集合运行器",
     "Run Collection": "运行集合",
@@ -15875,11 +16019,16 @@
     [/^Last checked on (January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(\d{4})\s+at\s+(\d{1,2}):(\d{2})\s*(AM|PM)\.$/i, function (_match, month, day, year, hour, minute, meridiem) {
       return "上次检查时间：" + year + "年" + MONTHS[month.toLowerCase()] + "月" + Number(day) + "日 " + (meridiem.toUpperCase() === "AM" ? "上午" : "下午") + hour + ":" + minute + "。";
     }],
+    [/^Usage Trends Over Time \((Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\s*-\s*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\s+(\d{4})\)$/i, function (_match, startMonth, endMonth, year) {
+      return "使用趋势（" + year + "年" + SHORT_MONTHS[startMonth.toLowerCase()] + "月至" + SHORT_MONTHS[endMonth.toLowerCase()] + "月）";
+    }],
     [/^Postman v([\d.]+) is the latest version\.$/i, "Postman v$1 已是最新版本。"],
     [/^Your Enterprise Trial ends in (\d+) days?$/i, "你的企业试用还有 $1 天结束"],
     [/^ends in (\d+) days?$/i, "还有 $1 天结束"],
     [/^Your team grew to (\d+) teammates?$/i, "你的团队已增长到 $1 位队友"],
     [/^Your team grew to (\d+)$/i, "你的团队已增长到 $1"],
+    [/^(\d+)\s+teammates?$/i, "$1 位队友"],
+    [/^(?:Team Members|团队成员)\s+(?:are part of|属于)\s+(.+?)\s+(?:team|团队)$/i, "团队成员属于 $1 团队"],
     [/^Enterprise Trial ending in (\d+) days?$/i, "企业试用还有 $1 天结束"],
     [/^Enterprise Trial Guide(?:\s*-\s*(.+))?$/i, function (_match, workspace) {
       return workspace ? "企业试用指南 - " + normalize(translate(workspace)) : "企业试用指南";
@@ -16511,6 +16660,16 @@
         continue;
       }
 
+      if (/^Collaborate with unlimited teammates and assign the right access levels\.?$/i.test(text)) {
+        nodes[j].textContent = "与不限数量的团队成员协作，并分配适当的访问级别。";
+        continue;
+      }
+
+      if (/^Run all requests in your collections to efficiently test your endpoints\.?$/i.test(text)) {
+        nodes[j].textContent = "运行集合中的所有请求，高效测试你的端点。";
+        continue;
+      }
+
       if (/^启用\s+Po\s+tman\s+代理$/i.test(text) || /^启用\s+Postman\s+Agent$/i.test(text)) {
         nodes[j].textContent = "启用 Postman 代理";
         continue;
@@ -16539,6 +16698,12 @@
       var teamMatch = text.match(/^Team Members are part of (.+?) team$/i);
       if (teamMatch) {
         nodes[j].textContent = "团队成员属于 " + teamMatch[1] + " 团队";
+        continue;
+      }
+
+      var teamMixedMatch = text.match(/^(?:团队成员\s+are part of|Team Members\s+属于)\s+(.+?)\s+(?:team|团队)$/i);
+      if (teamMixedMatch) {
+        nodes[j].textContent = "团队成员属于 " + teamMixedMatch[1] + " 团队";
         continue;
       }
 

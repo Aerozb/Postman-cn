@@ -9,6 +9,8 @@
 
 const fs = require("fs");
 const path = require("path");
+const { sanitizeAuditReport, writeAuditReport } = require("../audit/审计安全.js");
+const SHOW_DETAILS = process.argv.includes("--details");
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -80,7 +82,11 @@ async function main() {
         else merged.set(item.text, { ...item });
       }
     } catch (error) {
-      console.error(`已跳过目标 ${page.url && page.url.slice(0, 60)}：${error.message}`);
+      if (SHOW_DETAILS) {
+        console.error(JSON.stringify(sanitizeAuditReport({ ok: false, url: page.url, error: error && error.message || String(error) })));
+      } else {
+        console.error("已跳过一个无法读取的 Postman 调试目标。");
+      }
     } finally {
       if (cdp) cdp.close();
     }
@@ -90,17 +96,25 @@ async function main() {
   const outDir = path.resolve(__dirname, "..", "..", "..", "_generated");
   fs.mkdirSync(outDir, { recursive: true });
   const outFile = path.join(outDir, "zh-misses.json");
-  fs.writeFileSync(outFile, JSON.stringify({ exportedAt: new Date().toISOString(), cleared: clear, total: misses.length, misses }, null, 2), "utf8");
+  const safeMisses = sanitizeAuditReport({ findings: misses }).findings || [];
+  writeAuditReport(outFile, {
+    exportedAt: new Date().toISOString(),
+    cleared: clear,
+    total: misses.length,
+    misses: safeMisses
+  });
 
-  console.log(`共收集到 ${misses.length} 条疑似漏翻，已保存到 ${outFile}${clear ? "（应用内记录已清空）" : ""}`);
-  for (const item of misses.slice(0, 50)) {
-    console.log(`${String(item.count).padStart(4)}  ${item.text}${item.where ? "   [" + item.where + "]" : ""}`);
+  console.log(`共收集到 ${misses.length} 条疑似漏翻，已保存到 _generated/${path.basename(outFile)}${clear ? "（应用内记录已清空）" : ""}`);
+  if (SHOW_DETAILS) {
+    for (const item of safeMisses.slice(0, 50)) {
+      console.log(`${String(item.count).padStart(4)}  ${item.text}${item.where ? "   [" + item.where + "]" : ""}`);
+    }
+    if (misses.length > 50) console.log(`... 其余 ${misses.length - 50} 条见 JSON 文件`);
   }
-  if (misses.length > 50) console.log(`... 其余 ${misses.length - 50} 条见 JSON 文件`);
 }
 
 main().catch((error) => {
-  console.error("收集漏翻失败：");
-  console.error(error && error.message || error);
+  console.error("收集漏翻失败，请确认 Postman 已启动；可使用 --details 查看详细信息。");
+  if (SHOW_DETAILS) console.error(JSON.stringify(sanitizeAuditReport({ ok: false, error: error && error.message || String(error) })));
   process.exit(1);
 });

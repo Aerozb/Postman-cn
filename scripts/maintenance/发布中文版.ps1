@@ -1,12 +1,12 @@
 ﻿<#
   Postman-cn 一键发布脚本
   ------------------------------------------------------------------
-  本脚本刻意放在仓库【外面】（postman-zh-workspace\ 下），不会被提交，
-  避免个人信息随仓库公开。
+  本脚本位于仓库内的 scripts\maintenance\，由根目录统一入口调用。
+  发布前会扫描入库文件，避免个人信息随仓库公开。
 
   做四件事：
     1. 预检：git / gh / 登录状态 / token 权限 / 提交身份 / 磁盘空间
-    2. 推送仓库代码到 GitHub（默认强制覆盖远程）
+    2. 推送仓库代码到 GitHub（默认普通推送，-Force 才覆盖远程）
     3. 打包 Postman 完整绿色版 + 单独的 app.asar，发布到 Releases
     4. 确认资产上传成功后，删除本地打包产物（_release，约 280MB）
        想留着就加 -KeepArtifacts
@@ -16,6 +16,7 @@
     .\postman-zh.bat publish -CheckOnly
     .\postman-zh.bat publish -SkipPush
     .\postman-zh.bat publish -SkipRelease
+    .\postman-zh.bat publish -SkipRelease -Force
 #>
 [CmdletBinding()]
 param(
@@ -27,8 +28,8 @@ param(
   [switch]$SkipRelease,
   # 跳过打包（复用已存在的压缩包）
   [switch]$SkipZip,
-  # 强制覆盖远程历史（默认开启，用 -Force:$false 关掉）
-  [switch]$Force = $true,
+  # 强制覆盖远程历史（默认关闭，确需覆盖时显式传 -Force）
+  [switch]$Force,
   # 覆盖已存在的同名 Release
   [switch]$ReplaceRelease,
   # 不询问，直接执行
@@ -65,6 +66,70 @@ function Invoke-Native {
     $out = (& $Exe @Args 2>&1 | Out-String)
     return [pscustomobject]@{ Code = $LASTEXITCODE; Out = $out }
   } finally { $ErrorActionPreference = $prev }
+}
+
+# 发布前只允许把正常的项目源码/文档加入提交。不要等 git add/commit
+# 之后才检查：那样敏感文件虽未推送，也已经进入本地提交历史。
+function Get-PublishCandidates {
+  $result = Invoke-Native git @('-c', 'core.quotepath=false', 'ls-files', '-co', '--exclude-standard', '-z')
+  if ($result.Code -ne 0) {
+    Write-Bad "无法读取待发布文件列表：$($result.Out.Trim())"
+    exit 1
+  }
+  # Out-String 会在最后一个 NUL 后补换行；去掉它，否则中文/普通文件名
+  # 拼接绝对路径时会触发 Windows 的 Illegal characters in path。
+  return @($result.Out -split "`0" |
+    ForEach-Object { $_.TrimEnd("`r", "`n") } |
+    Where-Object { $_ })
+}
+
+function Assert-PublishCandidates {
+  param([string[]]$Files)
+
+  $normalized = @($Files | ForEach-Object { $_ -replace '\\', '/' })
+  $blocked = @($normalized | Where-Object {
+      $_ -match '(^|/)_generated(?:/|$)' -or
+      $_ -match '(^|/)[^/]*\.asar(?:\.[^/]*)?(?:/|$)' -or
+      $_ -match '(^|/)(?:nav-surfaces[^/]*\.json)$' -or
+      $_ -match '(^|/)(?:captures|User Data|Partitions|Local Storage|IndexedDB|Cache|Code Cache|GPUCache|Session Storage|Service Worker|Cookies)(?:/|$)' -or
+      (($_ -match '\.(?:png|jpe?g|webp|gif|bmp)$') -and ($_ -notmatch '^assets/screenshots/'))
+    })
+  if ($blocked.Count -gt 0) {
+    Write-Bad '待发布文件中发现不应入库的产物或用户数据：'
+    $blocked | ForEach-Object { Write-Info "  $_" }
+    Write-Info '请移出这些文件；仓库说明截图只能放在 assets/screenshots/。'
+    exit 1
+  }
+
+  $badNames = @($normalized | Where-Object {
+      $_ -match '(^|/)\.env(?:\.|$)|id_rsa|\.pem$|\.pfx$|\.p12$|credentials|hosts\.yml'
+    })
+  if ($badNames.Count -gt 0) {
+    Write-Bad '待发布文件中发现疑似凭据文件：'
+    $badNames | ForEach-Object { Write-Info "  $_" }
+    exit 1
+  }
+
+  # 逐个扫小型文本文件里的 token 形态与本机账户路径。
+  $credPattern = 'gh[pousr]_[A-Za-z0-9]{16,}|github_pat_[A-Za-z0-9_]{20,}|' +
+                 [regex]::Escape("C:\Users\$env:USERNAME")
+  $leaks = @()
+  foreach ($f in $normalized) {
+    $full = Join-Path $repoDir $f
+    if (-not (Test-Path -LiteralPath $full)) { continue }
+    $fi = Get-Item -LiteralPath $full
+    if ($fi.Length -gt 2MB) { continue }
+    if ($fi.Extension -notmatch '^\.(ps1|js|md|bat|json|txt|yml|yaml|cfg|ini)$') { continue }
+    try {
+      if ((Get-Content -LiteralPath $full -Raw -ErrorAction Stop) -match $credPattern) { $leaks += $f }
+    } catch { }
+  }
+  if ($leaks.Count -gt 0) {
+    Write-Bad '待发布文件中发现 token 形态或本机账户路径：'
+    $leaks | ForEach-Object { Write-Info "  $_" }
+    exit 1
+  }
+  Write-Ok "入库文件安全自检通过（检查了 $($normalized.Count) 个文件）"
 }
 
 # ---------- 大文件关键串检索 ----------
@@ -304,6 +369,7 @@ if (-not $SkipPush) {
     if (-not $cur) { git remote add origin "https://github.com/$($script:ExpectedRepo).git" | Out-Null }
     elseif ($cur -notmatch [regex]::Escape($script:ExpectedRepo)) { git remote set-url origin "https://github.com/$($script:ExpectedRepo).git" | Out-Null }
 
+    Assert-PublishCandidates (Get-PublishCandidates)
     Invoke-Native git @('add','-A') | Out-Null
     $staged = (git diff --cached --name-only | Measure-Object -Line).Lines
     $hasHead = ((Invoke-Native git @('rev-parse','--verify','HEAD')).Code -eq 0)
@@ -319,41 +385,6 @@ if (-not $SkipPush) {
       Write-Bad '没有任何文件可提交'
       exit 1
     }
-
-    # 泄露自检：入库的文件里不能有凭据或本机痕迹。
-    # 本脚本本身可以入库（它不含 token，凭据全走 gh keyring），但要确保
-    # 它没被塞进硬编码的密钥，也没有 .env / 私钥之类的东西混进来。
-    # -z NUL 分隔 + core.quotepath=false：否则中文文件名会被转义成带引号的八进制串，
-    # 引号是 Windows 路径非法字符，Test-Path 会直接报 "Illegal characters in path"
-    $tracked = @((git -c core.quotepath=false ls-files -z) -split "`0" | Where-Object { $_ })
-    $badFiles = $tracked | Where-Object {
-      $_ -match '(^|/)\.env$|(^|/)\.env\.|id_rsa|\.pem$|\.pfx$|\.p12$|credentials|hosts\.yml'
-    }
-    if ($badFiles) {
-      Write-Bad "以下文件疑似含凭据，不该入库："
-      $badFiles | ForEach-Object { Write-Info "  $_" }
-      exit 1
-    }
-    # 逐个扫文本文件里的 token 形态与本机账户路径
-    $credPattern = 'gh[pousr]_[A-Za-z0-9]{16,}|github_pat_[A-Za-z0-9_]{20,}|' +
-                   [regex]::Escape("C:\Users\$env:USERNAME")
-    $leaks = @()
-    foreach ($f in $tracked) {
-      $full = Join-Path $repoDir $f
-      if (-not (Test-Path -LiteralPath $full)) { continue }
-      $fi = Get-Item -LiteralPath $full
-      if ($fi.Length -gt 2MB) { continue }          # 词典 1.4MB 以内，其余大文件不是文本
-      if ($fi.Extension -notmatch '^\.(ps1|js|md|bat|json|txt|yml|yaml|cfg|ini)$') { continue }
-      try {
-        if ((Get-Content -LiteralPath $full -Raw -ErrorAction Stop) -match $credPattern) { $leaks += $f }
-      } catch { }
-    }
-    if ($leaks) {
-      Write-Bad "以下入库文件含 token 形态或本机账户路径，已中止推送："
-      $leaks | ForEach-Object { Write-Info "  $_" }
-      exit 1
-    }
-    Write-Ok "入库文件凭据自检通过（扫了 $($tracked.Count) 个文件）"
 
     $pushArgs = @('push','-u','origin','main')
     if ($Force) {

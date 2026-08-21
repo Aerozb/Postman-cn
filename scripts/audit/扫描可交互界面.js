@@ -3,6 +3,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { sanitizeAuditReport, resolveAuditOutputBase, writeAuditReport, writeAuditScreenshot } = require("./审计安全.js");
 
 function argValue(name, fallback = null) {
   const index = process.argv.indexOf(name);
@@ -13,14 +14,7 @@ function argValue(name, fallback = null) {
 }
 
 function resolveOutBase(value) {
-  const requested = value || "postman-audit";
-  const hasDirectory = path.isAbsolute(requested) || requested.includes("/") || requested.includes("\\");
-  let resolved = hasDirectory ? requested : path.resolve(__dirname, "..", "..", "..", "_generated", requested);
-  if ([".json", ".png"].includes(path.extname(resolved).toLowerCase())) {
-    resolved = resolved.slice(0, -path.extname(resolved).length);
-  }
-  fs.mkdirSync(path.dirname(resolved), { recursive: true });
-  return resolved;
+  return resolveAuditOutputBase(value, "postman-audit");
 }
 
 function hasFlag(name) {
@@ -28,6 +22,7 @@ function hasFlag(name) {
 }
 
 const SHOW_DETAILS = hasFlag("--details");
+const SAVE_SCREENSHOT = hasFlag("--screenshot");
 const SKIPPED_LABELS = /Start Trial|Start trial|Trial|Continue with Team Plan|Sign Out|Sign out|Log out|Delete account|Upgrade|Upgrade plan|Request a demo|Checkout|Billing|Payment|purchase|Pay annually|Pay monthly|Request an approver|Add subscription|Add billing information|Add payment method|Exit|Quit|Close window|Close Window|Minimize|Maximize|Restore down|Restore Down|Save|Send|Create|Add|Apply|Reset|Retry|Run|Connect|Disconnect|Publish|Submit|Confirm|Delete|Remove|Clear|Discard|Rename|Import|Upload|升级|开始试用|试用|付费|付款|结账|账单|支付|订阅|套餐|计划|退出|关闭窗口|最小化|最大化|向下还原|保存|发送|创建|新建|添加|应用|重置|重试|运行|连接|断开连接|发布|提交|确认|确定|删除|移除|清除|放弃|重命名|导入|上传/i;
 
 function sleep(ms) {
@@ -76,7 +71,7 @@ async function connectCdp(wsUrl) {
     pending.delete(message.id);
     clearTimeout(callbacks.timer);
     if (message.error) {
-      const details = SHOW_DETAILS ? ` 诊断：${JSON.stringify(message.error)}` : "";
+      const details = SHOW_DETAILS ? ` 诊断：${JSON.stringify(sanitizeAuditReport(message.error))}` : "";
       callbacks.reject(new Error(`${message.error.message || "CDP 命令执行失败。"}${details}`));
     } else {
       callbacks.resolve(message.result);
@@ -184,7 +179,7 @@ async function waitForPostmanTarget(port, timeoutMs, options = {}) {
     } catch (_) {}
     await sleep(1000);
   }
-  const details = SHOW_DETAILS ? ` 当前目标：${JSON.stringify(lastTargets)}` : "";
+  const details = SHOW_DETAILS ? ` 当前目标：${JSON.stringify(sanitizeAuditReport(lastTargets))}` : "";
   throw new Error(`未找到 Postman 页面调试目标。${details}`);
 }
 
@@ -257,7 +252,7 @@ async function clickAt(cdp, x, y) {
 
 async function capture(cdp, outPath) {
   const shot = await cdp.send("Page.captureScreenshot", { format: "png", fromSurface: true });
-  fs.writeFileSync(outPath, Buffer.from(shot.data, "base64"));
+  writeAuditScreenshot(outPath, shot.data);
 }
 
 function pageScript(options = {}) {
@@ -428,6 +423,7 @@ function pageScript(options = {}) {
     function allowedEnglish(text) {
       const normalized = norm(text);
       const loweredText = normalized.toLowerCase();
+      if (/^gpt-\d+(?:\.\d+)?(?:\s+[a-z][a-z0-9.-]*)+$/i.test(normalized)) return true;
       if (ALLOWED_PHRASES.has(loweredText)) return true;
       const words = normalized.match(/[A-Za-z][A-Za-z0-9.+#/-]*/g) || [];
       const meaningful = words.filter((word) => {
@@ -624,7 +620,9 @@ function skipReasonForTarget(item, state, skippedLabels, includeRisky, includeCo
   if (!includeRisky && skippedLabels.test(text)) {
     return "state-changing-or-risky-action";
   }
-  if (!includeRisky && /\b(Browse|Choose File|Choose Files|Select File|Select Files|Upload File|Upload Files|Open File|Open Folder|Import File)\b|浏览|选择文件|上传文件|打开文件|打开文件夹/i.test(text)) {
+  // Native file pickers block CDP and cannot be cleaned up from the page.
+  // They stay excluded even in the maintainer-only risky profile.
+  if (/^(?:Import|Upload|导入|上传)$/i.test(text) || /\b(Browse|Choose File|Choose Files|Select File|Select Files|Upload File|Upload Files|Open File|Open Folder|Import File)\b|浏览|选择文件|上传文件|打开文件|打开文件夹/i.test(text)) {
     return "external-file-picker";
   }
   return null;
@@ -877,7 +875,7 @@ async function main() {
 
     const finalState = await evaluate(cdp, pageScript({ includeClickables: false, fullText: true, includeContent }));
     mergeHits("final", finalState.hits);
-    await capture(cdp, `${outBase}.png`);
+    if (SAVE_SCREENSHOT) await capture(cdp, `${outBase}.png`);
 
     const output = {
       target: { title: target.title, url: target.url },
@@ -903,10 +901,10 @@ async function main() {
         hits: finalState.hits
       }
     };
-    fs.writeFileSync(`${outBase}.json`, JSON.stringify(output, null, 2), "utf8");
+  writeAuditReport(`${outBase}.json`, output);
     const summary = {
       out: `${outBase}.json`,
-      screenshot: `${outBase}.png`,
+      screenshot: SAVE_SCREENSHOT ? `${outBase}.png` : null,
       clickableCount: initial.clickables.length,
       clicked: output.clicked,
       skipped: output.skipped,
@@ -916,9 +914,9 @@ async function main() {
       hitCount: output.hits.length,
       hits: output.hits.slice(0, 30).map((item) => item.text)
     };
-    console.log(`可交互界面扫描完成：发现 ${summary.hitCount} 条待复核文本，报告已保存到 ${summary.out}。`);
+    console.log(`可交互界面扫描完成：发现 ${summary.hitCount} 条待复核文本，报告已保存到 _generated/${path.basename(summary.out)}。`);
     if (SHOW_DETAILS) {
-      console.log(JSON.stringify(summary, null, 2));
+      console.log(JSON.stringify(sanitizeAuditReport(summary), null, 2));
     }
   } finally {
     cdp.close();
@@ -941,6 +939,8 @@ function selfTest() {
     [resolveOutBase("自检报告.json"), expectedOut],
     [skipReasonForTarget(target("Delete account"), state, SKIPPED_LABELS, false, false), "state-changing-or-risky-action"],
     [skipReasonForTarget(target("Choose File"), state, SKIPPED_LABELS, false, false), "external-file-picker"],
+    [skipReasonForTarget(target("Choose File"), state, SKIPPED_LABELS, true, true), "external-file-picker"],
+    [skipReasonForTarget(target("Import"), state, SKIPPED_LABELS, true, true), "external-file-picker"],
     [skipReasonForTarget(target("Postman API Network"), state, SKIPPED_LABELS, false, false), "content-page-entry"],
     [skipReasonForTarget(target("关闭", 1260, 20), state, SKIPPED_LABELS, false, false), "window-control"],
     [skipReasonForTarget(target("保存"), state, SKIPPED_LABELS, false, false), "state-changing-or-risky-action"],
@@ -952,7 +952,7 @@ function selfTest() {
     throw new Error(`自检失败，共 ${failed.length} 项不符合预期。`);
   }
   if (SHOW_DETAILS) {
-    console.log(JSON.stringify({ ok: true, checks: checks.length }, null, 2));
+    console.log(JSON.stringify(sanitizeAuditReport({ ok: true, checks: checks.length }), null, 2));
   } else {
     console.log(`可交互界面扫描脚本自检通过，共 ${checks.length} 项。`);
   }
@@ -960,9 +960,10 @@ function selfTest() {
 
 Promise.resolve().then(() => hasFlag("--self-test") ? selfTest() : main()).catch((error) => {
   const message = String(error && error.message || error).replace(/\s+/g, " ").trim();
-  console.error(`可交互界面扫描失败：${message}`);
-  if (SHOW_DETAILS && error && error.stack) {
-    console.error(error.stack);
+  if (SHOW_DETAILS) {
+    console.error(JSON.stringify(sanitizeAuditReport({ ok: false, error: message }), null, 2));
+  } else {
+    console.error("可交互界面扫描失败，请确认 Postman 已启动；可使用 --details 查看详细信息。");
   }
   process.exit(1);
 });

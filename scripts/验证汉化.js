@@ -5,6 +5,7 @@ const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
 const { fileURLToPath } = require("url");
+const { sanitizeAuditReport } = require("./audit/审计安全.js");
 
 const POSTMAN_PAGE_URL_RE = /(?:^https:\/\/desktop\.postman\.com(?::\d+)?(?:[\/?#]|$)|^file:\/\/\/.*\/(?:requester|scratchpad)\.html(?:[?#]|$))/i;
 
@@ -57,7 +58,7 @@ function sleep(ms) {
 }
 
 function escapeForConsole(value) {
-  return JSON.stringify(value, null, 2);
+  return JSON.stringify(sanitizeAuditReport(value), null, 2);
 }
 
 async function getJson(url, timeoutMs = 5000) {
@@ -143,6 +144,74 @@ function inferPostmanDirFromTarget(targetUrl) {
     );
   }
   return inferred;
+}
+
+function targetDesktopVersion(targetUrl) {
+  try {
+    const parsed = new URL(String(targetUrl || ""));
+    if (!/^https?:$/i.test(parsed.protocol) || !/desktop\.postman\.com$/i.test(parsed.hostname)) {
+      return null;
+    }
+    const version = parsed.searchParams.get("desktopVersion");
+    return version && /^\d+(?:\.\d+){1,3}$/.test(version) ? version : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function discoverPostmanDirs(targetUrl) {
+  const roots = [];
+  const addRoot = (value) => {
+    if (!value) return;
+    const normalized = normalizePath(value);
+    if (!roots.some((item) => samePath(item, normalized))) roots.push(normalized);
+  };
+
+  if (process.env.LOCALAPPDATA) addRoot(path.join(process.env.LOCALAPPDATA, "Postman"));
+  // Keep discovery bounded to the installation locations already used by the
+  // start script and this repository; never scan an entire drive.
+  let current = path.resolve(__dirname);
+  while (current && current !== path.dirname(current)) {
+    addRoot(current);
+    current = path.dirname(current);
+  }
+
+  const version = targetDesktopVersion(targetUrl);
+  const candidates = [];
+  for (const root of roots) {
+    let entries;
+    try {
+      entries = fs.readdirSync(root, { withFileTypes: true });
+    } catch (_) {
+      continue;
+    }
+    for (const entry of entries) {
+      if (!entry.isDirectory() || !/^app-.+/i.test(entry.name)) continue;
+      if (version && entry.name.slice(4).toLowerCase() !== version.toLowerCase()) continue;
+      const candidate = path.join(root, entry.name);
+      if (isPostmanAppDir(candidate)) candidates.push(normalizePath(candidate));
+    }
+  }
+  return Array.from(new Map(candidates.map((item) => [
+    process.platform === "win32" ? item.toLowerCase() : item,
+    item
+  ])).values());
+}
+
+function resolvePostmanDirFromTargetVersion(explicitDir, targetUrl) {
+  const version = targetDesktopVersion(targetUrl);
+  if (!version) return null;
+  const explicit = explicitDir ? normalizePath(explicitDir) : null;
+  if (explicit && path.basename(explicit).slice(4).toLowerCase() !== version.toLowerCase()) return null;
+  const candidates = discoverPostmanDirs(targetUrl);
+  if (candidates.length !== 1) return null;
+  if (explicit && !samePath(explicit, candidates[0])) return null;
+  return {
+    dir: explicit || candidates[0],
+    method: explicit ? "explicit-and-target-version" : "target-version-unique",
+    targetVersion: version,
+    candidates
+  };
 }
 
 function processRecordCandidates(record) {
@@ -284,6 +353,17 @@ function resolvePostmanDir(explicitDir, targetUrl, port) {
   }
 
   const processBinding = resolvePostmanDirFromProcess(port);
+  // Windows security policy can deny both WMI and TCP-owner queries even when
+  // the caller can read the installation. In that case accept only a unique
+  // app-* directory whose version exactly matches desktopVersion in the active
+  // Postman page. Multiple matching installs remain an explicit failure.
+  const targetVersionBinding = resolvePostmanDirFromTargetVersion(explicit, targetUrl);
+  if (explicit && !processBinding.dir && targetVersionBinding) {
+    return {
+      ...targetVersionBinding,
+      processBinding
+    };
+  }
   if (explicit) {
     if (!processBinding.dir) {
       const candidates = Array.from(new Set([
@@ -313,6 +393,13 @@ function resolvePostmanDir(explicitDir, targetUrl, port) {
   }
   if (processBinding.dir) {
     return { ...processBinding };
+  }
+
+  if (targetVersionBinding) {
+    return {
+      ...targetVersionBinding,
+      processBinding
+    };
   }
 
   const candidates = Array.from(new Set([
@@ -461,7 +548,7 @@ async function connectCdp(wsUrl) {
     clearTimeout(callbacks.timer);
     if (message.error) {
       const details = SHOW_DETAILS
-        ? ` 诊断：${message.error.message || JSON.stringify(message.error)}`
+        ? ` 诊断：${JSON.stringify(sanitizeAuditReport(message.error))}`
         : "";
       callbacks.reject(new Error(`CDP 命令执行失败。${details}`));
     } else {
@@ -528,7 +615,7 @@ async function waitForPostmanTarget(port, timeoutMs) {
     } catch (_) {}
     await sleep(1000);
   }
-  const targetDetails = SHOW_DETAILS ? ` 当前目标：${JSON.stringify(lastTargets)}` : "";
+  const targetDetails = SHOW_DETAILS ? ` 当前目标：${JSON.stringify(sanitizeAuditReport(lastTargets))}` : "";
   throw new Error(`没有找到 Postman 页面目标。${targetDetails}`);
 }
 
@@ -776,6 +863,23 @@ async function main() {
         "Close All but Selected Tab"
       ];
       const translationProbeTargets = [
+        "Search resources",
+        "Search 资源",
+        "button",
+        "Build faster with environments thumbnail",
+        "Invite and assign roles thumbnail",
+        "Test your entire collection thumbnail",
+        "Build faster with environments",
+        "Create environments for Team Workspace to save your long API keys or passwords.",
+        "Invite and assign roles",
+        "Collaborate with unlimited teammates and assign the right access levels.",
+        "Run all requests in your collections to efficiently test your endpoints",
+        "Set up a first test for it",
+        "设置 a first test for it",
+        "In this Workspace",
+        "Add collection-wide smoke checks",
+        "Use Overview to document what’s next",
+        "Write a clear and well-structured collection description that briefly explains the purpose of this collection based on the elements it contains",
         "Pre-request scripts are written in JavaScript, and are run before the request is sent. Learn more:",
         "Pre-request scripts are written in JavaScript, and are run before the 请求 is sent. 了解更多：",
         "Pre-request scripts are written in JavaScript, and are run before the request is sent.",
@@ -815,7 +919,56 @@ async function main() {
         "Contact us",
         "You’re using features that require a paid plan to continue",
         "Keep shared workspaces, collaboration, and access for your 1 teammates",
-        "Team Members are part of speeding-water-181381 team",
+        "Team Members are part of example-workspace team",
+        "团队成员 are part of example-workspace team",
+        "Postman 的 Enterprise Trial",
+        "Postman's Enterprise Trial",
+        "Postman’s Enterprise Trial",
+        "Share with unlimited teammates with",
+        "Select dataset",
+        "Select view",
+        "Select a dataset and view in Test data to see data here.",
+        "Global variables for a workspace are a set of variables that are always available within the scope of that workspace. They can be viewed and edited by anyone in that workspace.",
+        "Global\u00a0variables\u00a0for\u00a0a\u00a0workspace\u00a0are\u00a0a\u00a0set\u00a0of\u00a0variables\u00a0that\u00a0are\u00a0always\u00a0available\u00a0within\u00a0the\u00a0scope\u00a0of\u00a0that\u00a0workspace.\u00a0They\u00a0can\u00a0be\u00a0viewed\u00a0and\u00a0edited\u00a0by\u00a0anyone\u00a0in\u00a0that\u00a0workspace.",
+        "Learn more about globals",
+        "Learn\u00a0more\u00a0about\u00a0globals",
+        "了解更多： globals",
+        "Describe what you want to do in the Private API Network.",
+        "Loading Agent Mode...",
+        "Loading 智能代理模式...",
+        "Open Postbot",
+        "option default, selected.",
+        "选项 default 已选中。",
+        "are part of",
+        "(You)",
+        "can access",
+        "Total:",
+        "1 teammates",
+        "Internal Workspaces",
+        "用户 distribution over time",
+        "A comprehensive view of your organization 分析 and metrics",
+        "Active workspaces over time",
+        "API requests",
+        "API requests by response code",
+        "API requests sent by users",
+        "Current Usage (Last 30 days)",
+        "Elements in workspaces over time",
+        "Explore Postman API",
+        "Monthly snapshot",
+        "Open Postman Public API",
+        "Open Postman Public Workspace",
+        "Percentage",
+        "Team member engagement over time",
+        "Top 5 active users by API requests sent",
+        "Top 5 collections by API requests sent",
+        "Top 5 workspaces by API requests sent",
+        "Total number",
+        "Usage Trends Over Time (Feb - Aug 2026)",
+        "Use Postman APIs to access this report’s data.",
+        "Users who used Postman at least once",
+        "Workspace with views, creates, edits, or made API requests",
+        "System Environments",
+        "Only members with the API Catalog Manager role can access Service discovery page",
         "Generate SDK",
         "Generate SDKs",
         "SDKS",
@@ -1305,15 +1458,83 @@ async function main() {
         "Once deleted, a workspace is gone forever along with its data."
       ];
       const translationProbeExpectations = [
+        ["Search resources", "搜索资源"],
+        ["Search 资源", "搜索资源"],
+        ["Build faster with environments thumbnail", "通过环境加速构建的缩略图"],
+        ["Invite and assign roles thumbnail", "邀请并分配角色的缩略图"],
+        ["Test your entire collection thumbnail", "测试整个集合的缩略图"],
+        ["Build faster with environments", "使用环境加速构建"],
+        ["Create environments for Team Workspace to save your long API keys or passwords.", "为团队工作区创建环境，以保存较长的 API 密钥或密码。"],
+        ["Invite and assign roles", "邀请成员并分配角色"],
+        ["Collaborate with unlimited teammates and assign the right access levels.", "与不限数量的团队成员协作，并分配适当的访问级别。"],
+        ["Run all requests in your collections to efficiently test your endpoints", "运行集合中的所有请求，高效测试你的端点。"],
         ["capture cookies using Interceptor", "使用 Interceptor 捕获 Cookie"],
         ["e.g. read:org", "例如 read:org"],
         ["HashiCorp integration", "HashiCorp 集成"],
         ["Drag and drop or choose a .proto file from your local system.", "拖放或从本地系统选择 .proto 文件。"],
-        ['while resolving "import" directives.', '解析“import”指令时。']
+        ['while resolving "import" directives.', '解析“import”指令时。'],
+        ["团队成员 are part of example-workspace team", "团队成员属于 example-workspace 团队"],
+        ["Postman 的 Enterprise Trial", "Postman 企业试用版"],
+        ["Postman's Enterprise Trial", "Postman 企业试用版"],
+        ["Postman’s Enterprise Trial", "Postman 企业试用版"],
+        ["Share with unlimited teammates with", "与不限数量的队友共享"],
+        ["Select dataset", "选择数据集"],
+        ["Select view", "选择视图"],
+        ["Select a dataset and view in Test data to see data here.", "在“测试数据”中选择数据集和视图，即可在此处查看数据。"],
+        ["Global variables for a workspace are a set of variables that are always available within the scope of that workspace. They can be viewed and edited by anyone in that workspace.", "工作区的全局变量是一组在该工作区范围内始终可用的变量。工作区中的任何人都可以查看和编辑这些变量。"],
+        ["Global\u00a0variables\u00a0for\u00a0a\u00a0workspace\u00a0are\u00a0a\u00a0set\u00a0of\u00a0variables\u00a0that\u00a0are\u00a0always\u00a0available\u00a0within\u00a0the\u00a0scope\u00a0of\u00a0that\u00a0workspace.\u00a0They\u00a0can\u00a0be\u00a0viewed\u00a0and\u00a0edited\u00a0by\u00a0anyone\u00a0in\u00a0that\u00a0workspace.", "工作区的全局变量是一组在该工作区范围内始终可用的变量。工作区中的任何人都可以查看和编辑这些变量。"],
+        ["Learn more about globals", "详细了解全局变量"],
+        ["Learn\u00a0more\u00a0about\u00a0globals", "详细了解全局变量"],
+        ["了解更多： globals", "详细了解全局变量"],
+        ["Describe what you want to do in the Private API Network.", "描述你想在私有 API 网络中执行的操作。"],
+        ["Loading Agent Mode...", "正在加载智能代理模式..."],
+        ["Loading 智能代理模式...", "正在加载智能代理模式..."],
+        ["Open Postbot", "打开 Postbot"],
+        ["option default, selected.", "选项“默认”已选中。"],
+        ["选项 default 已选中。", "选项“默认”已选中。"],
+        ["are part of", "属于"],
+        ["(You)", "（你）"],
+        ["can access", "可访问"],
+        ["Total:", "总计："],
+        ["1 teammates", "1 位队友"],
+        ["Internal Workspaces", "内部工作区"],
+        ["User distribution over time", "用户分布趋势"],
+        ["用户 distribution over time", "用户分布趋势"],
+        ["A comprehensive view of your organization analytics and metrics", "全面查看组织的分析数据和指标"],
+        ["A comprehensive view of your organization 分析 and metrics", "全面查看组织的分析数据和指标"],
+        ["Active workspaces over time", "活跃工作区趋势"],
+        ["API requests", "API 请求"],
+        ["API requests by response code", "按响应码统计的 API 请求"],
+        ["API requests sent by users", "用户发送的 API 请求"],
+        ["Current Usage (Last 30 days)", "当前用量（最近 30 天）"],
+        ["Elements in workspaces over time", "工作区元素趋势"],
+        ["Explore Postman API", "探索 Postman API"],
+        ["Monthly snapshot", "月度快照"],
+        ["Open Postman Public API", "打开 Postman 公共 API"],
+        ["Open Postman Public Workspace", "打开 Postman 公共工作区"],
+        ["Percentage", "百分比"],
+        ["Team member engagement over time", "团队成员参与度趋势"],
+        ["Top 5 active users by API requests sent", "按 API 请求发送量排名前 5 的活跃用户"],
+        ["Top 5 collections by API requests sent", "按 API 请求发送量排名前 5 的集合"],
+        ["Top 5 workspaces by API requests sent", "按 API 请求发送量排名前 5 的工作区"],
+        ["Total number", "总数"],
+        ["Usage Trends Over Time (Feb - Aug 2026)", "使用趋势（2026年2月至8月）"],
+        ["Use Postman APIs to access this report’s data.", "使用 Postman API 访问此报告的数据。"],
+        ["Users who used Postman at least once", "至少使用过一次 Postman 的用户"],
+        ["Workspace with views, creates, edits, or made API requests", "有查看、创建、编辑或发送 API 请求活动的工作区"],
+        ["System Environments", "系统环境"],
+        ["Only members with the API Catalog Manager role can access Service discovery page", "只有拥有 API 目录管理员角色的成员才能访问服务发现页面"]
       ];
       const translationPreservationTargets = [
         "OverviewController",
-        "Add My Collections Backup"
+        "Add My Collections Backup",
+        "editor",
+        "Collaborate with",
+        "teammates and assign the right access levels.",
+        "Run all requests in",
+        "to efficiently test your endpoints",
+        "unlimited",
+        "your collections"
       ];
       const menuEnglishPattern = /New Request|Duplicate Tab|Selected Tab|Recently Closed Tabs|Close Tab|Force Close|Close Other|Close All|Reveal in Sidebar|Clone|flow link|analytics/i;
       const bodyText = document.body ? document.body.innerText : "";
@@ -1329,6 +1550,11 @@ async function main() {
           headerActual: [],
           placeholderActual: [],
           dataActual: [],
+          failures: []
+        },
+        compositeCards: {
+          available: !!(localizer && typeof localizer.walk === "function" && document.body),
+          actual: [],
           failures: []
         }
       };
@@ -1474,11 +1700,42 @@ async function main() {
             actual: "不可用"
           });
         }
+
+        if (translationProbe.compositeCards.available) {
+          const fixture = document.createElement("div");
+          fixture.hidden = true;
+          fixture.setAttribute("data-postman-zh-validation", "composite-cards");
+          fixture.innerHTML = [
+            '<p data-probe="composite"><span>Collaborate with </span><strong>unlimited</strong><span> teammates and assign the right access levels.</span></p>',
+            '<p data-probe="composite"><span>Run all requests in </span><strong>your collections</strong><span> to efficiently test your endpoints</span></p>'
+          ].join("");
+          document.body.appendChild(fixture);
+          try {
+            localizer.walk(fixture);
+            translationProbe.compositeCards.actual = Array.from(fixture.querySelectorAll('[data-probe="composite"]')).map((el) => el.textContent);
+            const expected = [
+              "与不限数量的团队成员协作，并分配适当的访问级别。",
+              "运行集合中的所有请求，高效测试你的端点。"
+            ];
+            if (JSON.stringify(translationProbe.compositeCards.actual) !== JSON.stringify(expected)) {
+              translationProbe.compositeCards.failures.push({ expected, actual: translationProbe.compositeCards.actual });
+            }
+          } finally {
+            fixture.remove();
+          }
+        } else {
+          translationProbe.compositeCards.failures.push({
+            scope: "fixture",
+            expected: "可调用的 walk() 和 document.body",
+            actual: "不可用"
+          });
+        }
       } else {
         translationProbe.untranslated = translationProbeTargets;
         translationProbe.englishHits = translationProbeTargets.map((text) => ({ input: text, output: text, hits: ["翻译探针不可用"] }));
         translationProbe.unexpectedTranslations = translationProbeExpectations.map(([input, expected]) => ({ input, expected, output: input }));
         translationProbe.preservationFailures = translationPreservationTargets.map((input) => ({ input, output: "翻译探针不可用" }));
+        translationProbe.compositeCards.failures.push({ scope: "fixture", expected: "复合卡片翻译探针可用", actual: "不可用" });
       }
       const tabs = Array.from(document.querySelectorAll("[data-tab-id]")).slice(0, 10).map((el) => {
         const rect = el.getBoundingClientRect();
@@ -1530,7 +1787,7 @@ async function main() {
           output.menuEnglishHits = output.menuLabels.filter((label) => menuEnglishPattern.test(label || ""));
         }
       } catch (error) {
-        output.error = String(error && error.stack || error);
+        output.error = String(error && error.message || error);
       }
       return output;
     })()`;
@@ -1548,7 +1805,7 @@ async function main() {
     });
 
     if (evaluation.exceptionDetails) {
-      const evaluationDetails = SHOW_DETAILS ? `：${JSON.stringify(evaluation.exceptionDetails)}` : "";
+      const evaluationDetails = SHOW_DETAILS ? `：${JSON.stringify(sanitizeAuditReport(evaluation.exceptionDetails))}` : "";
       throw new Error(`Postman 页面执行验证代码时返回异常${evaluationDetails}`);
     }
 
@@ -1586,21 +1843,26 @@ async function main() {
         failures.push(`翻译探针发现未翻译文案：${result.translationProbe.untranslated.join(", ")}`);
       }
       if (result.translationProbe.englishHits && result.translationProbe.englishHits.length) {
-        const probeDetails = SHOW_DETAILS ? `：${JSON.stringify(result.translationProbe.englishHits)}` : "";
+        const probeDetails = SHOW_DETAILS ? `：${JSON.stringify(sanitizeAuditReport(result.translationProbe.englishHits))}` : "";
         failures.push(`翻译探针发现英文残留${probeDetails}`);
       }
       if (result.translationProbe.unexpectedTranslations && result.translationProbe.unexpectedTranslations.length) {
-        const probeDetails = SHOW_DETAILS ? `：${JSON.stringify(result.translationProbe.unexpectedTranslations)}` : "";
+        const probeDetails = SHOW_DETAILS ? `：${JSON.stringify(sanitizeAuditReport(result.translationProbe.unexpectedTranslations))}` : "";
         failures.push(`技术词混排翻译结果不符合预期（${result.translationProbe.unexpectedTranslations.length} 项）${probeDetails}`);
       }
       if (result.translationProbe.preservationFailures && result.translationProbe.preservationFailures.length) {
-        const probeDetails = SHOW_DETAILS ? `：${JSON.stringify(result.translationProbe.preservationFailures)}` : "";
+        const probeDetails = SHOW_DETAILS ? `：${JSON.stringify(sanitizeAuditReport(result.translationProbe.preservationFailures))}` : "";
         failures.push(`标识符或不完整动态短语被误翻（${result.translationProbe.preservationFailures.length} 项）${probeDetails}`);
       }
       if (!result.translationProbe.keyValueEditor || result.translationProbe.keyValueEditor.failures.length) {
         const keyValueFailures = result.translationProbe.keyValueEditor && result.translationProbe.keyValueEditor.failures || [];
-        const probeDetails = SHOW_DETAILS ? `：${JSON.stringify(keyValueFailures)}` : "";
+        const probeDetails = SHOW_DETAILS ? `：${JSON.stringify(sanitizeAuditReport(keyValueFailures))}` : "";
         failures.push(`键值编辑器表头翻译或数据保护异常${probeDetails}`);
+      }
+      if (!result.translationProbe.compositeCards || result.translationProbe.compositeCards.failures.length) {
+        const compositeFailures = result.translationProbe.compositeCards && result.translationProbe.compositeCards.failures || [];
+        const probeDetails = SHOW_DETAILS ? `：${JSON.stringify(sanitizeAuditReport(compositeFailures))}` : "";
+        failures.push(`复合卡片文案翻译异常${probeDetails}`);
       }
     }
     if (result.error) {
@@ -1613,15 +1875,15 @@ async function main() {
       failures.push("没有采集到右键菜单文案。");
     }
     if (expectUpdatesDisabled && (!result.updatePatch || !result.updatePatch.disabled)) {
-      const updateDetails = SHOW_DETAILS ? `：${JSON.stringify(result.updatePatch)}` : "";
+      const updateDetails = SHOW_DETAILS ? `：${JSON.stringify(sanitizeAuditReport(result.updatePatch))}` : "";
       failures.push(`自动更新拦截补丁未生效${updateDetails}`);
     }
     if (!result.externalUrlPatch || !result.externalUrlPatch.installed) {
-      const externalUrlDetails = SHOW_DETAILS ? `：${JSON.stringify(result.externalUrlPatch)}` : "";
+      const externalUrlDetails = SHOW_DETAILS ? `：${JSON.stringify(sanitizeAuditReport(result.externalUrlPatch))}` : "";
       failures.push(`外部链接引号补丁未安装${externalUrlDetails}`);
     }
     if (!result.mainMenuPatch || !result.mainMenuPatch.installed) {
-      const mainMenuDetails = SHOW_DETAILS ? `：${JSON.stringify(result.mainMenuPatch)}` : "";
+      const mainMenuDetails = SHOW_DETAILS ? `：${JSON.stringify(sanitizeAuditReport(result.mainMenuPatch))}` : "";
       failures.push(`应用菜单汉化补丁不完整${mainMenuDetails}`);
     }
 
@@ -1650,8 +1912,8 @@ if (require.main === module) {
     console.error("[Postman 汉化] 验证过程出错");
     const message = error && error.message ? error.message : String(error);
     console.error(`- ${message}`);
-    if (SHOW_DETAILS && error && error.stack) {
-      console.error(error.stack);
+    if (SHOW_DETAILS) {
+      console.error(JSON.stringify(sanitizeAuditReport({ ok: false, error: message }), null, 2));
     } else {
       console.error("需要完整诊断时，请运行 postman-zh.bat verify --details。");
     }
@@ -1668,5 +1930,8 @@ module.exports = {
   inspectUpdatePatch,
   resolvePostmanDir,
   resolvePostmanDirFromProcess,
+  targetDesktopVersion,
+  discoverPostmanDirs,
+  resolvePostmanDirFromTargetVersion,
   scanFileForMarkers
 };

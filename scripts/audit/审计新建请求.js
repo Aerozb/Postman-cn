@@ -3,6 +3,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { sanitizeAuditReport, resolveAuditOutputBase, writeAuditReport, writeAuditScreenshot } = require("./审计安全.js");
 
 function argValue(name, fallback = null) {
   const index = process.argv.indexOf(name);
@@ -13,14 +14,7 @@ function argValue(name, fallback = null) {
 }
 
 function resolveOutBase(value) {
-  const requested = value || "postman-audit";
-  const hasDirectory = path.isAbsolute(requested) || requested.includes("/") || requested.includes("\\");
-  let resolved = hasDirectory ? requested : path.resolve(__dirname, "..", "..", "..", "_generated", requested);
-  if ([".json", ".png"].includes(path.extname(resolved).toLowerCase())) {
-    resolved = resolved.slice(0, -path.extname(resolved).length);
-  }
-  fs.mkdirSync(path.dirname(resolved), { recursive: true });
-  return resolved;
+  return resolveAuditOutputBase(value, "postman-audit");
 }
 
 function hasFlag(name) {
@@ -28,6 +22,7 @@ function hasFlag(name) {
 }
 
 const SHOW_DETAILS = hasFlag("--details");
+const SAVE_SCREENSHOT = hasFlag("--screenshot");
 
 function argList(name, fallback = null) {
   const value = argValue(name, null);
@@ -87,7 +82,7 @@ async function connectCdp(wsUrl) {
     pending.delete(message.id);
     clearTimeout(callbacks.timer);
     if (message.error) {
-      const details = SHOW_DETAILS ? ` 诊断：${JSON.stringify(message.error)}` : "";
+      const details = SHOW_DETAILS ? ` 诊断：${JSON.stringify(sanitizeAuditReport(message.error))}` : "";
       callbacks.reject(new Error(`${message.error.message || "CDP 命令执行失败。"}${details}`));
     } else {
       callbacks.resolve(message.result);
@@ -170,7 +165,7 @@ async function waitForPostmanTarget(port, timeoutMs, options = {}) {
     } catch (_) {}
     await sleep(800);
   }
-  const details = SHOW_DETAILS ? ` 当前目标：${JSON.stringify(lastTargets)}` : "";
+  const details = SHOW_DETAILS ? ` 当前目标：${JSON.stringify(sanitizeAuditReport(lastTargets))}` : "";
   throw new Error(`未找到${requireRequestEditor ? "请求编辑器" : "Postman 页面"}调试目标。${details}`);
 }
 
@@ -182,7 +177,7 @@ async function evaluate(cdp, expression, awaitPromise = false) {
   });
   if (result.exceptionDetails) {
     const message = result.exceptionDetails.text || "页面脚本执行失败。";
-    const details = SHOW_DETAILS ? ` 诊断：${JSON.stringify(result.exceptionDetails)}` : "";
+    const details = SHOW_DETAILS ? ` 诊断：${JSON.stringify(sanitizeAuditReport(result.exceptionDetails))}` : "";
     throw new Error(`${message}${details}`);
   }
   return result.result.value;
@@ -225,7 +220,7 @@ async function hoverAt(cdp, x, y) {
 
 async function capture(cdp, outPath) {
   const shot = await cdp.send("Page.captureScreenshot", { format: "png", fromSurface: true });
-  fs.writeFileSync(outPath, Buffer.from(shot.data, "base64"));
+  writeAuditScreenshot(outPath, shot.data);
 }
 
 function pageScript(options = {}) {
@@ -280,6 +275,8 @@ function pageScript(options = {}) {
     function allowedEnglish(text) {
       const normalized = norm(text);
       if (/的头像$|团队标志$|（你）$/.test(normalized)) return true;
+      if (/基于角色的访问控制[（(]RBAC[）)]$/i.test(normalized)) return true;
+      if (/^gpt-\d+(?:\.\d+)?(?:\s+[a-z][a-z0-9.-]*)+$/i.test(normalized)) return true;
       if (/^HTTP\/\d(?:\.\d|\.x)?$/i.test(normalized)) return true;
       if (/^checkbox-[A-Za-z0-9#+.-]+$/i.test(normalized)) return true;
       const words = normalized.match(/[A-Za-z][A-Za-z0-9.+#/-]*/g) || [];
@@ -321,6 +318,18 @@ function pageScript(options = {}) {
       }
     }
 
+    function isPrivateText(el) {
+      if (!el || !el.closest) return true;
+      if (el.closest("textarea,input,select,[contenteditable='true'],[role='textbox'],.CodeMirror,.cm-editor,.monaco-editor,.ace_editor,.ProseMirror,.pm-response-body,.response-body,[data-testid*='request-body'],[data-testid*='response-body'],[data-testid*='code-editor']")) {
+        return true;
+      }
+      // AI 建议是模型按上下文动态生成的内容，不是固定 UI 文案；不能把它
+      // 当作词典漏翻，否则每次审计都会追逐一批随机新句子。
+      if (el.closest(".ai-chat-action-suggestion")) return true;
+      const keyValue = el.closest(".key-value-form-row,.key-value-cell,.key-value-form-column,.key-value-form-editor-sortable,.auto-suggest-group");
+      return !!(keyValue && !el.closest(".header-row,.key-value-form-header-row,.key-value-cell__placeholder,.goto-bulk-editor,.bulk-editor-preset__controls"));
+    }
+
     function collectEnglish() {
       const hits = new Map();
       addHit(hits, document.title, "title", { tag: "TITLE" });
@@ -336,17 +345,23 @@ function pageScript(options = {}) {
         "[data-aether-id*='popover']"
       ].join(","))).filter(visible) : [document.body || document.documentElement].filter(Boolean);
 
+      let textNodeCount = 0;
       for (const root of roots) {
-        const lines = String(root.innerText || "").replace(/\u00a0/g, " ").split(/\n| {2,}/);
-        for (const line of lines) {
-          addHit(hits, line, MODE === "overlay" ? "overlay" : "body", {
-            tag: root.tagName,
-            role: root.getAttribute && root.getAttribute("role") || ""
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        while (walker.nextNode() && textNodeCount < 1600) {
+          const node = walker.currentNode;
+          const parent = node.parentElement;
+          if (!parent || !visible(parent) || isPrivateText(parent)) continue;
+          addHit(hits, node.nodeValue, MODE === "overlay" ? "overlay" : "body", {
+            tag: parent.tagName,
+            role: parent.getAttribute("role") || ""
           });
+          textNodeCount += 1;
         }
       }
 
       for (const el of Array.from(document.querySelectorAll("[aria-label],[title],[placeholder],[alt]")).filter(visible)) {
+        if (el.closest && el.closest(".ai-chat-action-suggestion,.CodeMirror,.cm-editor,.monaco-editor,.ace_editor,.ProseMirror,.pm-response-body,.response-body,[data-testid*='request-body'],[data-testid*='response-body'],[data-testid*='code-editor']")) continue;
         for (const attr of ["aria-label", "title", "placeholder", "alt"]) {
           if (el.hasAttribute(attr)) {
             addHit(hits, el.getAttribute(attr), "attr", Object.assign({ attr, tag: el.tagName, role: el.getAttribute("role") || "" }, rectOf(el)));
@@ -489,7 +504,7 @@ function applicationMenuInvokeScript(menuId) {
         windowId: win && win.id
       };
     } catch (error) {
-      return { ok: false, menuId: ${JSON.stringify(menuId)}, error: String(error && error.stack || error) };
+      return { ok: false, menuId: ${JSON.stringify(menuId)}, error: String(error && error.message || error) };
     }
   })()`;
 }
@@ -1057,22 +1072,56 @@ function requestTabsForType(requestType) {
   ];
 }
 
+function defaultAuditOptions(thorough = false) {
+  return thorough ? {
+    delayMs: 220,
+    maxHover: 150,
+    maxBodyHover: 70,
+    maxBodyRightClick: 35,
+    maxSettingsHover: 80,
+    maxSettingsRightClick: 35,
+    maxScriptsHover: 80,
+    maxScriptsRightClick: 35,
+    maxRightClick: 90,
+    settingsPositions: [0, 0.2, 0.4, 0.6, 0.8, 1],
+    checkResponseHistory: true
+  } : {
+    delayMs: 180,
+    maxHover: 20,
+    maxBodyHover: 6,
+    maxBodyRightClick: 2,
+    maxSettingsHover: 6,
+    maxSettingsRightClick: 2,
+    maxScriptsHover: 6,
+    maxScriptsRightClick: 2,
+    maxRightClick: 10,
+    settingsPositions: [0, 0.5, 1],
+    checkResponseHistory: false
+  };
+}
+
 async function main() {
   const timeoutMs = Number(argValue("--timeout-ms", "30000"));
-  const delayMs = Number(argValue("--delay-ms", "220"));
-  const maxHover = Number(argValue("--max-hover", "150"));
-  const maxBodyHover = Number(argValue("--max-body-hover", "70"));
-  const maxBodyRightClick = Number(argValue("--max-body-right-click", "35"));
-  const maxSettingsHover = Number(argValue("--max-settings-hover", "80"));
-  const maxSettingsRightClick = Number(argValue("--max-settings-right-click", "35"));
-  const maxScriptsHover = Number(argValue("--max-scripts-hover", "80"));
-  const maxScriptsRightClick = Number(argValue("--max-scripts-right-click", "35"));
-  const maxRightClick = Number(argValue("--max-right-click", "90"));
+  const thorough = hasFlag("--thorough");
+  const defaults = defaultAuditOptions(thorough);
+  const delayMs = Number(argValue("--delay-ms", String(defaults.delayMs)));
+  const maxHover = Number(argValue("--max-hover", String(defaults.maxHover)));
+  const maxBodyHover = Number(argValue("--max-body-hover", String(defaults.maxBodyHover)));
+  const maxBodyRightClick = Number(argValue("--max-body-right-click", String(defaults.maxBodyRightClick)));
+  const maxSettingsHover = Number(argValue("--max-settings-hover", String(defaults.maxSettingsHover)));
+  const maxSettingsRightClick = Number(argValue("--max-settings-right-click", String(defaults.maxSettingsRightClick)));
+  const maxScriptsHover = Number(argValue("--max-scripts-hover", String(defaults.maxScriptsHover)));
+  const maxScriptsRightClick = Number(argValue("--max-scripts-right-click", String(defaults.maxScriptsRightClick)));
+  const maxRightClick = Number(argValue("--max-right-click", String(defaults.maxRightClick)));
   const requestedTabs = argList("--tabs", null);
   const requestedBodyModes = argList("--body-modes", null);
-  const requestedSettingsPositions = argNumberList("--settings-positions", [0, 0.2, 0.4, 0.6, 0.8, 1]);
+  const requestedSettingsPositions = argNumberList(
+    "--settings-positions",
+    defaults.settingsPositions
+  );
   const skipFinalSweep = hasFlag("--skip-final-sweep");
-  const skipResponseHistory = hasFlag("--skip-response-history");
+  const skipResponseHistory = hasFlag("--skip-response-history") ||
+    (!defaults.checkResponseHistory && !hasFlag("--check-response-history"));
   const outBase = resolveOutBase(argValue("--out", "postman-new-request-audit"));
   const portFile = resolvePortFile();
 
@@ -1336,6 +1385,7 @@ async function main() {
     const output = {
       target: { title: target.title, url: target.url },
       audited: {
+        thorough,
         requestType,
         tabs: selectedRequestTabs.map((item) => item.name),
         hoverCount: hoverTargetsList.length,
@@ -1346,26 +1396,30 @@ async function main() {
         scriptsHoverLimitPerSection: maxScriptsHover,
         scriptsRightClickLimitPerSection: maxScriptsRightClick,
         rightClickCount: rightTargets.length,
-        responseHistoryPopoverVerified: responseHistory.ok
+        responseHistoryPopoverChecked: !responseHistory.skipped,
+        responseHistoryPopoverVerified: responseHistory.ok && !responseHistory.skipped,
+        responseHistoryPopoverSkipped: !!responseHistory.skipped
       },
       verificationFailures,
       hits: Array.from(allHits.values()).sort((a, b) => b.count - a.count || a.text.localeCompare(b.text)),
       log,
-      screenshot: `${outBase}.png`,
+      screenshot: SAVE_SCREENSHOT ? `${outBase}.png` : null,
       screenshotError: null
     };
 
-    fs.writeFileSync(`${outBase}.json`, JSON.stringify(output, null, 2), "utf8");
-    try {
-      await capture(cdp, `${outBase}.png`);
-    } catch (error) {
-      output.screenshotError = error && error.message || String(error);
-      fs.writeFileSync(`${outBase}.json`, JSON.stringify(output, null, 2), "utf8");
+    writeAuditReport(`${outBase}.json`, output);
+    if (SAVE_SCREENSHOT) {
+      try {
+        await capture(cdp, `${outBase}.png`);
+      } catch (error) {
+        output.screenshotError = error && error.message || String(error);
+        writeAuditReport(`${outBase}.json`, output);
+      }
     }
 
     const summary = {
       out: `${outBase}.json`,
-      screenshot: `${outBase}.png`,
+      screenshot: SAVE_SCREENSHOT ? `${outBase}.png` : null,
       screenshotError: output.screenshotError,
       requestType,
       hoverCount: hoverTargetsList.length,
@@ -1381,20 +1435,43 @@ async function main() {
       hitCount: output.hits.length,
       hits: output.hits.slice(0, 40).map((item) => item.text)
     };
-    console.log(`新建请求界面审计完成：发现 ${summary.hitCount} 条待复核文本，报告已保存到 ${summary.out}。`);
+    console.log(`新建请求界面审计完成：发现 ${summary.hitCount} 条待复核文本，报告已保存到 _generated/${path.basename(summary.out)}。`);
     if (SHOW_DETAILS) {
-      console.log(JSON.stringify(summary, null, 2));
+      console.log(JSON.stringify(sanitizeAuditReport(summary), null, 2));
     }
   } finally {
     cdp.close();
   }
 }
 
-main().catch((error) => {
+function selfTest() {
+  const balanced = defaultAuditOptions(false);
+  const thorough = defaultAuditOptions(true);
+  new Function(`return (${pageScript({ mode: "full" })});`);
+  const checks = [
+    [balanced.maxHover < thorough.maxHover, true],
+    [balanced.maxRightClick < thorough.maxRightClick, true],
+    [balanced.settingsPositions.length, 3],
+    [thorough.settingsPositions.length, 6],
+    [balanced.checkResponseHistory, false],
+    [thorough.checkResponseHistory, true],
+    [/ai-chat-action-suggestion/.test(pageScript({ mode: "full" })), true]
+  ];
+  const failed = checks.filter(([actual, expected]) => actual !== expected);
+  if (failed.length) throw new Error(`自检失败，共 ${failed.length} 项不符合预期。`);
+  if (SHOW_DETAILS) {
+    console.log(JSON.stringify(sanitizeAuditReport({ ok: true, checks: checks.length }), null, 2));
+  } else {
+    console.log(`新建请求界面审计脚本自检通过，共 ${checks.length} 项。`);
+  }
+}
+
+Promise.resolve().then(() => hasFlag("--self-test") ? selfTest() : main()).catch((error) => {
   const message = String(error && error.message || error).replace(/\s+/g, " ").trim();
-  console.error(`新建请求界面审计失败：${message}`);
-  if (SHOW_DETAILS && error && error.stack) {
-    console.error(error.stack);
+  if (SHOW_DETAILS) {
+    console.error(JSON.stringify(sanitizeAuditReport({ ok: false, error: message }), null, 2));
+  } else {
+    console.error("新建请求界面审计失败，请确认 Postman 已启动；可使用 --details 查看详细信息。");
   }
   process.exit(1);
 });

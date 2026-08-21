@@ -43,7 +43,7 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
     _release\                         ← `publish` 生成的正式发布包
 ```
 
-**重要**：`_generated` 必须与 `Postman-cn` **同级**，所有扫描产物都写在那里。它里面全是可再生产物，词典本体在 `payload/zh-localize.js`，不受影响。若装了清理工具，建议把 `Desktop\Postman` 加白名单。
+**重要**：`_generated` 必须与 `Postman-cn` **同级**，所有扫描产物默认写在那里，且入口会拒绝把报告写到项目外。它里面全是可再生产物，词典本体在 `payload/zh-localize.js`，不受影响。若装了清理工具，建议把 `Desktop\Postman` 加白名单。
 
 ---
 
@@ -57,7 +57,7 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
 
 ## 4. 脚本清单（统一入口）
 
-日常只使用：
+普通用户只需双击根目录 `postman-zh.bat`，通过中文交互菜单选择操作，不需要手敲命令。维护者和自动化测试只使用同一个入口：
 
 ```powershell
 .\postman-zh.bat help
@@ -65,7 +65,9 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
 .\postman-zh.bat restore
 ```
 
-**不带命令运行（或双击 bat）会显示交互菜单**，覆盖 install/verify/restore/start/stop/collect/static-scan/merge/audit/fix-browser/publish；选 `audit` 会再问一次审计名称。菜单只是 `统一入口.ps1` 里 `Show-Menu` 对同一批子命令的包装，带命令调用的行为完全不变。菜单模式下结尾会 `Read-Host` 暂停，方便双击的用户看结果。
+**不带命令运行（或双击 bat）会显示中文交互菜单**，覆盖 install/verify/restore/start/stop/collect/static-scan/merge/audit/fix-browser/publish；选“深度审计界面”后会显示中文审计子菜单，并可返回上一级。菜单只是 `统一入口.ps1` 里 `Show-Menu` 对同一批子命令的包装，带命令调用的行为完全不变。任务结束后直接退出并由 bat 自动关闭窗口，禁止再用 `Read-Host`、`pause` 或其他按键等待阻塞退出。
+
+默认输出必须是简洁中文，不要打印 Postman/Electron/npm 内部日志或独立的大段 JSON。完整诊断只能由维护者显式传入 `--details` 后显示。
 
 实现按用途归档在 `scripts/` 下，不要从根目录再新增 `.bat` 或转发用 `.ps1`。
 
@@ -98,6 +100,19 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
 
 ### 审计（Node，走 CDP，需 Postman 带 `--remote-debugging-port=0` 启动）
 `scripts/audit/` 下的脚本通过 CDP 模拟点击、悬停和右键遍历页面。使用 `postman-zh.bat audit <名称>` 调用，不要直接记内部文件名。
+
+所有审计脚本都通过 `scripts/audit/审计安全.js` 写报告。该模块会裁剪 JSON 中的本机路径、URL 查询参数、WebSocket 地址、请求/响应正文、输入值和令牌；新增审计脚本必须调用 `writeAuditReport`，不能直接 `JSON.stringify` 原始 CDP 数据。截图默认关闭且必须调用 `writeAuditScreenshot`；该函数只限制输出位置和数据格式，不会脱敏 PNG 像素，截图可能包含当前可见的工作区或请求内容。默认终端只输出中文摘要，`--details` 才输出脱敏诊断。
+
+自动审计不得点击会唤起 Windows 原生文件选择器的入口，包括“文件”“文件夹”“上传”“浏览”“选择文件”“打开文件夹”及其英文标签。只有 `audit import` 可以从 Postman 页面侧安全入口打开应用内导入弹窗；它只检查链接、原始文本和代码仓库等页签，不选择本机文件或目录，并在结束前关闭自己打开的弹窗和临时菜单。`targeted-surfaces` 等通用审计只记录这类控件，不负责点击导入入口。
+
+TUI 不会自动添加 `--thorough`，因此日常选择高级审计时使用的是默认受控档。当前只有以下 8 个审计名支持显式 `--thorough`：`new-request`、`navigation`、`deep-areas`、`entry-modals`、`phased`、`targeted`、`targeted-surfaces`、`all-targets`。不要给 `lightweight`、`import` 或 `new-collection` 传这个参数。
+
+- `new-request` 默认仍遍历当前请求类型的全部标签页，但降低悬停、右键和滚动探测次数，并默认跳过响应历史；它没有总审计时限参数。`--thorough` 会提高交互上限并检查响应历史。
+- 其余 7 个高级审计同时限制 DOM/AX 节点、候选、动作次数和总时间。默认/高强度总时限分别为：`navigation` 180/900 秒，`deep-areas` 90/600 秒，`entry-modals` 60/300 秒，`phased`、`targeted-surfaces`、`all-targets` 均为 90/600 秒，`targeted` 为 90/300 秒。
+- `entry-modals` 单独使用 `--budget-ms` 调整时限；其余带总时限的脚本使用 `--audit-budget-ms`。`phased --thorough` 不等于遍历所有已打开请求标签，确需逐标签审计还要显式加 `--all-tabs`。
+- 达到时间或扫描上限时，脚本会写入部分报告并返回退出码 `2`；这表示结果可供排查，但不能当成完整覆盖。
+
+入口审计名、内部中文脚本名和各档位的完整对应表见 `scripts/README.md`。
 
 ---
 
@@ -150,11 +165,11 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
 
 5. **词典重复键**：`EXACT` 是 JS 对象字面量，重复键后者覆盖前者。`合并译文.js` 把机器批量词条插到**头部**，所以文件靠后的人工词条自动优先。
 
-6. **收集/扫描盲区**：已覆盖文本节点、全部翻译属性、shadow DOM、`document.title`、原生菜单、auth webview、同源 iframe。**无法覆盖**：跨域 iframe（浏览器安全边界）、canvas 绘制文本。字符串长度上限 600 字符（曾是 200，导致超长悬浮提示两条管线都收集不到，已修）。
+6. **收集/扫描边界**：运行时翻译器已覆盖文本节点、全部翻译属性、shadow DOM、`document.title`、原生菜单、auth webview、同源 iframe。它仍不能直接进入任意跨域 iframe，也不能翻译 canvas 绘制文本；`audit all-targets` 可以通过 CDP 单独审计可附加的跨域/OOPIF 目标，但这不等于运行时翻译器能向其中注入译文。字符串长度上限 600 字符（曾是 200，导致超长悬浮提示两条管线都收集不到，已修）。
 
 7. **审计脚本的交互**：设置对话框要用 CDP **真实键盘事件**（齿轮点击后 `ArrowDown`+`Enter`），合成 click 对某些菜单无效。
 
-8. **词典误报**：`基础基于角色的访问控制 (RBAC)` 这类"中文里含英文缩写"的会被审计误报为残留英文，可忽略。
+8. **词典误报**：`基础版基于角色的访问控制（RBAC）` 这类"中文里含英文缩写"的会被审计误报为残留英文，可忽略。
 
 9. **哪些刻意保留英文**（翻译时应跳过）：HTTP 状态短语（`404 Not Found`）、HTTP 请求头名、产品/品牌名（HashiCorp Vault、New Relic）、模型名（GPT-4o）、Flow 查询语言关键字、JSON Schema 元模式、CSS/字体/protobuf 技术参考文档、示例 API 数据（Streetlights、spacecraft）、代码标识符、快捷键（`Ctrl+K`）、`API`/`Git`/`Postman`/`HTTP`/`JSON` 等技术词。
 

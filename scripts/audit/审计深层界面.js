@@ -3,7 +3,18 @@
 
 const fs = require("fs");
 const path = require("path");
+const {
+  sanitizeAuditReport,
+  resolveAuditOutputBase,
+  writeAuditReport,
+  writeAuditScreenshot
+} = require("./审计安全.js");
 const SHOW_DETAILS = process.argv.includes("--details");
+const SAVE_SCREENSHOT = process.argv.includes("--screenshot");
+const SELF_TEST = process.argv.includes("--self-test");
+const THOROUGH = process.argv.includes("--thorough");
+const MAX_AGGREGATE_HITS = 1000;
+const LOG_HIT_LIMIT = 20;
 
 function argValue(name, fallback = null) {
   const index = process.argv.indexOf(name);
@@ -13,27 +24,102 @@ function argValue(name, fallback = null) {
   return fallback;
 }
 
-function resolveOutBase(value) {
-  const requested = value || "postman-audit";
-  const hasDirectory = path.isAbsolute(requested) || requested.includes("/") || requested.includes("\\");
-  let resolved = hasDirectory ? requested : path.resolve(__dirname, "..", "..", "..", "_generated", requested);
-  if ([".json", ".png"].includes(path.extname(resolved).toLowerCase())) {
-    resolved = resolved.slice(0, -path.extname(resolved).length);
+function integerArg(name, fallback, min = 0, max = Number.MAX_SAFE_INTEGER) {
+  const raw = argValue(name, String(fallback));
+  const value = Number(raw);
+  if (!Number.isFinite(value) || !Number.isInteger(value) || value < min || value > max) {
+    throw new Error(`${name} 必须是 ${min} 到 ${max} 之间的整数。`);
   }
-  fs.mkdirSync(path.dirname(resolved), { recursive: true });
-  return resolved;
+  return value;
+}
+
+function resolveOutBase(value) {
+  return resolveAuditOutputBase(value, "postman-audit");
 }
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function getJson(url) {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`HTTP 请求失败：状态码 ${response.status}，地址 ${url}`);
+function defaultAuditOptions(thorough = false) {
+  return thorough ? {
+    delayMs: 220,
+    auditBudgetMs: 600000,
+    overlayHover: 50,
+    overlayRight: 25,
+    createdHover: 28,
+    createdRight: 14,
+    settingsHover: 50,
+    settingsRight: 18,
+    controlHover: 18,
+    controlRight: 10,
+    newMenuItems: 24,
+    importItems: 26,
+    settingsTabs: 16,
+    knownControls: 25
+  } : {
+    delayMs: 180,
+    auditBudgetMs: 90000,
+    overlayHover: 6,
+    overlayRight: 2,
+    createdHover: 4,
+    createdRight: 1,
+    settingsHover: 6,
+    settingsRight: 2,
+    controlHover: 3,
+    controlRight: 1,
+    newMenuItems: 4,
+    importItems: 4,
+    settingsTabs: 5,
+    knownControls: 10
+  };
+}
+
+function createAuditBudget(limitMs, startedAt = Date.now()) {
+  return {
+    limitMs,
+    startedAt,
+    deadline: startedAt + limitMs,
+    exhaustedAt: null
+  };
+}
+
+function budgetAllows(budget, log, step, reserveMs = 0, now = Date.now()) {
+  if (!budget || now + reserveMs < budget.deadline) {
+    return true;
   }
-  return response.json();
+  if (!budget.exhaustedAt) {
+    budget.exhaustedAt = step;
+    log.push({ step: "audit-budget-exhausted", label: step, phase: "预算耗尽" });
+  }
+  return false;
+}
+
+function summarizeBudget(budget, now = Date.now()) {
+  return {
+    limitMs: budget.limitMs,
+    elapsedMs: Math.max(0, now - budget.startedAt),
+    exhausted: Boolean(budget.exhaustedAt),
+    exhaustedAt: budget.exhaustedAt
+  };
+}
+
+function isAuditTimeoutError(error) {
+  return /(?:审计时间预算已耗尽|CDP 命令执行超时)/.test(String(error && error.message || error));
+}
+
+async function getJson(url, timeoutMs = 5000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), Math.max(100, timeoutMs));
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) {
+      throw new Error(`HTTP 请求失败：状态码 ${response.status}，地址 ${url}`);
+    }
+    return response.json();
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function resolvePortFile() {
@@ -44,25 +130,31 @@ function resolvePortFile() {
   return path.join(appData, "Postman", "DevToolsActivePort");
 }
 
-async function connectCdp(wsUrl) {
+async function connectCdp(wsUrl, deadline = null) {
   let nextId = 1;
   const pending = new Map();
   const ws = new WebSocket(wsUrl);
 
   await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("连接 CDP WebSocket 超时。")), 10000);
+    const remaining = deadline ? Math.max(100, deadline - Date.now()) : 10000;
+    const timer = setTimeout(() => {
+      try { ws.close(); } catch (_) {}
+      reject(new Error("连接 CDP WebSocket 超时。"));
+    }, Math.min(10000, remaining));
     ws.addEventListener("open", () => {
       clearTimeout(timer);
       resolve();
     }, { once: true });
     ws.addEventListener("error", () => {
       clearTimeout(timer);
+      try { ws.close(); } catch (_) {}
       reject(new Error("连接 CDP WebSocket 失败。"));
     }, { once: true });
   });
 
   ws.addEventListener("message", (event) => {
-    const message = JSON.parse(event.data);
+    let message;
+    try { message = JSON.parse(event.data); } catch (_) { return; }
     if (!message.id || !pending.has(message.id)) {
       return;
     }
@@ -70,7 +162,7 @@ async function connectCdp(wsUrl) {
     pending.delete(message.id);
     clearTimeout(callbacks.timer);
     if (message.error) {
-      const details = SHOW_DETAILS ? ` 诊断：${JSON.stringify(message.error)}` : "";
+      const details = SHOW_DETAILS ? ` 诊断：${JSON.stringify(sanitizeAuditReport(message.error))}` : "";
       callbacks.reject(new Error(`${message.error.message || "CDP 命令执行失败。"}${details}`));
     } else {
       callbacks.resolve(message.result);
@@ -87,15 +179,22 @@ async function connectCdp(wsUrl) {
   ws.addEventListener("close", rejectPending);
 
   return {
-    send(method, params = {}) {
+    send(method, params = {}, timeoutMs = 15000) {
       const id = nextId++;
       return new Promise((resolve, reject) => {
+        const remaining = deadline ? deadline - Date.now() : timeoutMs;
+        if (remaining <= 0) {
+          reject(new Error(`审计时间预算已耗尽：${method}`));
+          return;
+        }
+        const commandTimeout = Math.max(100, Math.min(timeoutMs, remaining));
         const timer = setTimeout(() => {
           if (pending.has(id)) {
             pending.delete(id);
+            try { ws.close(); } catch (_) {}
             reject(new Error(`CDP 命令执行超时：${method}`));
           }
-        }, 45000);
+        }, commandTimeout);
         pending.set(id, { resolve, reject, timer });
         try {
           ws.send(JSON.stringify({ id, method, params }));
@@ -144,7 +243,8 @@ async function waitForPostmanTarget(port, timeoutMs, targetTitle) {
   let lastTargets = [];
   while (Date.now() < deadline) {
     try {
-      const targets = await getJson(`http://127.0.0.1:${port}/json/list`);
+      const remaining = Math.max(100, deadline - Date.now());
+      const targets = await getJson(`http://127.0.0.1:${port}/json/list`, Math.min(5000, remaining));
       lastTargets = targets;
       const pageTargets = targets.filter((item) => {
         return item.type === "page" &&
@@ -176,7 +276,7 @@ async function waitForPostmanTarget(port, timeoutMs, targetTitle) {
     } catch (_) {}
     await sleep(800);
   }
-  const details = SHOW_DETAILS ? ` 当前目标：${JSON.stringify(lastTargets)}` : "";
+  const details = SHOW_DETAILS ? ` 当前目标：${JSON.stringify(sanitizeAuditReport(lastTargets))}` : "";
   throw new Error(`未找到 Postman 调试目标。${details}`);
 }
 
@@ -188,7 +288,7 @@ async function evaluate(cdp, expression, awaitPromise = false) {
   });
   if (result.exceptionDetails) {
     const message = result.exceptionDetails.text || "页面脚本执行失败。";
-    const details = SHOW_DETAILS ? ` 诊断：${JSON.stringify(result.exceptionDetails)}` : "";
+    const details = SHOW_DETAILS ? ` 诊断：${JSON.stringify(sanitizeAuditReport(result.exceptionDetails))}` : "";
     throw new Error(`${message}${details}`);
   }
   return result.result.value;
@@ -231,7 +331,7 @@ async function hoverAt(cdp, x, y) {
 
 async function capture(cdp, outPath) {
   const shot = await cdp.send("Page.captureScreenshot", { format: "png", fromSurface: true });
-  fs.writeFileSync(outPath, Buffer.from(shot.data, "base64"));
+  writeAuditScreenshot(outPath, shot.data);
 }
 
 function pageScript(options = {}) {
@@ -256,6 +356,18 @@ function pageScript(options = {}) {
       "public api network",
       "app builder"
     ]);
+    const MAX_TEXT_LENGTH = 600;
+    const MAX_TARGETS = 180;
+    const MAX_HITS = 160;
+    const MAX_TEXT_NODES = 2400;
+    const MAX_ELEMENTS = 6000;
+    const PRIVATE_SELECTOR = [
+      "input", "textarea", "select", "pre", "code", "[contenteditable='true']",
+      ".monaco-editor", ".CodeMirror", ".ace_editor", "[data-slate-editor='true']",
+      "[data-testid*='request-body']", "[data-testid*='response-body']",
+      "[data-testid*='raw-body']", "[data-testid*='response-view']",
+      "[data-testid*='code-editor']", "[data-testid*='script-editor']"
+    ].join(",");
 
     function norm(text) {
       return String(text || "").replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
@@ -279,18 +391,35 @@ function pageScript(options = {}) {
       const style = getComputedStyle(el);
       return style.visibility !== "hidden" && style.display !== "none" && Number(style.opacity) !== 0;
     }
+    function privateElement(el) {
+      if (!el || !el.closest) return false;
+      return Boolean(el.closest(PRIVATE_SELECTOR));
+    }
     function labelOf(el) {
-      return norm(el.getAttribute("aria-label")) ||
+      if (privateElement(el)) return "";
+      const explicit = norm(el.getAttribute("aria-label")) ||
         norm(el.getAttribute("title")) ||
         norm(el.getAttribute("placeholder")) ||
-        norm(el.innerText) ||
-        norm(el.textContent) ||
         norm(el.getAttribute("data-testid")) ||
-        norm(el.getAttribute("role")) ||
-        el.tagName.toLowerCase();
+        norm(el.getAttribute("role"));
+      if (explicit) return explicit.slice(0, MAX_TEXT_LENGTH);
+      const raw = String(el.textContent || "");
+      if (raw.length > MAX_TEXT_LENGTH * 2) return el.tagName.toLowerCase();
+      return norm(el.innerText || raw).slice(0, MAX_TEXT_LENGTH) || el.tagName.toLowerCase();
+    }
+    function matchingElements(root, selector, limit, traversal = { visited: 0 }) {
+      const result = [];
+      if (!root || limit <= 0) return result;
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
+      let el;
+      while ((el = walker.nextNode()) && traversal.visited < MAX_ELEMENTS && result.length < limit) {
+        traversal.visited += 1;
+        if (el.matches && el.matches(selector)) result.push(el);
+      }
+      return result;
     }
     function overlayRoots() {
-      return Array.from(document.querySelectorAll([
+      const selector = [
         "[role='dialog']",
         "[aria-modal='true']",
         "[role='menu']",
@@ -299,13 +428,17 @@ function pageScript(options = {}) {
         "[data-testid*='modal']",
         "[data-testid*='popover']",
         "[data-aether-id*='popover']"
-      ].join(","))).filter(visible);
+      ].join(",");
+      const candidates = matchingElements(document, selector, 128).filter(visible);
+      return candidates
+        .filter((root, index) => !candidates.slice(0, index).some((parent) => parent.contains(root)))
+        .slice(0, 12);
     }
     function inAnyRoot(el, roots) {
       return roots.some((root) => root === el || root.contains(el));
     }
     function isInteractive(el) {
-      if (!visible(el)) return false;
+      if (!visible(el) || privateElement(el)) return false;
       const tag = el.tagName.toLowerCase();
       const role = norm(el.getAttribute("role")).toLowerCase();
       const style = getComputedStyle(el);
@@ -325,9 +458,14 @@ function pageScript(options = {}) {
         "[aria-label]", "[title]", "[placeholder]", "[onclick]", "[tabindex]", "[data-tab-id]"
       ].join(",");
       const roots = MODE === "overlay" ? overlayRoots() : [];
-      const source = MODE === "overlay"
-        ? roots.flatMap((root) => Array.from(root.querySelectorAll(selector)))
-        : Array.from(document.querySelectorAll(selector));
+      const traversal = { visited: 0 };
+      const source = [];
+      const sourceRoots = MODE === "overlay" ? roots : [document];
+      for (const root of sourceRoots) {
+        const remaining = MAX_TARGETS * 8 - source.length;
+        if (remaining <= 0 || traversal.visited >= MAX_ELEMENTS) break;
+        source.push(...matchingElements(root, selector, remaining, traversal));
+      }
       const targets = source
         .filter((el, index, arr) => arr.indexOf(el) === index)
         .filter(isInteractive)
@@ -335,7 +473,7 @@ function pageScript(options = {}) {
           index,
           tag: el.tagName,
           role: norm(el.getAttribute("role")),
-          text: labelOf(el),
+          text: labelOf(el).slice(0, 600),
           inOverlay: roots.length ? inAnyRoot(el, roots) : false
         }, rectOf(el)))
         .filter((item) => item.cx >= 0 && item.cy >= 0 && item.cx <= innerWidth && item.cy <= innerHeight);
@@ -347,12 +485,13 @@ function pageScript(options = {}) {
           dedupe.set(key, item);
         }
       }
-      return Array.from(dedupe.values()).sort((a, b) => (a.y - b.y) || (a.x - b.x)).slice(0, 320);
+      return Array.from(dedupe.values()).sort((a, b) => (a.y - b.y) || (a.x - b.x)).slice(0, MAX_TARGETS);
     }
     function allowedEnglish(text) {
       const normalized = norm(text);
       const loweredText = normalized.toLowerCase();
       if (/的头像$|团队标志$|（你）$/.test(normalized)) return true;
+      if (/^gpt-\d+(?:\.\d+)?(?:\s+[a-z][a-z0-9.-]*)+$/i.test(normalized)) return true;
       if (/^HTTP\/\d(?:\.\d|\.x)?$/i.test(normalized)) return true;
       if (/^checkbox-[A-Za-z0-9#+.-]+$/i.test(normalized)) return true;
       if (ALLOWED_PHRASES.has(loweredText)) return true;
@@ -366,10 +505,13 @@ function pageScript(options = {}) {
         if (/^\d/.test(lowered)) return false;
         return true;
       });
+      // Keep ordinary UI words such as Save/Import/Settings visible. Only
+      // skip identifier-shaped values with an explicit separator or digit.
+      if (/^(?=.*[_\d])[a-z][a-z0-9_]{2,31}$/i.test(normalized)) return true;
       return meaningful.length === 0;
     }
     function isEnglishLeak(text) {
-      const value = norm(text);
+      const value = norm(text).slice(0, MAX_TEXT_LENGTH);
       if (!value || value.length < 2) return false;
       if (!/[A-Za-z]{2,}/.test(value)) return false;
       if (/\b(Ctrl|Alt|Shift|Cmd|Command|Win)\s*\+/i.test(value)) return false;
@@ -385,43 +527,61 @@ function pageScript(options = {}) {
       if (/\b(Salesforce|Docusign|DocuSign|UPS|Zoho|Adyen|Datadog|HubSpot|Mastercard|Notion|OpenAI|PayPal|Pipedrive|Plaid|Razorpay|Tableau|WhatsApp|Box|Cisco|Meraki|PandaDoc|PingOne)\b/.test(value)) return false;
       if (/\b(Public Workspace|Developers|API Collection|APIs|REST API|Cloud API|Business Platform|Published Postman Templates|Documentation Checklist|Intro to writing tests|Learn by API|Postman DevRel|Postman Team|API Reference|Platform API|Dashboard API)\b/i.test(value)) return false;
       if (/^[A-Z][A-Za-z0-9 '&().-]*\s+API(?:\s|\b).*(?:\(v\d+\)|\(JP\)|集合|Collection|Endpoints|OAuthAuthCode|Shipping|Reference)$/i.test(value)) return false;
-      if (/^[a-z0-9_]{3,16}$/i.test(value)) return false;
       return !allowedEnglish(value);
     }
-    function addHit(hits, text, kind, meta) {
-      const value = norm(text);
+    function addHit(hits, text) {
+      const value = norm(text).slice(0, MAX_TEXT_LENGTH);
       if (!isEnglishLeak(value)) return;
+      if (!hits.has(value) && hits.size >= MAX_HITS) return;
       if (!hits.has(value)) {
-        hits.set(value, { text: value, count: 0, samples: [] });
+        hits.set(value, { text: value, count: 0 });
       }
-      const hit = hits.get(value);
-      hit.count += 1;
-      if (hit.samples.length < 8) {
-        hit.samples.push(Object.assign({ kind }, meta || {}));
+      hits.get(value).count += 1;
+    }
+    function collectTextNodes(root, hits, traversal) {
+      if (!root || privateElement(root)) return;
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      let node;
+      while ((node = walker.nextNode()) && traversal.visited < MAX_TEXT_NODES) {
+        traversal.visited += 1;
+        const parent = node.parentElement;
+        if (!parent || privateElement(parent) || !visible(parent)) continue;
+        const raw = String(node.nodeValue || "");
+        if (!raw || raw.length > MAX_TEXT_LENGTH * 2) continue;
+        addHit(hits, raw);
       }
     }
-    function collectEnglish() {
+    function collectEnglish(targets) {
       const hits = new Map();
-      addHit(hits, document.title, "title", { tag: "TITLE" });
+      addHit(hits, document.title);
       const roots = MODE === "overlay" ? overlayRoots() : [document.body || document.documentElement].filter(Boolean);
+      const textTraversal = { visited: 0 };
       for (const root of roots) {
-        const lines = String(root.innerText || "").replace(/\u00a0/g, " ").split(/\n| {2,}/);
-        for (const line of lines) {
-          addHit(hits, line, MODE === "overlay" ? "overlay" : "body", {
-            tag: root.tagName,
-            role: root.getAttribute && root.getAttribute("role") || ""
-          });
-        }
+        collectTextNodes(root, hits, textTraversal);
+        if (textTraversal.visited >= MAX_TEXT_NODES) break;
       }
-      for (const el of Array.from(document.querySelectorAll("[aria-label],[title],[placeholder],[alt]")).filter(visible)) {
-        for (const attr of ["aria-label", "title", "placeholder", "alt"]) {
-          if (el.hasAttribute(attr)) {
-            addHit(hits, el.getAttribute(attr), "attr", Object.assign({ attr, tag: el.tagName, role: el.getAttribute("role") || "" }, rectOf(el)));
+      const attributeElements = [];
+      const seenElements = new Set();
+      const attributeTraversal = { visited: 0 };
+      for (const root of roots) {
+        const remaining = MAX_TARGETS * 2 - attributeElements.length;
+        if (remaining <= 0 || attributeTraversal.visited >= MAX_ELEMENTS) break;
+        for (const el of matchingElements(root, "[aria-label],[title],[placeholder],[alt]", remaining, attributeTraversal)) {
+          if (!seenElements.has(el)) {
+            seenElements.add(el);
+            attributeElements.push(el);
           }
         }
       }
-      for (const item of collectTargets()) {
-        addHit(hits, item.text, "control", item);
+      for (const el of attributeElements.filter((item) => visible(item) && !privateElement(item))) {
+        for (const attr of ["aria-label", "title", "placeholder", "alt"]) {
+          if (el.hasAttribute(attr)) {
+            addHit(hits, el.getAttribute(attr));
+          }
+        }
+      }
+      for (const item of targets) {
+        addHit(hits, item.text);
       }
       return Array.from(hits.values()).sort((a, b) => b.count - a.count || a.text.localeCompare(b.text));
     }
@@ -431,22 +591,43 @@ function pageScript(options = {}) {
         return Object.assign({
           tag: root.tagName,
           role: norm(root.getAttribute("role")),
-          testid: norm(root.getAttribute("data-testid")),
-          text: norm(root.innerText || root.textContent || "")
+          testid: norm(root.getAttribute("data-testid"))
         }, rect);
       });
     }
+    const targets = collectTargets();
     return {
       url: location.href,
       title: document.title,
       localized: document.documentElement.getAttribute("data-postman-zh-localized"),
       size: { width: innerWidth, height: innerHeight },
       overlays: collectOverlays(),
-      targets: collectTargets(),
-      hits: collectEnglish()
+      targets,
+      hits: collectEnglish(targets)
     };
   })()`.replace("__MODE__", mode);
 }
+
+const visibleOverlayCountScript = String.raw`(() => {
+  const selector = [
+    "[role='dialog']", "[aria-modal='true']", "[role='menu']", "[role='listbox']",
+    "[role='tooltip']", "[data-testid*='modal']", "[data-testid*='popover']",
+    "[data-aether-id*='popover']"
+  ].join(",");
+  const walker = document.createTreeWalker(document, NodeFilter.SHOW_ELEMENT);
+  let count = 0;
+  let visited = 0;
+  let el;
+  while ((el = walker.nextNode()) && visited < 6000 && count < 24) {
+    visited += 1;
+    if (!el.matches(selector)) continue;
+    const rect = el.getBoundingClientRect();
+    if (rect.width < 4 || rect.height < 4) continue;
+    const style = getComputedStyle(el);
+    if (style.visibility !== "hidden" && style.display !== "none" && Number(style.opacity) !== 0) count += 1;
+  }
+  return count;
+})()`;
 
 function findTargetScript(patterns, options = {}) {
   const minY = typeof options.minY === "number" ? options.minY : null;
@@ -459,6 +640,16 @@ function findTargetScript(patterns, options = {}) {
     const maxY = ${JSON.stringify(maxY)};
     const maxX = ${JSON.stringify(maxX)};
     const scope = ${JSON.stringify(scope)};
+    const MAX_ELEMENTS = 6000;
+    const MAX_MATCHES = 1440;
+    const MAX_TEXT_LENGTH = 600;
+    const PRIVATE_SELECTOR = [
+      "input", "textarea", "select", "pre", "code", "[contenteditable='true']",
+      ".monaco-editor", ".CodeMirror", ".ace_editor", "[data-slate-editor='true']",
+      "[data-testid*='request-body']", "[data-testid*='response-body']",
+      "[data-testid*='raw-body']", "[data-testid*='response-view']",
+      "[data-testid*='code-editor']", "[data-testid*='script-editor']"
+    ].join(",");
     function norm(text) {
       return String(text || "").replace(/\\u00a0/g, " ").replace(/\\s+/g, " ").trim();
     }
@@ -471,19 +662,36 @@ function findTargetScript(patterns, options = {}) {
       return style.visibility !== "hidden" && style.display !== "none" && Number(style.opacity) !== 0;
     }
     function labelOf(el) {
-      return norm(el.getAttribute("aria-label")) ||
+      if (!el || el.closest(PRIVATE_SELECTOR)) return "";
+      const explicit = norm(el.getAttribute("aria-label")) ||
         norm(el.getAttribute("title")) ||
         norm(el.getAttribute("placeholder")) ||
-        norm(el.innerText) ||
-        norm(el.textContent) ||
-        norm(el.getAttribute("data-testid")) ||
-        "";
+        norm(el.getAttribute("data-testid"));
+      if (explicit) return explicit.slice(0, MAX_TEXT_LENGTH);
+      const raw = String(el.textContent || "");
+      if (raw.length > MAX_TEXT_LENGTH * 2) return "";
+      return norm(el.innerText || raw).slice(0, MAX_TEXT_LENGTH);
     }
-    const roots = Array.from(document.querySelectorAll("[role='dialog'],[aria-modal='true'],[role='menu'],[role='listbox'],[data-testid*='modal'],[data-testid*='popover'],[data-aether-id*='popover']")).filter(visible);
+    function matchingElements(root, selector, limit, traversal) {
+      const result = [];
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
+      let el;
+      while ((el = walker.nextNode()) && traversal.visited < MAX_ELEMENTS && result.length < limit) {
+        traversal.visited += 1;
+        if (el.matches(selector)) result.push(el);
+      }
+      return result;
+    }
+    const overlayTraversal = { visited: 0 };
+    const roots = matchingElements(document, "[role='dialog'],[aria-modal='true'],[role='menu'],[role='listbox'],[data-testid*='modal'],[data-testid*='popover'],[data-aether-id*='popover']", 128, overlayTraversal).filter(visible).slice(0, 12);
     const selector = "button,a,input,textarea,select,[role='button'],[role='menuitem'],[role='tab'],[role='option'],[role='combobox'],[role='textbox'],[aria-label],[title],[placeholder],[tabindex]";
-    const source = scope === "overlay"
-      ? roots.flatMap((root) => Array.from(root.querySelectorAll(selector)))
-      : Array.from(document.querySelectorAll(selector));
+    const traversal = { visited: 0 };
+    const source = [];
+    for (const root of scope === "overlay" ? roots : [document]) {
+      const remaining = MAX_MATCHES - source.length;
+      if (remaining <= 0 || traversal.visited >= MAX_ELEMENTS) break;
+      source.push(...matchingElements(root, selector, remaining, traversal));
+    }
     const matches = source.filter((el, index, arr) => arr.indexOf(el) === index).filter(visible).map((el) => {
       const rect = el.getBoundingClientRect();
       return {
@@ -535,48 +743,53 @@ function safeTargetText(text) {
   return true;
 }
 
+function compactHit(hit) {
+  return {
+    text: normText(hit && hit.text).slice(0, 600),
+    count: Number(hit && hit.count) || 1
+  };
+}
+
+function mergeCompactHits(targetMap, hits, limit, step = null) {
+  for (const hit of hits || []) {
+    const compact = compactHit(hit);
+    if (!compact.text) {
+      continue;
+    }
+    if (!targetMap.has(compact.text)) {
+      if (targetMap.size >= limit) {
+        continue;
+      }
+      targetMap.set(compact.text, {
+        text: compact.text,
+        count: 0,
+        ...(step ? { step } : {})
+      });
+    }
+    targetMap.get(compact.text).count += compact.count;
+  }
+}
+
 function summarizeState(state) {
   return {
     url: state && state.url,
     title: state && state.title,
     localized: state && state.localized,
     overlayCount: state && state.overlays ? state.overlays.length : 0,
-    overlays: (state && state.overlays || []).map((item) => ({
-      tag: item.tag,
-      role: item.role,
-      testid: item.testid,
-      text: item.text,
-      x: item.x,
-      y: item.y,
-      w: item.w,
-      h: item.h
-    })),
     hitCount: state && state.hits ? state.hits.length : 0,
-    hits: state && state.hits || [],
-    targetCount: state && state.targets ? state.targets.length : 0,
-    targets: (state && state.targets || []).slice(0, 100)
+    hits: (state && state.hits || []).slice(0, LOG_HIT_LIMIT).map(compactHit),
+    targetCount: state && state.targets ? state.targets.length : 0
   };
 }
 
 function mergeHits(allHits, step, hits) {
-  for (const hit of hits || []) {
-    if (!allHits.has(hit.text)) {
-      allHits.set(hit.text, { text: hit.text, count: 0, samples: [] });
-    }
-    const current = allHits.get(hit.text);
-    current.count += hit.count || 1;
-    for (const sample of hit.samples || []) {
-      if (current.samples.length < 12) {
-        current.samples.push(Object.assign({ step }, sample));
-      }
-    }
-  }
+  mergeCompactHits(allHits, hits, MAX_AGGREGATE_HITS, step);
 }
 
 async function collect(cdp, mode, step, allHits, log) {
   const state = await evaluate(cdp, pageScript({ mode }));
   mergeHits(allHits, step, state.hits);
-  log.push({ step, mode, state: summarizeState(state) });
+  log.push(Object.assign({ step, mode }, summarizeState(state)));
   return state;
 }
 
@@ -590,40 +803,64 @@ async function clickFirst(cdp, patterns, delayMs, options = {}) {
   return { ok: true, patterns, options, target };
 }
 
-async function hoverTargets(cdp, targets, stepPrefix, allHits, log, delayMs) {
-  const results = [];
+async function hoverTargets(cdp, targets, stepPrefix, allHits, log, delayMs, budget) {
+  const phaseHits = new Map();
+  let processed = 0;
+  let errorCount = 0;
   for (let i = 0; i < targets.length; i += 1) {
+    if (!budgetAllows(budget, log, `${stepPrefix}-hover-${i}`, Math.max(delayMs, 360) + 250)) {
+      break;
+    }
     const item = targets[i];
+    processed += 1;
     try {
       await hoverAt(cdp, item.cx, item.cy);
       await sleep(Math.max(delayMs, 360));
       const state = await evaluate(cdp, pageScript({ mode: "overlay" }));
       mergeHits(allHits, `${stepPrefix}-hover-${i}`, state.hits);
-      results.push({ index: i, target: item, hits: state.hits });
-    } catch (error) {
-      results.push({ index: i, target: item, error: error.message });
+      mergeCompactHits(phaseHits, state.hits, LOG_HIT_LIMIT);
+    } catch (_) {
+      errorCount += 1;
     }
   }
-  log.push({ step: `${stepPrefix}-hover`, results });
+  log.push({
+    step: `${stepPrefix}-hover`,
+    phase: errorCount ? `完成，失败 ${errorCount} 项` : "完成",
+    targetCount: processed,
+    hitCount: phaseHits.size,
+    hits: Array.from(phaseHits.values())
+  });
 }
 
-async function rightClickTargets(cdp, targets, stepPrefix, allHits, log, delayMs) {
-  const results = [];
+async function rightClickTargets(cdp, targets, stepPrefix, allHits, log, delayMs, budget) {
+  const phaseHits = new Map();
+  let processed = 0;
+  let errorCount = 0;
   for (let i = 0; i < targets.length; i += 1) {
+    if (!budgetAllows(budget, log, `${stepPrefix}-right-${i}`, delayMs + 350)) {
+      break;
+    }
     const item = targets[i];
+    processed += 1;
     try {
       await rightClickAt(cdp, item.cx, item.cy);
       await sleep(delayMs);
       const state = await evaluate(cdp, pageScript({ mode: "overlay" }));
       mergeHits(allHits, `${stepPrefix}-right-${i}`, state.hits);
-      results.push({ index: i, target: item, hits: state.hits });
-    } catch (error) {
-      results.push({ index: i, target: item, error: error.message });
+      mergeCompactHits(phaseHits, state.hits, LOG_HIT_LIMIT);
+    } catch (_) {
+      errorCount += 1;
     }
     await pressEsc(cdp);
     await sleep(80);
   }
-  log.push({ step: `${stepPrefix}-right-click`, results });
+  log.push({
+    step: `${stepPrefix}-right-click`,
+    phase: errorCount ? `完成，失败 ${errorCount} 项` : "完成",
+    targetCount: processed,
+    hitCount: phaseHits.size,
+    hits: Array.from(phaseHits.values())
+  });
 }
 
 async function closeTransientUi(cdp, delayMs) {
@@ -633,17 +870,24 @@ async function closeTransientUi(cdp, delayMs) {
   await sleep(Math.max(140, delayMs));
 }
 
-async function scanVisibleTargets(cdp, area, allHits, log, delayMs, options = {}) {
+async function scanVisibleTargets(cdp, area, allHits, log, delayMs, options = {}, budget = null) {
+  if (!budgetAllows(budget, log, `${area}-state`, 750)) {
+    return { targets: [], size: null, skipped: true };
+  }
   const mode = options.mode || "full";
-  const hoverLimit = options.hoverLimit || 24;
-  const rightLimit = options.rightLimit || 12;
+  const hoverLimit = Number.isFinite(options.hoverLimit) ? Math.max(0, options.hoverLimit) : 24;
+  const rightLimit = Number.isFinite(options.rightLimit) ? Math.max(0, options.rightLimit) : 12;
   const state = await collect(cdp, mode, `${area}-state`, allHits, log);
   const targets = (state.targets || [])
     .filter((item) => safeTargetText(item.text))
     .filter((item) => !options.filter || options.filter(item, state));
-  await hoverTargets(cdp, targets.slice(0, hoverLimit), area, allHits, log, delayMs);
-  await rightClickTargets(cdp, targets.slice(0, rightLimit), area, allHits, log, delayMs);
-  return state;
+  await hoverTargets(cdp, targets.slice(0, hoverLimit), area, allHits, log, delayMs, budget);
+  await rightClickTargets(cdp, targets.slice(0, rightLimit), area, allHits, log, delayMs, budget);
+  return {
+    targets: state.targets || [],
+    size: state.size || null,
+    overlayCount: state.overlays ? state.overlays.length : 0
+  };
 }
 
 function uniqueLabels(targets) {
@@ -661,17 +905,26 @@ function uniqueLabels(targets) {
   return labels;
 }
 
-async function auditNewMenu(cdp, allHits, log, delayMs, limits) {
+async function auditNewMenu(cdp, allHits, log, delayMs, limits, budget) {
+  if (!budgetAllows(budget, log, "new-menu-start", delayMs + 750)) {
+    return;
+  }
   await closeTransientUi(cdp, delayMs);
   const opened = await clickFirst(cdp, ["^新建$", "^New$", "^Create new request$", "^新建请求$"], delayMs, { maxX: 460 });
   log.push({ step: "new-menu-open", opened });
-  const menuState = await scanVisibleTargets(cdp, "new-menu", allHits, log, delayMs, { mode: "overlay", hoverLimit: limits.overlayHover, rightLimit: limits.overlayRight });
+  if (!opened.ok) {
+    return;
+  }
+  const menuState = await scanVisibleTargets(cdp, "new-menu", allHits, log, delayMs, { mode: "overlay", hoverLimit: limits.overlayHover, rightLimit: limits.overlayRight }, budget);
   const labels = uniqueLabels(menuState.targets)
     .filter((label) => !/^(关闭|取消|完成|确定|Close|Cancel|Done|OK)$/i.test(label))
     .slice(0, limits.newMenuItems);
   log.push({ step: "new-menu-labels", labels });
 
   for (let i = 0; i < labels.length; i += 1) {
+    if (!budgetAllows(budget, log, `new-menu-click-${i}`, (delayMs * 2) + 1200)) {
+      break;
+    }
     const label = labels[i];
     await closeTransientUi(cdp, delayMs);
     const reopen = await clickFirst(cdp, ["^新建$", "^New$", "^Create new request$", "^新建请求$"], delayMs, { maxX: 460 });
@@ -684,45 +937,25 @@ async function auditNewMenu(cdp, allHits, log, delayMs, limits) {
       filter(item) {
         return item.cy > 35;
       }
-    });
+    }, budget);
   }
 }
 
-async function auditImport(cdp, allHits, log, delayMs, limits) {
-  await closeTransientUi(cdp, delayMs);
-  const opened = await clickFirst(cdp, ["^导入$", "^Import$", "sidebar-import-button"], Math.max(delayMs + 350, 700), { maxX: 470 });
-  log.push({ step: "import-open", opened });
-  if (!opened.ok) {
+async function auditSettings(cdp, allHits, log, delayMs, limits, budget) {
+  if (!budgetAllows(budget, log, "settings-start", delayMs + 900)) {
     return;
   }
-
-  const initial = await scanVisibleTargets(cdp, "import-modal-initial", allHits, log, delayMs, { mode: "overlay", hoverLimit: limits.overlayHover, rightLimit: limits.overlayRight });
-  const labels = uniqueLabels(initial.targets)
-    .filter((label) => !/^(关闭|取消|完成|确定|导入|Close|Cancel|Done|OK|Import)$/i.test(label))
-    .slice(0, limits.importItems);
-  log.push({ step: "import-modal-labels", labels });
-
-  for (let i = 0; i < labels.length; i += 1) {
-    const label = labels[i];
-    let overlay = await evaluate(cdp, pageScript({ mode: "overlay" }));
-    if (!overlay.overlays || overlay.overlays.length === 0) {
-      await clickFirst(cdp, ["^导入$", "^Import$", "sidebar-import-button"], Math.max(delayMs + 350, 700), { maxX: 470 });
-    }
-    const clicked = await clickFirst(cdp, [`^${escapeRegExp(label)}$`], Math.max(delayMs + 260, 620), { scope: "overlay" });
-    log.push({ step: `import-modal-click-${i}`, label, clicked });
-    await scanVisibleTargets(cdp, `import-modal-after-${i}-${label.slice(0, 24)}`, allHits, log, delayMs, { mode: "overlay", hoverLimit: 12, rightLimit: 6 });
-  }
-  await closeTransientUi(cdp, delayMs);
-}
-
-async function auditSettings(cdp, allHits, log, delayMs, limits) {
   await closeTransientUi(cdp, delayMs);
   const menu = await clickFirst(cdp, ["^设置$", "^Settings$"], delayMs, { minY: 0, maxY: 80 });
   log.push({ step: "settings-menu-open", menu });
   if (!menu.ok) {
     return;
   }
-  await scanVisibleTargets(cdp, "settings-dropdown", allHits, log, delayMs, { mode: "overlay", hoverLimit: 12, rightLimit: 6 });
+  await scanVisibleTargets(cdp, "settings-dropdown", allHits, log, delayMs, {
+    mode: "overlay",
+    hoverLimit: limits.overlayHover,
+    rightLimit: limits.overlayRight
+  }, budget);
   let appSettings = await clickFirst(cdp, ["应用设置", "App Settings", "^设置$", "^Settings$", "Preferences"], Math.max(delayMs + 600, 1000), { scope: "overlay" });
   if (!appSettings.ok) {
     const reopened = await clickFirst(cdp, ["^设置$", "^Settings$"], delayMs, { minY: 0, maxY: 80 });
@@ -737,24 +970,35 @@ async function auditSettings(cdp, allHits, log, delayMs, limits) {
     return;
   }
 
-  const state = await scanVisibleTargets(cdp, "settings-dialog-initial", allHits, log, delayMs, { mode: "overlay", hoverLimit: limits.settingsHover, rightLimit: limits.settingsRight });
+  const state = await scanVisibleTargets(cdp, "settings-dialog-initial", allHits, log, delayMs, { mode: "overlay", hoverLimit: limits.settingsHover, rightLimit: limits.settingsRight }, budget);
   const tabLabels = uniqueLabels((state.targets || []).filter((item) => item.role === "tab" || /^(通用|主题|快捷键|数据|证书|代理|更新|插件|General|Themes|Shortcuts|Data|Certificates|Proxy|Update|Add-ons|Add-ons?)$/i.test(item.text)))
     .slice(0, limits.settingsTabs);
   log.push({ step: "settings-tab-labels", labels: tabLabels });
 
   for (let i = 0; i < tabLabels.length; i += 1) {
+    if (!budgetAllows(budget, log, `settings-tab-click-${i}`, delayMs + 1000)) {
+      break;
+    }
     const label = tabLabels[i];
     const clicked = await clickFirst(cdp, [`^${escapeRegExp(label)}$`], Math.max(delayMs + 280, 650), { scope: "overlay" });
     log.push({ step: `settings-tab-click-${i}`, label, clicked });
-    await scanVisibleTargets(cdp, `settings-tab-${i}-${label.slice(0, 24)}`, allHits, log, delayMs, { mode: "overlay", hoverLimit: 18, rightLimit: 8 });
+    await scanVisibleTargets(cdp, `settings-tab-${i}-${label.slice(0, 24)}`, allHits, log, delayMs, {
+      mode: "overlay",
+      hoverLimit: limits.settingsHover,
+      rightLimit: limits.settingsRight
+    }, budget);
   }
   await closeTransientUi(cdp, delayMs);
 }
 
-async function auditKnownControls(cdp, allHits, log, delayMs, limits) {
+async function auditKnownControls(cdp, allHits, log, delayMs, limits, budget) {
   const controls = [
     { area: "top-workspace", patterns: ["^我的工作区$", "^My Workspace$"], options: { minY: 0, maxY: 80 } },
-    { area: "top-search", patterns: ["打开搜索", "^搜索$", "^Search$"], options: { minY: 0, maxY: 90 } },
+    // The global search panel is a heavyweight remote surface. Opening it in
+    // the routine balanced pass can make the requester renderer allocate
+    // hundreds of megabytes before CDP can inspect the resulting overlay.
+    // Keep it for explicit --thorough release audits only.
+    { area: "top-search", patterns: ["打开搜索", "^搜索$", "^Search$"], options: { minY: 0, maxY: 90 }, skipBalanced: true },
     { area: "notifications", patterns: ["^通知$", "^Notifications$"], options: { minY: 0, maxY: 90 } },
     { area: "account-menu", patterns: ["^管理账号$", "^账号$", "^Account$"], options: { minY: 0, maxY: 90 } },
     { area: "side-projects", patterns: ["^项目$", "^Projects$"], options: { maxX: 260 } },
@@ -780,21 +1024,31 @@ async function auditKnownControls(cdp, allHits, log, delayMs, limits) {
     { area: "bottom-tools", patterns: ["^工具$", "^Tools$"], options: { minY: 700 } }
   ];
 
-  for (let i = 0; i < controls.length; i += 1) {
-    const item = controls[i];
+  const skipped = controls.filter((item) => item.skipBalanced && !THOROUGH).map((item) => item.area);
+  if (skipped.length) {
+    log.push({ step: "known-controls-skipped", phase: "平衡模式跳过重量级界面", areas: skipped });
+  }
+  const selectedControls = controls.filter((item) => THOROUGH || !item.skipBalanced).slice(0, limits.knownControls);
+  for (let i = 0; i < selectedControls.length; i += 1) {
+    if (!budgetAllows(budget, log, `known-control-${i}`, delayMs + 1000)) {
+      break;
+    }
+    const item = selectedControls[i];
     await closeTransientUi(cdp, delayMs);
     const clicked = await clickFirst(cdp, item.patterns, Math.max(delayMs + 280, 620), item.options || {});
     log.push({ step: `known-control-click-${item.area}`, clicked, control: item });
-    const mode = clicked.ok ? "overlay" : "full";
+    const overlayCount = clicked.ok ? await evaluate(cdp, visibleOverlayCountScript) : 0;
+    const mode = overlayCount > 0 ? "overlay" : "full";
     await scanVisibleTargets(cdp, `known-control-${item.area}`, allHits, log, delayMs, {
       mode,
       hoverLimit: limits.controlHover,
       rightLimit: limits.controlRight
-    });
+    }, budget);
   }
 }
 
-async function ensureRequestWorkbench(cdp, allHits, log, delayMs) {
+async function ensureRequestWorkbench(cdp, allHits, log, delayMs, budget) {
+  if (!budgetAllows(budget, log, "ensure-request-start", 2500)) return false;
   const before = await evaluate(cdp, pageScript({ mode: "full" }));
   mergeHits(allHits, "ensure-request-before", before.hits);
   const hasRequestControls = (before.targets || []).some((item) => /sidebar-import-button|^导入$|^Import$/i.test(item.text || "")) &&
@@ -814,6 +1068,7 @@ async function ensureRequestWorkbench(cdp, allHits, log, delayMs) {
   ], Math.max(delayMs + 650, 1000), { minY: 35, maxY: 85 });
   log.push({ step: "ensure-request-workbench-click-tab", tabClick });
 
+  if (!budgetAllows(budget, log, "ensure-request-after-tab", 1500)) return false;
   const afterTab = await evaluate(cdp, pageScript({ mode: "full" }));
   mergeHits(allHits, "ensure-request-after-tab", afterTab.hits);
   const tabOk = (afterTab.targets || []).some((item) => /sidebar-import-button|^导入$|^Import$/i.test(item.text || "")) &&
@@ -823,6 +1078,7 @@ async function ensureRequestWorkbench(cdp, allHits, log, delayMs) {
     return true;
   }
 
+  if (!budgetAllows(budget, log, "ensure-request-new-menu", 1800)) return false;
   const newMenu = await clickFirst(cdp, ["^新建$", "^New$"], delayMs, { maxX: 470 });
   const httpClick = newMenu.ok ? await clickFirst(cdp, ["^HTTP 请求$", "^HTTP Request$", "^请求$", "^Request$"], Math.max(delayMs + 650, 1000), { scope: "overlay" }) : { ok: false, reason: "new-menu-not-opened" };
   log.push({ step: "ensure-request-workbench-new-http", newMenu, httpClick });
@@ -830,22 +1086,30 @@ async function ensureRequestWorkbench(cdp, allHits, log, delayMs) {
 }
 
 async function main() {
-  const timeoutMs = Number(argValue("--timeout-ms", "30000"));
-  const delayMs = Number(argValue("--delay-ms", "220"));
+  const defaults = defaultAuditOptions(THOROUGH);
+  const timeoutMs = integerArg("--timeout-ms", 30000, 1000, 600000);
+  const delayMs = integerArg("--delay-ms", defaults.delayMs, 0, 10000);
+  const auditBudgetMs = integerArg(
+    "--audit-budget-ms",
+    defaults.auditBudgetMs,
+    5000,
+    THOROUGH ? 3600000 : defaults.auditBudgetMs
+  );
   const outBase = resolveOutBase(argValue("--out", "postman-deep-areas-audit"));
   const targetTitle = argValue("--target-title", "未命名请求|新建请求|Untitled|New Request|HTTP Request|MQTT 请求|MQTT Request");
   const limits = {
-    overlayHover: Number(argValue("--overlay-hover", "50")),
-    overlayRight: Number(argValue("--overlay-right", "25")),
-    createdHover: Number(argValue("--created-hover", "28")),
-    createdRight: Number(argValue("--created-right", "14")),
-    settingsHover: Number(argValue("--settings-hover", "50")),
-    settingsRight: Number(argValue("--settings-right", "18")),
-    controlHover: Number(argValue("--control-hover", "18")),
-    controlRight: Number(argValue("--control-right", "10")),
-    newMenuItems: Number(argValue("--new-menu-items", "24")),
-    importItems: Number(argValue("--import-items", "26")),
-    settingsTabs: Number(argValue("--settings-tabs", "16"))
+    overlayHover: integerArg("--overlay-hover", defaults.overlayHover, 0, THOROUGH ? 500 : defaults.overlayHover),
+    overlayRight: integerArg("--overlay-right", defaults.overlayRight, 0, THOROUGH ? 500 : defaults.overlayRight),
+    createdHover: integerArg("--created-hover", defaults.createdHover, 0, THOROUGH ? 500 : defaults.createdHover),
+    createdRight: integerArg("--created-right", defaults.createdRight, 0, THOROUGH ? 500 : defaults.createdRight),
+    settingsHover: integerArg("--settings-hover", defaults.settingsHover, 0, THOROUGH ? 500 : defaults.settingsHover),
+    settingsRight: integerArg("--settings-right", defaults.settingsRight, 0, THOROUGH ? 500 : defaults.settingsRight),
+    controlHover: integerArg("--control-hover", defaults.controlHover, 0, THOROUGH ? 500 : defaults.controlHover),
+    controlRight: integerArg("--control-right", defaults.controlRight, 0, THOROUGH ? 500 : defaults.controlRight),
+    newMenuItems: integerArg("--new-menu-items", defaults.newMenuItems, 0, THOROUGH ? 100 : defaults.newMenuItems),
+    importItems: integerArg("--import-items", defaults.importItems, 0, THOROUGH ? 100 : defaults.importItems),
+    settingsTabs: integerArg("--settings-tabs", defaults.settingsTabs, 0, THOROUGH ? 100 : defaults.settingsTabs),
+    knownControls: integerArg("--known-controls", defaults.knownControls, 0, THOROUGH ? 100 : defaults.knownControls)
   };
 
   const portFile = resolvePortFile();
@@ -855,58 +1119,158 @@ async function main() {
 
   const port = fs.readFileSync(portFile, "utf8").split(/\r?\n/)[0].trim();
   const target = await waitForPostmanTarget(port, timeoutMs, targetTitle);
-  const cdp = await connectCdp(target.webSocketDebuggerUrl);
+  const budget = createAuditBudget(auditBudgetMs);
+  const cdp = await connectCdp(target.webSocketDebuggerUrl, budget.deadline);
   const allHits = new Map();
   const log = [];
 
   try {
-    await cdp.send("Runtime.enable");
-    await cdp.send("Page.enable");
-    await closeTransientUi(cdp, delayMs);
-    await collect(cdp, "full", "initial", allHits, log);
-    await ensureRequestWorkbench(cdp, allHits, log, delayMs);
-    await collect(cdp, "full", "after-ensure-request-workbench", allHits, log);
+    let finalState = null;
+    let screenshotSaved = false;
+    try {
+      if (SAVE_SCREENSHOT) {
+        await cdp.send("Page.enable");
+      }
+      await closeTransientUi(cdp, delayMs);
+      await collect(cdp, "full", "initial", allHits, log);
+      await ensureRequestWorkbench(cdp, allHits, log, delayMs, budget);
+      if (budgetAllows(budget, log, "after-ensure-request-workbench", 750)) {
+        await collect(cdp, "full", "after-ensure-request-workbench", allHits, log);
+      }
 
-    await auditImport(cdp, allHits, log, delayMs, limits);
-    await auditNewMenu(cdp, allHits, log, delayMs, limits);
-    await auditSettings(cdp, allHits, log, delayMs, limits);
-    await auditKnownControls(cdp, allHits, log, delayMs, limits);
+      if (budgetAllows(budget, log, "new-menu", delayMs + 900)) {
+        await auditNewMenu(cdp, allHits, log, delayMs, limits, budget);
+      }
+      if (budgetAllows(budget, log, "settings", delayMs + 900)) {
+        await auditSettings(cdp, allHits, log, delayMs, limits, budget);
+      }
+      if (budgetAllows(budget, log, "known-controls", delayMs + 900)) {
+        await auditKnownControls(cdp, allHits, log, delayMs, limits, budget);
+      }
 
-    await closeTransientUi(cdp, delayMs);
-    const finalState = await collect(cdp, "full", "final", allHits, log);
-    await capture(cdp, `${outBase}.png`);
+      if (budgetAllows(budget, log, "close-transient", delayMs + 250)) {
+        await closeTransientUi(cdp, delayMs);
+      }
+      finalState = budgetAllows(budget, log, "final-state", 750)
+        ? await collect(cdp, "full", "final", allHits, log)
+        : null;
+      screenshotSaved = SAVE_SCREENSHOT && budgetAllows(budget, log, "screenshot", 1500);
+      if (screenshotSaved) await capture(cdp, `${outBase}.png`);
+    } catch (error) {
+      if (!isAuditTimeoutError(error)) throw error;
+      if (!budget.exhaustedAt) budget.exhaustedAt = "cdp-timeout";
+      log.push({
+        step: "audit-timeout",
+        phase: "预算耗尽",
+        error: String(error && error.message || error).slice(0, 300)
+      });
+    }
 
     const hits = Array.from(allHits.values()).sort((a, b) => b.count - a.count || a.text.localeCompare(b.text));
     const output = {
       target: targetSummary(target),
+      mode: THOROUGH ? "thorough" : "balanced",
+      complete: !budget.exhaustedAt,
       limits,
+      budget: summarizeBudget(budget),
       log,
       hits,
       final: summarizeState(finalState)
     };
-    fs.writeFileSync(`${outBase}.json`, JSON.stringify(output, null, 2), "utf8");
+    writeAuditReport(`${outBase}.json`, output);
     const summary = {
       out: `${outBase}.json`,
-      screenshot: `${outBase}.png`,
+      screenshot: screenshotSaved ? `${outBase}.png` : null,
       target: targetSummary(target),
       steps: log.length,
+      mode: output.mode,
+      budget: output.budget,
       hitCount: hits.length,
       hits: hits.slice(0, 80).map((item) => item.text)
     };
-    console.log(`深层界面审计完成：发现 ${summary.hitCount} 条待复核文本，报告已保存到 ${summary.out}。`);
+    if (output.complete) {
+      console.log(`深层界面审计完成：发现 ${summary.hitCount} 条待复核文本，报告已保存到 _generated/${path.basename(summary.out)}。`);
+    } else {
+      console.log(`深层界面审计已达到时间上限，已保存部分结果到 _generated/${path.basename(summary.out)}。`);
+      process.exitCode = 2;
+    }
     if (SHOW_DETAILS) {
-      console.log(JSON.stringify(summary, null, 2));
+      console.log(JSON.stringify(sanitizeAuditReport(summary), null, 2));
     }
   } finally {
     cdp.close();
   }
 }
 
-main().catch((error) => {
+function selfTest() {
+  const balanced = defaultAuditOptions(false);
+  const thorough = defaultAuditOptions(true);
+  new Function(`return (${pageScript({ mode: "full" })});`);
+  new Function(`return (${findTargetScript(["^测试$"], { minY: 0, maxY: 100 })});`);
+
+  const compact = summarizeState({
+    url: "https://desktop.postman.com/?token=hidden",
+    title: "Postman",
+    localized: "true",
+    overlays: [{ text: "很长的弹窗内容" }],
+    targets: Array.from({ length: 120 }, (_, index) => ({ text: `目标 ${index}` })),
+    hits: Array.from({ length: 30 }, (_, index) => ({ text: `English ${index}`, count: index + 1 }))
+  });
+  const aggregate = new Map();
+  mergeHits(aggregate, "self-test", [{ text: "English finding", count: 2, samples: [{ text: "不应保留" }] }]);
+  const budgetLog = [];
+  const expiredBudget = createAuditBudget(1000, 0);
+  const firstBudgetCheck = budgetAllows(expiredBudget, budgetLog, "self-test", 0, 1000);
+  const secondBudgetCheck = budgetAllows(expiredBudget, budgetLog, "self-test-again", 0, 1001);
+  const mainSource = main.toString();
+  const knownControlsSource = auditKnownControls.toString();
+  const pageSource = pageScript({ mode: "full" });
+  const checks = [
+    [balanced.auditBudgetMs < thorough.auditBudgetMs, true],
+    [balanced.overlayHover < thorough.overlayHover, true],
+    [balanced.newMenuItems < thorough.newMenuItems, true],
+    [balanced.knownControls < thorough.knownControls, true],
+    [balanced.knownControls, 10],
+    [compact.hits.length, LOG_HIT_LIMIT],
+    ["targets" in compact, false],
+    ["overlays" in compact, false],
+    ["samples" in aggregate.get("English finding"), false],
+    [firstBudgetCheck, false],
+    [secondBudgetCheck, false],
+    [budgetLog.length, 1],
+    [isAuditTimeoutError(new Error("审计时间预算已耗尽：Runtime.evaluate")), true],
+    [isAuditTimeoutError(new Error("普通连接错误")), false],
+    [mainSource.includes("Runtime.enable"), false],
+    [/if \(SAVE_SCREENSHOT\)[\s\S]*Page\.enable/.test(mainSource), true],
+    [/const targets = collectTargets\(\);/.test(pageSource), true],
+    [/collectEnglish\(targets\)/.test(pageSource), true],
+    [/const MAX_ELEMENTS = 6000/.test(pageSource), true],
+    [/matchingElements\(/.test(pageSource), true],
+    [/textTraversal\.visited >= MAX_TEXT_NODES/.test(pageSource), true],
+    [/querySelectorAll\(/.test(pageSource), false],
+    [/privateElement\(el\)\) return ""/.test(pageSource), true],
+    [/skipBalanced: true/.test(knownControlsSource), true],
+    [mainSource.includes("isAuditTimeoutError(error)"), true]
+  ];
+  const failed = checks.filter(([actual, expected]) => actual !== expected);
+  if (failed.length) {
+    throw new Error(`自检失败，共 ${failed.length} 项不符合预期。`);
+  }
+  if (SHOW_DETAILS) {
+    console.log(JSON.stringify(sanitizeAuditReport({ ok: true, checks: checks.length }), null, 2));
+  } else {
+    console.log(`深层界面审计脚本自检通过，共 ${checks.length} 项。`);
+  }
+}
+
+Promise.resolve().then(() => SELF_TEST ? selfTest() : main()).catch((error) => {
   const message = String(error && error.message || error).replace(/\s+/g, " ").trim();
-  console.error(`深层界面审计失败：${message}`);
-  if (SHOW_DETAILS && error && error.stack) {
-    console.error(error.stack);
+  if (SHOW_DETAILS) {
+    console.error(JSON.stringify(sanitizeAuditReport({ ok: false, error: message }), null, 2));
+  } else if (SELF_TEST) {
+    console.error("深层界面审计脚本自检失败；可使用 --details 查看详细信息。");
+  } else {
+    console.error("深层界面审计失败，请确认 Postman 已启动；可使用 --details 查看详细信息。");
   }
   process.exit(1);
 });

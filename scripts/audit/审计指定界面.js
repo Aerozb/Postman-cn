@@ -3,6 +3,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { sanitizeAuditReport, resolveAuditOutputBase, writeAuditReport, writeAuditScreenshot } = require("./审计安全.js");
 
 function argValue(name, fallback = null) {
   const index = process.argv.indexOf(name);
@@ -17,20 +18,40 @@ function hasFlag(name) {
 }
 
 const SHOW_DETAILS = hasFlag("--details");
+const SAVE_SCREENSHOT = hasFlag("--screenshot");
+const THOROUGH = hasFlag("--thorough");
+const DEFAULT_AUDIT_BUDGET_MS = THOROUGH ? 300000 : 90000;
+const MAX_TEXT_NODES = THOROUGH ? 4800 : 2400;
+const MAX_ELEMENTS = THOROUGH ? 10000 : 5000;
+const MAX_ATTRIBUTES = THOROUGH ? 600 : 240;
+const MAX_HITS_PER_STATE = 80;
 
 function resolveOutBase(value) {
-  const requested = value || "postman-audit";
-  const hasDirectory = path.isAbsolute(requested) || requested.includes("/") || requested.includes("\\");
-  let resolved = hasDirectory ? requested : path.resolve(__dirname, "..", "..", "..", "_generated", requested);
-  if ([".json", ".png"].includes(path.extname(resolved).toLowerCase())) {
-    resolved = resolved.slice(0, -path.extname(resolved).length);
-  }
-  fs.mkdirSync(path.dirname(resolved), { recursive: true });
-  return resolved;
+  return resolveAuditOutputBase(value, "postman-audit");
 }
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function integerArg(name, fallback, min = 0, max = Number.MAX_SAFE_INTEGER) {
+  const value = Number(argValue(name, String(fallback)));
+  if (!Number.isFinite(value) || !Number.isInteger(value) || value < min || value > max) {
+    throw new Error(`${name} 必须是 ${min} 到 ${max} 之间的整数。`);
+  }
+  return value;
+}
+
+function budgetAllows(budget, step, reserveMs = 0) {
+  if (Date.now() + reserveMs < budget.deadline) return true;
+  if (!budget.exhaustedAt) budget.exhaustedAt = step;
+  return false;
+}
+
+function budgetError(step) {
+  const error = new Error(`审计时间预算已耗尽：${step}`);
+  error.code = "AUDIT_BUDGET";
+  return error;
 }
 
 function resolvePortFile() {
@@ -40,15 +61,21 @@ function resolvePortFile() {
   return path.join(process.env.APPDATA, "Postman", "DevToolsActivePort");
 }
 
-async function getJson(url) {
-  const response = await fetch(url);
+async function getJson(url, timeoutMs = 5000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), Math.max(100, timeoutMs));
+  try {
+    const response = await fetch(url, { signal: controller.signal });
   if (!response.ok) {
     throw new Error(`HTTP 请求失败：状态码 ${response.status}，地址 ${url}`);
   }
   return response.json();
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
-async function connectCdp(wsUrl) {
+async function connectCdp(wsUrl, deadline = null) {
   let nextId = 1;
   const pending = new Map();
   const ws = new WebSocket(wsUrl);
@@ -62,19 +89,25 @@ async function connectCdp(wsUrl) {
   }
 
   await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("连接 CDP WebSocket 超时。")), 10000);
+    const remaining = deadline ? Math.max(100, deadline - Date.now()) : 10000;
+    const timer = setTimeout(() => {
+      try { ws.close(); } catch (_) {}
+      reject(new Error("连接 CDP WebSocket 超时。"));
+    }, Math.min(10000, remaining));
     ws.addEventListener("open", () => {
       clearTimeout(timer);
       resolve();
     }, { once: true });
     ws.addEventListener("error", () => {
       clearTimeout(timer);
+      try { ws.close(); } catch (_) {}
       reject(new Error("连接 CDP WebSocket 失败。"));
     }, { once: true });
   });
 
   ws.addEventListener("message", (event) => {
-    const message = JSON.parse(event.data);
+    let message;
+    try { message = JSON.parse(event.data); } catch (_) { return; }
     if (!message.id || !pending.has(message.id)) {
       return;
     }
@@ -82,7 +115,7 @@ async function connectCdp(wsUrl) {
     pending.delete(message.id);
     clearTimeout(callbacks.timer);
     if (message.error) {
-      callbacks.reject(new Error(message.error.message || JSON.stringify(message.error)));
+      callbacks.reject(new Error(message.error.message || JSON.stringify(sanitizeAuditReport(message.error))));
     } else {
       callbacks.resolve(message.result);
     }
@@ -93,17 +126,34 @@ async function connectCdp(wsUrl) {
   });
 
   return {
-    send(method, params = {}) {
+    send(method, params = {}, timeoutMs = 15000) {
       const id = nextId++;
-      ws.send(JSON.stringify({ id, method, params }));
       return new Promise((resolve, reject) => {
+        if (ws.readyState !== WebSocket.OPEN) {
+          reject(new Error("CDP WebSocket 未连接。"));
+          return;
+        }
+        const remaining = deadline ? deadline - Date.now() : timeoutMs;
+        if (remaining <= 0) {
+          reject(budgetError(method));
+          return;
+        }
+        const commandTimeout = Math.max(100, Math.min(timeoutMs, remaining));
         const timer = setTimeout(() => {
           if (pending.has(id)) {
             pending.delete(id);
+            try { ws.close(); } catch (_) {}
             reject(new Error(`CDP 命令执行超时：${method}`));
           }
-        }, 20000);
+        }, commandTimeout);
         pending.set(id, { resolve, reject, timer });
+        try {
+          ws.send(JSON.stringify({ id, method, params }));
+        } catch (error) {
+          clearTimeout(timer);
+          pending.delete(id);
+          reject(error);
+        }
       });
     },
     close() {
@@ -140,6 +190,9 @@ function englishHits(sources, step) {
 
     for (const line of fragments) {
       if (!/[A-Za-z]{2,}/.test(line) || ALLOWED_LINE.test(line)) {
+        continue;
+      }
+      if (/^gpt-\d+(?:\.\d+)?(?:\s+[a-z][a-z0-9.-]*)+$/i.test(line)) {
         continue;
       }
       if (source.kind === "attribute" && source.attribute === "aria-label" && /(?:的头像|团队标志)$/.test(line)) {
@@ -218,10 +271,15 @@ async function pressEsc(cdp) {
 
 async function collectState(cdp, step) {
   const expression = String.raw`(() => {
+    const MAX_TEXT_NODES = ${MAX_TEXT_NODES};
+    const MAX_ELEMENTS = ${MAX_ELEMENTS};
+    const MAX_ATTRIBUTES = ${MAX_ATTRIBUTES};
+    const MAX_TEXT_LENGTH = 600;
     const norm = (text) => String(text || "").replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
     const isVisible = (el) => {
       if (!el || !(el instanceof Element)) return false;
-      const style = getComputedStyle(el);
+      const view = el.ownerDocument.defaultView || window;
+      const style = view.getComputedStyle(el);
       return style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity || 1) !== 0 && el.getClientRects().length > 0;
     };
     const isPrivateText = (el) => {
@@ -234,39 +292,46 @@ async function collectState(cdp, step) {
     };
     const sources = [];
     const overlaySelector = '[role="tooltip"],[role="menu"],[role="dialog"],.ReactModal__Overlay,[data-testid*="menu"],[data-testid*="modal"]';
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    const body = document.body || document.documentElement;
+    const walker = body && document.createTreeWalker(body, NodeFilter.SHOW_TEXT);
     let textIndex = 0;
-    while (walker.nextNode() && textIndex < 1200) {
-      const node = walker.currentNode;
+    let textVisited = 0;
+    let node;
+    while (walker && (node = walker.nextNode()) && textVisited < MAX_TEXT_NODES && textIndex < 1200) {
+      textVisited += 1;
       const parent = node.parentElement;
       const text = norm(node.nodeValue);
-      if (!text || !isVisible(parent) || isPrivateText(parent)) continue;
+      if (!text || text.length > MAX_TEXT_LENGTH * 2 || !isVisible(parent) || isPrivateText(parent)) continue;
       const overlay = parent.closest(overlaySelector);
-      sources.push({ text, kind: overlay ? "overlay" : "body", tag: overlay ? overlay.tagName : parent.tagName, index: textIndex });
+      sources.push({ text: text.slice(0, MAX_TEXT_LENGTH), kind: overlay ? "overlay" : "body", tag: overlay ? overlay.tagName : parent.tagName, index: textIndex });
       textIndex += 1;
     }
     if (norm(document.title)) {
       sources.unshift({ text: norm(document.title), kind: "title", index: 0 });
     }
     let attributeCount = 0;
-    Array.from(document.querySelectorAll('[aria-label],[placeholder],input,textarea,button,a,[role="button"],[role="tab"],[role="menuitem"]'))
-      .forEach((el, index) => {
-        if (attributeCount >= 240) {
-          return;
-        }
+    let elementVisited = 0;
+    const elementWalker = body && document.createTreeWalker(body, NodeFilter.SHOW_ELEMENT);
+    let element;
+    while (elementWalker && (element = elementWalker.nextNode()) && elementVisited < MAX_ELEMENTS && attributeCount < MAX_ATTRIBUTES) {
+        elementVisited += 1;
+        const el = element;
+        if (!isVisible(el) || isPrivateText(el)) continue;
         const explicit = norm(el.getAttribute("aria-label") || el.getAttribute("placeholder") || el.title || "");
         if (explicit) {
           const attribute = el.getAttribute("aria-label") ? "aria-label" : el.getAttribute("placeholder") ? "placeholder" : "title";
-          sources.push({ text: explicit, kind: "attribute", attribute, tag: el.tagName, index });
+          sources.push({ text: explicit.slice(0, MAX_TEXT_LENGTH), kind: "attribute", attribute, tag: el.tagName, index: elementVisited });
           attributeCount += 1;
         }
-      });
+    }
     return {
       title: document.title,
       url: location.href,
       sources,
       textNodeCount: textIndex,
-      attributeCount
+      textVisited,
+      attributeCount,
+      elementVisited
     };
   })()`;
   const result = await cdp.send("Runtime.evaluate", { expression, returnByValue: true });
@@ -277,17 +342,28 @@ async function collectState(cdp, step) {
     url: value.url,
     hits: englishHits(value.sources || [], step),
     textNodeCount: value.textNodeCount,
-    attributeCount: value.attributeCount
+    textVisited: value.textVisited,
+    attributeCount: value.attributeCount,
+    elementVisited: value.elementVisited
   };
 }
 
-async function waitForTarget(port, timeoutMs, targetTitle) {
+async function waitForTarget(port, timeoutMs, targetTitle, budget) {
   const deadline = Date.now() + timeoutMs;
   const requested = targetTitle ? new RegExp(targetTitle, "i") : null;
   let lastTargets = [];
 
   while (Date.now() < deadline) {
-    const targets = await getJson(`http://127.0.0.1:${port}/json/list`);
+    if (!budgetAllows(budget, "等待页面目标", 200)) break;
+    const remaining = Math.max(100, Math.min(5000, deadline - Date.now(), budget.deadline - Date.now()));
+    let targets;
+    try {
+      targets = await getJson(`http://127.0.0.1:${port}/json/list`, remaining);
+    } catch (error) {
+      if (Date.now() >= deadline || Date.now() >= budget.deadline) break;
+      await sleep(Math.min(800, Math.max(100, remaining / 4)));
+      continue;
+    }
     lastTargets = targets;
     const pages = targets.filter((target) => {
       return target.type === "page" &&
@@ -315,7 +391,9 @@ async function waitForTarget(port, timeoutMs, targetTitle) {
     await sleep(800);
   }
 
-  throw new Error(`未找到 Postman 页面调试目标。当前目标：${JSON.stringify(lastTargets)}`);
+  const error = new Error(`未找到 Postman 页面调试目标。当前目标：${JSON.stringify(sanitizeAuditReport(lastTargets))}`);
+  if (Date.now() >= budget.deadline) error.code = "AUDIT_BUDGET";
+  throw error;
 }
 
 const ACTIONS = [
@@ -323,9 +401,6 @@ const ACTIONS = [
   ["click-new-menu", "click", 311, 109],
   ["hover-new-menu", "hover", 330, 150],
   ["close-new-menu", "esc", 0, 0],
-  ["click-import", "click", 353, 109],
-  ["hover-import-modal", "hover", 650, 220],
-  ["close-import", "esc", 0, 0],
   ["hover-tab", "hover", 468, 110],
   ["right-tab", "right", 468, 110],
   ["close-tab-menu", "esc", 0, 0],
@@ -363,28 +438,34 @@ const ACTIONS = [
 ];
 
 async function main() {
-  const timeoutMs = Number(argValue("--timeout-ms", "60000"));
-  const delayMs = Number(argValue("--delay-ms", "800"));
+  const timeoutMs = integerArg("--timeout-ms", THOROUGH ? 120000 : 60000, 1000, THOROUGH ? 600000 : 120000);
+  const delayMs = integerArg("--delay-ms", THOROUGH ? 500 : 800, 0, THOROUGH ? 10000 : 3000);
+  const auditBudgetMs = integerArg("--audit-budget-ms", DEFAULT_AUDIT_BUDGET_MS, 5000, THOROUGH ? 600000 : DEFAULT_AUDIT_BUDGET_MS);
+  const maxActions = integerArg("--max-actions", ACTIONS.length, 1, ACTIONS.length);
   const outBase = resolveOutBase(argValue("--out", "postman-targeted-audit"));
   const targetTitle = argValue("--target-title", "未命名请求|新建请求|HTTP Request|Untitled Request|Postman");
   const portFile = resolvePortFile();
+  const budget = { limitMs: auditBudgetMs, startedAt: Date.now(), deadline: Date.now() + auditBudgetMs, exhaustedAt: null };
+  const log = [];
+  let target = null;
+  let cdp = null;
+  let fatalError = null;
 
   if (!fs.existsSync(portFile)) {
     throw new Error("未找到 DevToolsActivePort 文件。请先启动 Postman。");
   }
 
-  const port = fs.readFileSync(portFile, "utf8").split(/\r?\n/)[0].trim();
-  const target = await waitForTarget(port, timeoutMs, targetTitle);
-  const cdp = await connectCdp(target.webSocketDebuggerUrl);
-  const log = [];
-
   try {
-    await cdp.send("Runtime.enable");
-    await cdp.send("Page.enable");
+    const port = fs.readFileSync(portFile, "utf8").split(/\r?\n/)[0].trim();
+    if (!/^\d+$/.test(port)) throw new Error("DevToolsActivePort 文件中的端口无效。");
+    target = await waitForTarget(port, Math.min(timeoutMs, auditBudgetMs), targetTitle, budget);
+    cdp = await connectCdp(target.webSocketDebuggerUrl, budget.deadline);
+    if (!budgetAllows(budget, "initial", delayMs + 1200)) throw budgetError("initial");
     await pressEsc(cdp);
     log.push(await collectState(cdp, "initial"));
 
-    for (const [name, type, x, y] of ACTIONS) {
+    for (const [name, type, x, y] of ACTIONS.slice(0, maxActions)) {
+      if (!budgetAllows(budget, name, delayMs + 1200)) break;
       try {
         if (type === "click") {
           await clickAt(cdp, x, y);
@@ -399,13 +480,26 @@ async function main() {
         log.push(await collectState(cdp, name));
       } catch (error) {
         log.push({ step: name, error: error.message });
+        if (error.code === "AUDIT_BUDGET" || /CDP (?:命令执行超时|WebSocket)/.test(error.message)) {
+          budget.exhaustedAt ||= name;
+          break;
+        }
       }
     }
 
-    const screenshot = await cdp.send("Page.captureScreenshot", { format: "png", fromSurface: true });
-    fs.writeFileSync(`${outBase}.png`, Buffer.from(screenshot.data, "base64"));
+    if (SAVE_SCREENSHOT && budgetAllows(budget, "screenshot", 1500)) {
+      await cdp.send("Page.enable", {}, 10000);
+      const screenshot = await cdp.send("Page.captureScreenshot", { format: "png", fromSurface: true });
+      writeAuditScreenshot(`${outBase}.png`, screenshot.data);
+    }
+  } catch (error) {
+    fatalError = error;
+    if (error.code === "AUDIT_BUDGET" || /(?:审计时间预算已耗尽|CDP 命令执行超时|CDP WebSocket)/.test(String(error.message || error))) {
+      budget.exhaustedAt ||= "fatal";
+    }
+    log.push({ step: "fatal", error: String(error.message || error) });
   } finally {
-    cdp.close();
+    if (cdp) cdp.close();
   }
 
   const hits = [];
@@ -418,22 +512,32 @@ async function main() {
     }
   }
   const output = {
-    target: { title: target.title, url: target.url },
+    complete: !fatalError && !budget.exhaustedAt,
+    budget: {
+      limitMs: budget.limitMs,
+      elapsedMs: Date.now() - budget.startedAt,
+      exhausted: Boolean(budget.exhaustedAt),
+      exhaustedAt: budget.exhaustedAt
+    },
+    target: target ? { title: target.title, url: target.url } : null,
     hitCount: hits.length,
     hits,
     log
   };
-  fs.writeFileSync(`${outBase}.json`, JSON.stringify(output, null, 2), "utf8");
+    writeAuditReport(`${outBase}.json`, output);
   const summary = {
     out: `${outBase}.json`,
-    screenshot: `${outBase}.png`,
+    screenshot: SAVE_SCREENSHOT ? `${outBase}.png` : null,
+    complete: output.complete,
+    budget: output.budget,
     hitCount: hits.length,
     hits: hits.slice(0, 80)
   };
-  console.log(`指定界面审计完成：发现 ${summary.hitCount} 条待复核文本，报告已保存到 ${summary.out}。`);
+  console.log(`指定界面审计${summary.complete ? "完成" : "已保存部分结果"}：发现 ${summary.hitCount} 条待复核文本，报告已保存到 _generated/${path.basename(summary.out)}。`);
   if (SHOW_DETAILS) {
-    console.log(JSON.stringify(summary, null, 2));
+    console.log(JSON.stringify(sanitizeAuditReport(summary), null, 2));
   }
+  if (!summary.complete) process.exitCode = fatalError && !budget.exhaustedAt ? 1 : 2;
 }
 
 function selfTest() {
@@ -455,7 +559,11 @@ function selfTest() {
     [englishHits([{ text: "aerozb 的头像", kind: "attribute", attribute: "aria-label" }], "self-test").length, 0],
     [englishHits([{ text: "Press Ctrl+K to search", kind: "body" }], "self-test").length, 1],
     [englishHits([{ text: "Description", kind: "body" }], "self-test").length, 1],
-    [Number(argValue("--delay-ms", "800")) >= 800, true]
+    [Number(argValue("--delay-ms", "800")) >= 800, true],
+    [/MAX_TEXT_NODES/.test(generatedScan), true],
+    [/MAX_ELEMENTS/.test(generatedScan), true],
+    [/AbortController/.test(String(getJson)), true],
+    [DEFAULT_AUDIT_BUDGET_MS >= 90000, true]
   ];
   const failed = checks.filter(([actual, expected]) => actual !== expected);
   if (failed.length) {
@@ -463,16 +571,16 @@ function selfTest() {
   }
   const summary = { ok: true, checks: checks.length };
   if (SHOW_DETAILS) {
-    console.log(JSON.stringify(summary, null, 2));
+    console.log(JSON.stringify(sanitizeAuditReport(summary), null, 2));
   } else {
     console.log(`指定界面审计脚本自检通过，共 ${checks.length} 项。`);
   }
 }
 
 Promise.resolve().then(() => hasFlag("--self-test") ? selfTest() : main()).catch((error) => {
-  const message = norm(error && error.message || error);
+  const message = String(error && error.message || error).replace(/\s+/g, " ").trim();
   if (SHOW_DETAILS) {
-    console.error(JSON.stringify({ ok: false, error: message, stack: error && error.stack || null }, null, 2));
+    console.error(JSON.stringify(sanitizeAuditReport({ ok: false, error: message }), null, 2));
   } else {
     console.error("指定界面审计失败，请确认 Postman 已启动；可使用 --details 查看详细信息。");
   }

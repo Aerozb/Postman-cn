@@ -5,30 +5,27 @@
 // UI 属性键（label/title/tooltip/text/...）后面的字符串字面量，逐条通过
 // zh-localize.js 的 translate() 测试，输出"翻译不出来"的候选清单。
 // 用法：node 提取界面文案.js --disk [--max N] [--out report.json]
-// 输出：默认写入同级 _generated/zh-static-candidates.json。裸名称也写入 _generated；带目录的相对路径按调用目录解析。
+// 输出：默认写入同级 _generated/zh-static-candidates.json；--out 只接受文件名。
 
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
+const { sanitizeAuditReport, resolveAuditOutputPath, writeAuditReport } = require("../audit/审计安全.js");
+const SHOW_DETAILS = process.argv.includes("--details");
 
 function outputPath() {
   const index = process.argv.indexOf("--out");
-  const generatedDir = path.resolve(__dirname, "..", "..", "..", "_generated");
-  let resolved = path.join(generatedDir, "zh-static-candidates.json");
-  if (index < 0) return resolved;
-
-  const value = process.argv[index + 1];
-  if (!value || value.startsWith("--")) {
-    throw new Error("--out 后必须提供 JSON 报告路径。");
+  if (index >= 0) {
+    const value = process.argv[index + 1];
+    if (!value || value.startsWith("--")) {
+      throw new Error("--out 后必须提供 JSON 报告文件名。");
+    }
+    if (path.extname(value).toLowerCase() === ".png") {
+      throw new Error("静态扫描报告必须使用 .json 文件名。");
+    }
+    return resolveAuditOutputPath(value, "zh-static-candidates.json");
   }
-  const hasDirectory = path.isAbsolute(value) || value.includes("/") || value.includes("\\");
-  resolved = hasDirectory ? path.resolve(value) : path.join(generatedDir, value);
-  const extension = path.extname(resolved);
-  if (!extension) return resolved + ".json";
-  if (extension.toLowerCase() !== ".json") {
-    throw new Error("--out 路径必须使用 .json 扩展名，或不写扩展名。");
-  }
-  return resolved;
+  return resolveAuditOutputPath(null, "zh-static-candidates.json");
 }
 
 function sleep(ms) {
@@ -258,7 +255,7 @@ async function main() {
   const counter = new Map();
   const resourceCount = diskMode ? extractFromDisk(counter) : await extractViaCdp(counter);
 
-  console.log("已扫描 " + resourceCount + " 个资源，抽取候选 " + counter.size + " 条，开始过翻译器...");
+  console.log("已扫描 " + resourceCount + " 个资源，抽取候选 " + counter.size + " 条，开始通过翻译器...");
   const translate = loadTranslator();
   const untranslated = [];
   for (const [text, info] of counter.entries()) {
@@ -272,21 +269,24 @@ async function main() {
   const limited = maxOut > 0 ? untranslated.slice(0, maxOut) : untranslated;
 
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
-  fs.writeFileSync(outFile, JSON.stringify({
+  const report = sanitizeAuditReport({
     exportedAt: new Date().toISOString(),
     scannedResources: resourceCount,
     totalCandidates: counter.size,
     untranslatedCount: untranslated.length,
     untranslated: limited
-  }, null, 2), "utf8");
-  console.log("未翻译候选 " + untranslated.length + " 条，已保存 " + outFile);
-  for (const item of limited.slice(0, 40)) {
-    console.log(String(item.count).padStart(4) + "  [" + item.key + "] " + item.text);
+  });
+  writeAuditReport(outFile, report);
+  console.log("未翻译候选 " + untranslated.length + " 条，已保存到 _generated/" + path.basename(outFile));
+  if (SHOW_DETAILS) {
+    for (const item of (report.untranslated || []).slice(0, 40)) {
+      console.log(String(item.count).padStart(4) + "  [" + item.key + "] " + item.text);
+    }
   }
 }
 
 main().catch((error) => {
-  console.error("提取界面文案失败：");
-  console.error(error && error.stack || error);
+  console.error("提取界面文案失败，请检查 Postman 运行状态或使用 --details 查看诊断。");
+  if (SHOW_DETAILS) console.error(JSON.stringify(sanitizeAuditReport({ ok: false, error: error && error.message || String(error) })));
   process.exit(1);
 });

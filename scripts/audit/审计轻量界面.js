@@ -3,7 +3,9 @@
 
 const fs = require("fs");
 const path = require("path");
+const { sanitizeAuditReport, resolveAuditOutputBase, writeAuditReport, writeAuditScreenshot } = require("./审计安全.js");
 const SHOW_DETAILS = process.argv.includes("--details");
+const SAVE_SCREENSHOT = process.argv.includes("--screenshot");
 
 function argValue(name, fallback = null) {
   const index = process.argv.indexOf(name);
@@ -11,14 +13,7 @@ function argValue(name, fallback = null) {
 }
 
 function resolveOutBase(value) {
-  const requested = value || "postman-audit";
-  const hasDirectory = path.isAbsolute(requested) || requested.includes("/") || requested.includes("\\");
-  let resolved = hasDirectory ? requested : path.resolve(__dirname, "..", "..", "..", "_generated", requested);
-  if ([".json", ".png"].includes(path.extname(resolved).toLowerCase())) {
-    resolved = resolved.slice(0, -path.extname(resolved).length);
-  }
-  fs.mkdirSync(path.dirname(resolved), { recursive: true });
-  return resolved;
+  return resolveAuditOutputBase(value, "postman-audit");
 }
 
 function sleep(ms) {
@@ -57,7 +52,7 @@ async function connectCdp(wsUrl) {
     pending.delete(message.id);
     clearTimeout(callbacks.timer);
     if (message.error) {
-      const details = SHOW_DETAILS ? ` 诊断：${JSON.stringify(message.error)}` : "";
+      const details = SHOW_DETAILS ? ` 诊断：${JSON.stringify(sanitizeAuditReport(message.error))}` : "";
       callbacks.reject(new Error(`${message.error.message || "CDP 命令执行失败。"}${details}`));
     } else {
       callbacks.resolve(message.result);
@@ -108,7 +103,7 @@ async function evaluate(cdp, expression) {
   });
   if (result.exceptionDetails) {
     const message = result.exceptionDetails.text || "页面脚本执行失败。";
-    const details = SHOW_DETAILS ? ` 诊断：${JSON.stringify(result.exceptionDetails)}` : "";
+    const details = SHOW_DETAILS ? ` 诊断：${JSON.stringify(sanitizeAuditReport(result.exceptionDetails))}` : "";
     throw new Error(`${message}${details}`);
   }
   return result.result.value;
@@ -314,7 +309,7 @@ async function collect(cdp, step) {
       "hmac", "sha", "md5", "pem", "base64", "utf", "npm", "node", "js", "web", "vault",
       "rest", "socket.io", "www", "form", "urlencoded", "x-www-form-urlencoded", "win",
       "proxy", "builder", "sdk", "sdks", "hashicorp", "secret", "secrets", "slack",
-      "microsoft", "teams", "go", "no",
+      "microsoft", "teams", "go", "no", "rbac",
       "http_proxy", "https_proxy", "no_proxy"
     ])});
     function norm(text) {
@@ -348,6 +343,8 @@ async function collect(cdp, step) {
       const lower = value.toLowerCase();
       if (/的头像$|团队标志$|（你）$/.test(value)) return true;
       if (/^团队成员属于 .+ 团队$/.test(value)) return true;
+      // 模型名称（如 GPT-5.6 Sol）和版本号是产品标识，不属于漏翻。
+      if (/^gpt-\\d+(?:\\.\\d+)?(?:\\s+[a-z][a-z0-9.-]*)+$/i.test(value)) return true;
       if (/^@[a-z0-9_.-]+$/i.test(value)) return true;
       if (/^(?:(?:Ctrl|Alt|Shift|Win|Del|Esc|Enter|Tab|[A-Z0-9])|[+]|\\s)+$/i.test(value)) return true;
       if (/^[A-Za-z]:\\\\/.test(value)) return true;
@@ -393,7 +390,7 @@ async function waitForPostmanTarget(port, timeoutMs) {
     }
     await sleep(500);
   }
-  const details = SHOW_DETAILS ? ` 当前目标：${JSON.stringify(lastTargets)}` : "";
+  const details = SHOW_DETAILS ? ` 当前目标：${JSON.stringify(sanitizeAuditReport(lastTargets))}` : "";
   throw new Error(`未找到 Postman 页面调试目标。${details}`);
 }
 
@@ -442,9 +439,6 @@ async function main() {
       ["search-filter-api-clear", () => clearSearchTypeFilter(cdp, delayMs)],
       ["search-filter-team", () => clickSearchFilter(cdp, [/^团队$/i, /^Teams?$/i], delayMs)],
       ["search-close", () => pressEsc(cdp)],
-      ["import-open", () => clickText(cdp, [/^导入$/i, /^Import$/i], delayMs, { maxX: 620, minY: 80 })],
-      ["import-hover", () => hoverAt(cdp, 500, 330)],
-      ["import-close", () => pressEsc(cdp)],
       ["new-open", () => clickText(cdp, [/^新建$/i, /^New$/i], delayMs, { maxX: 620, minY: 80 })],
       ["new-http", () => clickText(cdp, [/^HTTP 请求$/i, /^HTTP Request$/i, /^请求$/i, /^Request$/i], delayMs, { minY: 120 })],
       ["new-open-environment", () => clickText(cdp, [/^新建$/i, /^New$/i], delayMs, { maxX: 620, minY: 80 })],
@@ -486,8 +480,10 @@ async function main() {
     await pressEsc(cdp);
     await sleep(delayMs);
     await record("final");
-    const screenshot = await cdp.send("Page.captureScreenshot", { format: "png", fromSurface: true });
-    fs.writeFileSync(`${outBase}.png`, Buffer.from(screenshot.data, "base64"));
+    if (SAVE_SCREENSHOT) {
+      const screenshot = await cdp.send("Page.captureScreenshot", { format: "png", fromSurface: true });
+      writeAuditScreenshot(`${outBase}.png`, screenshot.data);
+    }
   } finally {
     cdp.close();
   }
@@ -507,25 +503,26 @@ async function main() {
   }
   const hits = Array.from(merged.values()).sort((a, b) => b.count - a.count || a.text.localeCompare(b.text));
   const output = { target: { title: target.title, url: target.url }, log, hits };
-  fs.writeFileSync(`${outBase}.json`, JSON.stringify(output, null, 2), "utf8");
+  writeAuditReport(`${outBase}.json`, output);
   const summary = {
     out: `${outBase}.json`,
-    screenshot: `${outBase}.png`,
+    screenshot: SAVE_SCREENSHOT ? `${outBase}.png` : null,
     steps: log.length,
     hitCount: hits.length,
     hits: hits.slice(0, 80).map((item) => item.text)
   };
-  console.log(`轻量界面审计完成：发现 ${summary.hitCount} 条待复核文本，报告已保存到 ${summary.out}。`);
+  console.log(`轻量界面审计完成：发现 ${summary.hitCount} 条待复核文本，报告已保存到 _generated/${path.basename(summary.out)}。`);
   if (SHOW_DETAILS) {
-    console.log(JSON.stringify(summary, null, 2));
+    console.log(JSON.stringify(sanitizeAuditReport(summary), null, 2));
   }
 }
 
 main().catch((error) => {
   const message = String(error && error.message || error).replace(/\s+/g, " ").trim();
-  console.error(`轻量界面审计失败：${message}`);
-  if (SHOW_DETAILS && error && error.stack) {
-    console.error(error.stack);
+  if (SHOW_DETAILS) {
+    console.error(JSON.stringify(sanitizeAuditReport({ ok: false, error: message }), null, 2));
+  } else {
+    console.error("轻量界面审计失败，请确认 Postman 已启动；可使用 --details 查看详细信息。");
   }
   process.exit(1);
 });

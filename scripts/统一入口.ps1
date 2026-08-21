@@ -30,8 +30,8 @@ try {
   [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 } catch {}
 
-# 菜单模式（双击 bat、未带命令）下，收尾要停一下让用户看清结果，
-# 否则 postman-zh.bat 无参时执行的是 `exit`，窗口会直接关掉。
+# 菜单模式（双击 bat、未带命令）下，任务结束后由 bat 直接关闭窗口。
+# 不要在这里等待按键：Read-Host 会让双击窗口看起来无法退出。
 $script:MenuMode = $false
 
 function Stop-WithCode {
@@ -39,11 +39,10 @@ function Stop-WithCode {
   if ($script:MenuMode) {
     Write-Host ''
     if ($Code -eq 0) {
-      Write-Host '操作结束。' -ForegroundColor Green
+      Write-Host '操作完成，窗口即将自动关闭。' -ForegroundColor Green
     } else {
-      Write-Host "操作结束，退出码 $Code。" -ForegroundColor Yellow
+      Write-Host "操作失败（退出码 $Code），窗口即将自动关闭。" -ForegroundColor Yellow
     }
-    try { Read-Host '按回车键关闭窗口' | Out-Null } catch {}
   }
   exit $Code
 }
@@ -54,8 +53,12 @@ function Assert-NodeRuntime {
     throw '找不到 Node.js。请安装 Node.js 22 或更高版本。'
   }
 
-  $versionText = (& $node.Source --version 2>$null | Select-Object -First 1)
-  if ($LASTEXITCODE -ne 0 -or $versionText -notmatch '^v(?<major>\d+)\.') {
+  # 先立即保存原生进程退出码，再做 Select-Object 等 PowerShell 管道操作。
+  # 否则连续启动入口时管道可能把 $LASTEXITCODE 改成 -1，造成偶发误报。
+  $versionLines = @(& $node.Source --version 2>$null)
+  $nodeExitCode = $LASTEXITCODE
+  $versionText = [string]($versionLines | Select-Object -First 1)
+  if ($nodeExitCode -ne 0 -or $versionText -notmatch '^v(?<major>\d+)\.') {
     throw '无法读取 Node.js 版本。请安装 Node.js 22 或更高版本。'
   }
   if ([int]$Matches.major -lt 22) {
@@ -117,14 +120,14 @@ Postman 中文汉化工具
 常用命令：
   install       安装汉化、关闭自动更新并验证（菜单里直接回车即为此项）
   restore       还原英文原版
-  collect       导出运行时收集到的漏翻；加 -Clear 同时清空记录
+  collect       导出运行时收集到的漏翻；加 -Clear 清空记录，--details 查看候选明细
   verify        只验证当前 Postman 汉化状态；加 --details 查看完整诊断
   start         启动 Postman 并等待 CDP 调试端口
   stop          彻底关闭 Postman 进程
   fix-browser   修复系统浏览器 URL 参数引号
-  static-scan   扫描磁盘缓存中的 UI 文案；--out 裸名称写入 _generated
+  static-scan   扫描 UI 文案；加 --disk 扫描磁盘缓存，否则扫描运行中的页面；--out 裸名称写入 _generated
   merge         合并 _generated/trans-*.json 译文；加 --check 只检查、不写入
-  probe         检查更新页面；--out 裸名称写入 _generated，截图使用同名 PNG
+  probe         检查更新页面；--out 裸名称写入 _generated，--screenshot 才保存截图
   scan          扫描可点击界面
   audit <名称>  运行指定深度审计；--out 可用裸名称或 .json（见下方名称）
   publish       调用维护者发布脚本
@@ -142,6 +145,13 @@ Postman 中文汉化工具
   phased             分阶段完整审计
   targeted           固定区域审计
   targeted-surfaces  容易漏翻的重点界面
+
+new-request、navigation 和 deep-areas 默认使用受控预算。维护者需要在发布前执行高强度覆盖时，可对相应命令增加 --thorough，例如：
+  .\postman-zh.bat audit new-request --thorough
+  .\postman-zh.bat audit navigation --thorough
+  .\postman-zh.bat audit deep-areas --thorough
+
+审计截图默认关闭。显式增加 --screenshot 后生成的 PNG 可能包含当前可见的工作区或请求内容，截图像素不会自动脱敏。
 
 安装示例：
   .\postman-zh.bat install
@@ -193,65 +203,90 @@ function Show-Menu {
     @{ Key = '10'; Command = 'fix-browser'; Label = '修复浏览器链接';   Note = '仅在登录页外部链接异常时用' }
     @{ Key = '11'; Command = 'publish';     Label = '发布（维护者）';   Note = '推送代码到 GitHub 并发 Release' }
     @{ Key = 'h';  Command = 'help';        Label = '查看完整命令帮助'; Note = '' }
+    @{ Key = '0';  Command = 'exit';        Label = '退出';             Note = '不执行任何操作' }
   )
 
-  Write-Host ''
-  Write-Host '=== Postman 中文汉化工具 ===' -ForegroundColor Cyan
-  Write-Host '请输入序号选择操作，直接回车执行【安装汉化】，输入 q 退出。'
-  Write-Host ''
-  foreach ($item in $items) {
-    $line = '  {0,-3} {1}{2}' -f $item.Key, (Format-MenuCell $item.Label 20), $item.Note
-    if ($item.Command -eq 'publish') {
-      Write-Host $line -ForegroundColor Yellow
-    } else {
-      Write-Host $line
-    }
-  }
-  Write-Host ''
-
-  $choice = ''
-  try { $choice = (Read-Host '请选择').Trim() } catch { $choice = '' }
-  if ($choice -eq 'q' -or $choice -eq 'Q') { return $null }
-  if ($choice -eq '') { $choice = '1' }
-
-  $picked = $items | Where-Object { $_.Key -eq $choice.ToLower() } | Select-Object -First 1
-  if (-not $picked) {
-    Write-Host "无效选择：$choice" -ForegroundColor Red
-    return $null
-  }
-
-  $arguments = @()
-  if ($picked.Command -eq 'audit') {
-    $auditKeys = @(
-      'all-targets', 'deep-areas', 'entry-modals', 'import', 'lightweight', 'navigation',
-      'new-collection', 'new-request', 'phased', 'targeted', 'targeted-surfaces'
-    )
+  while ($true) {
     Write-Host ''
-    Write-Host '请选择审计名称：'
-    for ($i = 0; $i -lt $auditKeys.Count; $i++) {
-      Write-Host ('  {0,-3} {1}' -f ($i + 1), $auditKeys[$i])
+    Write-Host '=== Postman 中文汉化工具 ===' -ForegroundColor Cyan
+    Write-Host '输入序号选择操作，直接回车执行【安装汉化】。'
+    Write-Host ''
+    foreach ($item in $items) {
+      $line = '  {0,-3} {1}{2}' -f $item.Key, (Format-MenuCell $item.Label 20), $item.Note
+      if ($item.Command -eq 'publish') {
+        Write-Host $line -ForegroundColor Yellow
+      } else {
+        Write-Host $line
+      }
     }
     Write-Host ''
-    $auditChoice = ''
-    try { $auditChoice = (Read-Host '请输入序号或名称').Trim() } catch { $auditChoice = '' }
-    $auditName = $null
-    if ($auditChoice -match '^\d+$') {
-      $index = [int]$auditChoice - 1
-      if ($index -ge 0 -and $index -lt $auditKeys.Count) { $auditName = $auditKeys[$index] }
-    } elseif ($auditKeys -contains $auditChoice) {
-      $auditName = $auditChoice
-    }
-    if (-not $auditName) {
-      Write-Host "无效的审计名称：$auditChoice" -ForegroundColor Red
-      return $null
-    }
-    $arguments = @($auditName)
-  }
 
-  Write-Host ''
-  Write-Host "正在执行：$($picked.Label)" -ForegroundColor Cyan
-  Write-Host ''
-  return @{ Command = $picked.Command; Arguments = $arguments }
+    $choice = ''
+    try { $choice = (Read-Host '请选择').Trim() } catch { return $null }
+    if ($choice -eq '') { $choice = '1' }
+    if ($choice -eq 'q' -or $choice -eq 'Q') { $choice = '0' }
+
+    $picked = $items | Where-Object { $_.Key -eq $choice.ToLower() } | Select-Object -First 1
+    if (-not $picked) {
+      Write-Host "无效选择：$choice，请重新输入。" -ForegroundColor Red
+      continue
+    }
+    if ($picked.Command -eq 'exit') { return $null }
+    if ($picked.Command -eq 'help') {
+      Write-Host ''
+      Show-Help
+      continue
+    }
+
+    $arguments = @()
+    if ($picked.Command -eq 'audit') {
+      $auditItems = @(
+        @{ Key = '1';  Name = 'lightweight';       Label = '轻量界面巡检' }
+        @{ Key = '2';  Name = 'new-request';       Label = '新建请求界面' }
+        @{ Key = '3';  Name = 'new-collection';    Label = '新建集合界面' }
+        @{ Key = '4';  Name = 'import';            Label = '导入界面' }
+        @{ Key = '5';  Name = 'navigation';        Label = '导航与设置界面' }
+        @{ Key = '6';  Name = 'deep-areas';        Label = '深层界面' }
+        @{ Key = '7';  Name = 'targeted-surfaces'; Label = '容易漏翻的重点界面' }
+        @{ Key = '8';  Name = 'entry-modals';      Label = '入口弹窗' }
+        @{ Key = '9';  Name = 'phased';            Label = '分阶段完整审计' }
+        @{ Key = '10'; Name = 'targeted';          Label = '固定区域审计' }
+        @{ Key = '11'; Name = 'all-targets';       Label = '全部调试目标' }
+      )
+
+      while ($true) {
+        Write-Host ''
+        Write-Host '=== 深度审计界面 ===' -ForegroundColor Cyan
+        Write-Host '输入序号选择审计，输入 0 返回上一级。'
+        Write-Host ''
+        foreach ($auditItem in $auditItems) {
+          Write-Host ('  {0,-3} {1}' -f $auditItem.Key, $auditItem.Label)
+        }
+        Write-Host '  0   返回上一级'
+        Write-Host ''
+
+        $auditChoice = ''
+        try { $auditChoice = (Read-Host '请选择').Trim() } catch { return $null }
+        if ($auditChoice -eq 'q' -or $auditChoice -eq 'Q') { return $null }
+        if ($auditChoice -eq '0') { break }
+
+        $auditPicked = $auditItems | Where-Object { $_.Key -eq $auditChoice } | Select-Object -First 1
+        if (-not $auditPicked) {
+          Write-Host "无效选择：$auditChoice，请重新输入。" -ForegroundColor Red
+          continue
+        }
+        $arguments = @($auditPicked.Name)
+        break
+      }
+
+      if ($arguments.Count -eq 0) { continue }
+    }
+
+    Write-Host ''
+    Write-Host "正在执行：$($picked.Label)" -ForegroundColor Cyan
+    Write-Host ''
+    return @{ Command = $picked.Command; Arguments = $arguments }
+  }
 }
 
 try {
