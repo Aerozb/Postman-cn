@@ -20,7 +20,7 @@
 ```
 Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（勿动其官方文件）
   Postman.exe  Update.exe
-  app-12.19.6\                        ← 当前版本；resources\app.asar 是补丁目标
+  app-12.24.6\                        ← 当前版本；resources\app.asar 是补丁目标
     resources\app.asar.original       ← 首次安装时自动备份的英文原版
   packages\                           ← 官方安装包 + RELEASES
   postman-zh-workspace\               ← 所有非官方内容都在这里

@@ -160,7 +160,7 @@ Postman 中文汉化工具
 
 安装示例：
   .\postman-zh.bat install
-  .\postman-zh.bat install -PostmanDir C:\Path\To\app-12.19.6 -NoVerify
+  .\postman-zh.bat install -PostmanDir C:\Path\To\app-12.24.6 -NoVerify
   .\postman-zh.bat restore
 '@
 }
