@@ -611,18 +611,28 @@ function Patch-DisableUpdates {
   # Keep a version-independent guard at the top of main.js. The targeted
   # source rewrites below make the Settings page nicer, while this guard still
   # blocks downloads/restarts if Postman's minifier changes those method bodies.
+  #
+  # The guard is a switch, not a wall: it reads
+  # %APPDATA%\Postman\postman-zh-updates.json on every update call (cached ~1s)
+  # and only blocks while that file says updates are off, which is the default
+  # when the file is missing. Originals are bound before the overrides so the
+  # allow path runs Postman's real implementation. The Settings > Update page
+  # toggle (payload\zh-localize.js) flips the file over the IPC channels
+  # registered here, and `postman-zh.bat updates on|off` writes the same file.
   $runtimeMarker = 'postman-zh:update-guard'
   if (-not $content.Contains($runtimeMarker)) {
     $runtimeGuard = @'
-;(()=>{try{/* postman-zh:update-guard */const u=require("electron").autoUpdater;if(u&&!u.__postmanZhUpdatesDisabled){function p(n,f){try{u[n]=f}catch(e){try{Object.defineProperty(u,n,{value:f,configurable:!0,writable:!0})}catch(e){}}}function e(){setTimeout(()=>{try{u.emit("update-not-available",{},"postman-zh update guard")}catch(e){}},0)}p("checkForUpdates",function(){return e(),Promise.resolve(null)}),p("quitAndInstall",function(){return void 0}),"function"==typeof u.downloadUpdate&&p("downloadUpdate",function(){return e(),Promise.resolve(null)}),u.__postmanZhUpdatesDisabled=!0}}catch(e){try{console.warn("Postman zh update guard failed",e)}catch(e){}}})();
+;(()=>{try{/* postman-zh:update-guard */const E=require("electron"),P=require("path"),S=require("fs"),F=P.join(process.env.APPDATA||"","Postman","postman-zh-updates.json");var c=null,t=0;function rd(){var n=Date.now();if(null!==c&&n-t<1e3)return c;t=n;try{c=!0===JSON.parse(S.readFileSync(F,"utf8")).enabled}catch(e){c=!1}return c}function wr(v){var b=!0===v;try{S.mkdirSync(P.dirname(F),{recursive:!0})}catch(e){}try{S.writeFileSync(F,JSON.stringify({enabled:b}),"utf8")}catch(e){}return c=b,t=Date.now(),b}globalThis.__postmanZhUpdatesAllowed=rd;try{E.ipcMain&&E.ipcMain.handle&&!globalThis.__postmanZhUpdateIpc&&(E.ipcMain.handle("postman-zh:updates:get",function(){return rd()}),E.ipcMain.handle("postman-zh:updates:set",function(e,v){return wr(v)}),globalThis.__postmanZhUpdateIpc=!0)}catch(e){}var u=E.autoUpdater;if(u&&!u.__postmanZhUpdateGuard){var o={};["checkForUpdates","quitAndInstall","downloadUpdate"].forEach(function(n){"function"==typeof u[n]&&(o[n]=u[n].bind(u))});function p(n,f){try{u[n]=f}catch(e){try{Object.defineProperty(u,n,{value:f,configurable:!0,writable:!0})}catch(e){}}}function na(){setTimeout(function(){try{u.emit("update-not-available",{},"postman-zh update guard")}catch(e){}},0)}p("checkForUpdates",function(){return rd()&&o.checkForUpdates?o.checkForUpdates.apply(null,arguments):(na(),Promise.resolve(null))}),p("quitAndInstall",function(){return rd()&&o.quitAndInstall?o.quitAndInstall.apply(null,arguments):void 0}),o.downloadUpdate&&p("downloadUpdate",function(){return rd()&&o.downloadUpdate?o.downloadUpdate.apply(null,arguments):(na(),Promise.resolve(null))}),u.__postmanZhUpdateGuard=!0}}catch(e){try{console.warn("Postman zh update guard failed",e)}catch(e){}}})();
 '@
     $content = $runtimeGuard.TrimEnd() + "`r`n" + $content
   }
 
   # NOTE: we deliberately do NOT force isUpdateEnabled=false anymore.
   # Doing so makes the Settings > Update page render a connection error.
-  # Neutralizing downloadUpdate below is enough to block real updates while
+  # Gating downloadUpdate below is enough to block real updates while
   # keeping the page functional ("Postman vX.Y.Z is the latest version").
+  # Both rewrites keep Postman's original body on the allow branch so the
+  # toggle can hand control back without another reinstall.
 
   $downloadMarker = 'updates disabled by postman-zh'
   if ($content.Contains($downloadMarker)) {
@@ -630,7 +640,7 @@ function Patch-DisableUpdates {
   } else {
     # Tolerate minifier renames of the local variable across Postman versions.
     $downloadPattern = 'downloadUpdate\((\w+)\)\{var (\w+)=this\.getFeedUrl\(\1\);this\.autoUpdater\.setFeedURL\(\2\),this\.autoUpdater\.checkForUpdates\(\)\}'
-    $downloadReplacement = 'downloadUpdate($1){this.logger&&this.logger.warn&&this.logger.warn("@postman/app-updater: updates disabled by postman-zh");this.emit("updateNotAvailable",$1||{})}'
+    $downloadReplacement = 'downloadUpdate($1){if(globalThis.__postmanZhUpdatesAllowed&&globalThis.__postmanZhUpdatesAllowed()){var $2=this.getFeedUrl($1);return void(this.autoUpdater.setFeedURL($2),this.autoUpdater.checkForUpdates())}this.logger&&this.logger.warn&&this.logger.warn("@postman/app-updater: updates disabled by postman-zh");this.emit("updateNotAvailable",$1||{})}'
     $updated = [System.Text.RegularExpressions.Regex]::Replace($content, $downloadPattern, $downloadReplacement, 1)
     if ($updated -ne $content) {
       $content = $updated
@@ -643,7 +653,7 @@ function Patch-DisableUpdates {
     $patchCount += 1
   } else {
     $restartPattern = 'restartAppToUpdate\((\w+)\)\{this\.emit\("beforeAppQuit"\),\1\.restart\?this\.logger\.info\("@postman/app-updater: restarting app to update"\):this\.logger\.info\("@postman/app-updater: quitting app to update"\),this\.autoUpdater\.quitAndInstall\(\1\)\}'
-    $restartReplacement = 'restartAppToUpdate($1){this.logger&&this.logger.warn&&this.logger.warn("@postman/app-updater: update restart blocked by postman-zh")}'
+    $restartReplacement = 'restartAppToUpdate($1){if(globalThis.__postmanZhUpdatesAllowed&&globalThis.__postmanZhUpdatesAllowed()){return this.emit("beforeAppQuit"),$1.restart?this.logger.info("@postman/app-updater: restarting app to update"):this.logger.info("@postman/app-updater: quitting app to update"),void this.autoUpdater.quitAndInstall($1)}this.logger&&this.logger.warn&&this.logger.warn("@postman/app-updater: update restart blocked by postman-zh")}'
     $updated = [System.Text.RegularExpressions.Regex]::Replace($content, $restartPattern, $restartReplacement, 1)
     if ($updated -ne $content) {
       $content = $updated
@@ -655,7 +665,7 @@ function Patch-DisableUpdates {
     throw "当前版本未找到可确认的更新方法锚点，已中止安装更新拦截补丁。"
   }
   Write-Utf8 $mainJs $content
-  Write-Step "已安装与版本无关的更新拦截补丁，并处理 $patchCount 个更新方法锚点。"
+  Write-Step "已安装可开关的更新守卫（默认关闭更新），并处理 $patchCount 个更新方法锚点。"
 }
 
 function Remove-OldPostmanVersions {

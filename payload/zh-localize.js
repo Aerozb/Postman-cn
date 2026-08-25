@@ -8,6 +8,519 @@
 
   var EXACT = {
     /* === batch-translated (auto-merged) === */
+    "Accepts a request": "接受一个请求",
+    /* === batch-translated (auto-merged) === */
+    "Connected accounts": "已连接的账户",
+    "Update downloaded": "更新已下载",
+    "Install update": "安装更新",
+    "Restart to update": "重启以完成更新",
+    "Downloading update": "正在下载更新",
+    /* === batch-translated (auto-merged) === */
+    "Scanning": "正在扫描",
+    "Scanning...": "正在扫描…",
+    "Scanning…": "正在扫描…",
+    /* === batch-translated (auto-merged) === */
+    "No anomalies detected!": "未检测到异常！",
+    /* === batch-translated (auto-merged) === */
+    "Failed to load SVG image": "加载 SVG 图片失败",
+    "Failed to load specification": "加载规范失败",
+    "Failed to load collection details": "加载集合详情失败",
+    "The gRPC request completed without a status.": "gRPC 请求已完成，但未返回状态。",
+    "Request is not a valid gRPC request from extensible collection": "该请求不是来自可扩展集合的有效 gRPC 请求",
+    /* === batch-translated (auto-merged) === */
+    "Filter by endpoint": "按端点筛选",
+    /* === batch-translated (auto-merged) === */
+    "Ready to go!": "准备就绪！",
+    "Start Solo Trial": "开始个人版试用",
+    "Use resources or import": "使用资源或导入",
+    "No more notifications": "没有更多通知",
+    "Show AI suggestions": "显示 AI 建议",
+    "Display fix and improvement suggestions in the status bar.": "在状态栏显示修复和改进建议。",
+    "Download update": "下载更新",
+    "Update available, view changes": "有可用更新，查看变更",
+    "Bug Fixes": "错误修复",
+    "Some critical bug fixes and enhancements were added in this release.": "本次发布包含了一些重要的错误修复和功能改进。",
+    "Select a simulation": "选择仿真",
+    "Simulation configuration": "仿真配置",
+    "Choose a simulation in run configuration to preview it here.": "在运行配置中选择一个仿真即可在此预览。",
+    "Select a simulation for this run. Use the Simulator tab to view and adjust the simulation configuration.": "为本次运行选择一个仿真。可在「模拟器」标签页查看和调整仿真配置。",
+    "Filter by scope": "按作用域筛选",
+    "Filter by workspace": "按工作区筛选",
+    "2. Run the performance test": "2. 运行性能测试",
+    "Run your collection once per row of data. Choose a dataset or upload a JSON or CSV file, each column is available as a variable in your requests.": "按数据的每一行运行一次集合。选择数据集或上传 JSON/CSV 文件，每一列都可作为请求中的变量使用。",
+    /* === batch-translated (auto-merged) === */
+    "Something went wrong while fetching components, please try again.": "获取组件时出了点问题，请重试。",
+    "Post request failed from the network, could be a 4xx/5xx or a network unavailability. Please check the exact error code for details.": "POST 请求在网络层失败，可能是 4xx/5xx 响应或网络不可用。详情请查看具体错误码。",
+    "The request does not match any registered mock dispatches": "该请求未匹配到任何已注册的模拟分发规则",
+    "Local MCP server request failed.": "本地 MCP 服务器请求失败。",
+    "Unsupported MCP request method": "不支持的 MCP 请求方法",
+    "Invalid Request: Only one initialization request is allowed": "请求无效：只允许一个初始化请求",
+    /* === batch-translated (auto-merged) === */
+    "Failed to load simulations:": "加载仿真失败：",
+    "Failed to load simulations": "加载仿真失败",
+    "Failed to save simulation file": "保存仿真文件失败",
+    "Failed to load more vaults": "加载更多保管库失败",
+    "Failed to load shared vaults": "加载共享保管库失败",
+    "Failed to load vault connections": "加载保管库连接失败",
+    "Failed to load dataset suggestions": "加载数据集建议失败",
+    "Failed to load approval component": "加载审批组件失败",
+    "Failed to load system environment": "加载系统环境失败",
+    "Failed to load service graph": "加载服务拓扑图失败",
+    "Failed to load credentials": "加载凭据失败",
+    "Failed to load workspaces": "加载工作区失败",
+    "Failed to load history": "加载历史记录失败",
+    "Failed to load specification.": "加载规范失败。",
+    "Failed to load squads. Please try again.": "加载小组失败，请重试。",
+    "Failed to load plan features before tracking element view": "在记录元素浏览前加载套餐功能失败",
+    "Failed to load plan features before fetching recent views": "在获取最近浏览前加载套餐功能失败",
+    "Failed to save GitHub connection": "保存 GitHub 连接失败",
+    "Failed to save filter": "保存筛选条件失败",
+    "Failed to open request": "打开请求失败",
+    "Failed to submit publish request. Try again.": "提交发布申请失败，请重试。",
+    "Unable to load monitors": "无法加载监视器",
+    "Unable to load monitor": "无法加载监视器",
+    "Unable to load uptime monitors": "无法加载可用性监视器",
+    "Unable to load monitoring data": "无法加载监控数据",
+    "Unable to load documentation": "无法加载文档",
+    "Unable to load insights": "无法加载洞察",
+    "Unable to load run history": "无法加载运行历史",
+    "Unable to load run details": "无法加载运行详情",
+    "Unable to load workspaces.": "无法加载工作区。",
+    "Unable to load API versions": "无法加载 API 版本",
+    "Unable to load collections!": "无法加载集合！",
+    "Unable to load repositories": "无法加载仓库",
+    "Unable to load installed app": "无法加载已安装的应用",
+    "Unable to load connected account": "无法加载已连接的账户",
+    "Unable to load discovered services": "无法加载已发现的服务",
+    "Unable to load items.": "无法加载条目。",
+    "Unable to load test data": "无法加载测试数据",
+    "Unable to load applications": "无法加载应用",
+    "Unable to load dependencies": "无法加载依赖",
+    "Unable to load dependency data": "无法加载依赖数据",
+    "Unable to load assertion detail for this run.": "无法加载本次运行的断言详情。",
+    "Unable to load from server reflection, host required": "无法通过服务端反射加载，需要提供主机地址",
+    "Unable to load from reflection, empty URL": "无法通过反射加载，URL 为空",
+    "Unable to load data as you're offline": "当前离线，无法加载数据",
+    "Unable to load status. Try again later or contact us at": "无法加载状态。请稍后重试，或联系我们：",
+    "Unable to fetch sizes for failed request": "无法获取失败请求的大小",
+    "No tests found for the run": "本次运行没有找到测试",
+    "No active environment set.": "未设置当前环境。",
+    "No active environment set. Please set an environment first.": "未设置当前环境，请先设置一个环境。",
+    "No active Agent Mode conversation found": "未找到进行中的智能代理模式会话",
+    "Insights not configured": "尚未配置 Insights",
+    "Send your request": "发送你的请求",
+    "Sending request...": "正在发送请求…",
+    "No request to send.": "没有可发送的请求。",
+    "No request to resolve proxy for.": "没有需要解析代理的请求。",
+    "No request to resolve certificates for.": "没有需要解析证书的请求。",
+    "Invalid request definition": "请求定义无效",
+    "Invalid destination request.": "目标请求无效。",
+    "Invalid page request.": "页面请求无效。",
+    "Could not create request": "无法创建请求",
+    "Error in creating request": "创建请求时出错",
+    "Error in pipeline while creating request": "创建请求的流程中出错",
+    "Error in pipeline for creating request": "创建请求的流程中出错",
+    "Error in pipeline for updating request": "更新请求的流程中出错",
+    "Error in pipeline for deleting request method": "删除请求方法的流程中出错",
+    "Error occurred while creating action request": "创建操作请求时出错",
+    "Gateway request failed": "网关请求失败",
+    "Redirected request failed": "重定向后的请求失败",
+    "Network request failed": "网络请求失败",
+    "The user aborted a request.": "用户已中止请求。",
+    "Cannot send request body": "无法发送请求正文",
+    "Missing curl or request": "缺少 cURL 或请求",
+    "Cannot find request to force sync": "找不到需要强制同步的请求",
+    "Failed to save the request method": "保存请求方法失败",
+    "Failed to save request to collection": "保存请求到集合失败",
+    "This request failed to complete.": "此请求未能完成。",
+    "This request was rate limited (429).": "此请求被限流（429）。",
+    "This request came back 403 Forbidden.": "此请求返回了 403 Forbidden。",
+    "This request came back 401 Unauthorized.": "此请求返回了 401 Unauthorized。",
+    "This request failed SSL certificate verification.": "此请求未通过 SSL 证书校验。",
+    "This request doesn't have a body.": "此请求没有正文。",
+    "This request doesn’t have a body.": "此请求没有正文。",
+    "This request does not have any tests.": "此请求没有任何测试。",
+    "This request doesn't return any response body.": "此请求不返回任何响应正文。",
+    "This request doesn’t return any response body.": "此请求不返回任何响应正文。",
+    "This request doesn't return a response headers.": "此请求不返回响应头。",
+    "This request doesn’t return a response headers.": "此请求不返回响应头。",
+    "This request has already been processed.": "此请求已被处理。",
+    "This request to": "此请求发往",
+    "Pending request not found": "未找到待处理的请求",
+    "Computed at request execution": "在请求执行时计算",
+    "Before request": "请求前",
+    "Save this request to a collection first": "请先把此请求保存到集合",
+    "Save this request to perform this action.": "请先保存此请求再执行该操作。",
+    "Save this request in a collection to create examples.": "把此请求保存到集合后才能创建示例。",
+    "Save the request before turning on comment mode to avoid losing your work.": "开启评论模式前请先保存请求，以免丢失你的工作内容。",
+    "The browser blocked this request due to CORS restrictions.": "浏览器因 CORS 限制拦截了此请求。",
+    "Postman's Cloud Agent cannot reach local servers.": "Postman 云代理无法访问本地服务器。",
+    "Postman’s Cloud Agent cannot reach local servers.": "Postman 云代理无法访问本地服务器。",
+    "This request points at a local address. Switch to the desktop agent to reach it.": "此请求指向本地地址。切换到桌面代理才能访问。",
+    "Switch to the desktop agent to keep sending this request without the cloud quota.": "切换到桌面代理即可继续发送此请求，且不占用云端配额。",
+    "Couldn't send this request. Select a different agent.": "无法发送此请求，请选择其他代理。",
+    "Couldn’t send this request. Select a different agent.": "无法发送此请求，请选择其他代理。",
+    "Attempted to send a request from a closed client": "尝试从已关闭的客户端发送请求",
+    "Make sure the request URL, variables, and other attributes are valid.": "请确认请求 URL、变量及其他属性都有效。",
+    "This request did not get sent completely and might not have all the required system headers.": "此请求未完整发出，可能缺少部分必需的系统请求头。",
+    "Request is taking longer than 30 seconds to fulfill. Use another agent to send a request without time limitations.": "请求处理已超过 30 秒。换用其他代理可不受时间限制地发送请求。",
+    "Enable strict request matching": "启用严格请求匹配",
+    "Max request limit:": "最大请求数上限：",
+    "Max limit request :": "请求数上限：",
+    "Limit for unique responses for request and error combination exceeded": "请求与错误组合的唯一响应数已超出上限",
+    "I found a fix for this request.": "我为此请求找到了一个修复方案。",
+    "This needs a closer look in Agent Mode.": "这个需要在智能代理模式里进一步排查。",
+    "The script failed before the request was sent. I can read the error and fix the code.": "脚本在请求发出前就失败了。我可以查看错误并修复代码。",
+    "The response was not successful. I can use the request and response details to fix it.": "响应不成功。我可以结合请求和响应详情来修复。",
+    "Something went wrong before I got a response. I can use the request and error details to work out the fix.": "我还没拿到响应就出错了。我可以结合请求和错误详情来分析修复方案。",
+    "The failure is on the server side. I can check the request input, backend behavior, and upstream dependencies.": "问题出在服务端。我可以检查请求输入、后端行为和上游依赖。",
+    "The failure is on the server side. I can check the request input, your local server, and upstream dependencies.": "问题出在服务端。我可以检查请求输入、你的本地服务器和上游依赖。",
+    "The failure is on the server side. I can check the request input, your local server code, and upstream dependencies.": "问题出在服务端。我可以检查请求输入、你的本地服务器代码和上游依赖。",
+    "The failure is on the server side. I can check the request input, backend behavior, and service status via the API Catalog.": "问题出在服务端。我可以通过 API 目录检查请求输入、后端行为和服务状态。",
+    "Fix this server error for this request. Check the request input, backend behavior, and service status via the API Catalog.": "修复此请求的服务端错误。通过 API 目录检查请求输入、后端行为和服务状态。",
+    "Fix this Postman request so it returns a successful 2xx response. Adjust the request configuration and the active environment as needed, and send the request to verify the response, iterating until it returns 2xx.": "修复这个 Postman 请求，让它返回 2xx 成功响应。按需调整请求配置和当前环境，并发送请求验证结果，反复迭代直到返回 2xx。",
+    "You've used all your monthly AI credits. Additional usage will be billed pay-as-you-go until your credits renew on": "你本月的 AI 额度已用完。额度续期前，超出部分将按用量计费，续期日期：",
+    "You’ve used all your monthly AI credits. Additional usage will be billed pay-as-you-go until your credits renew on": "你本月的 AI 额度已用完。额度续期前，超出部分将按用量计费，续期日期：",
+    "Agent Mode Readiness indicator re-enabled locally.": "已在本地重新启用智能代理模式就绪指示器。",
+    "Agent Mode Readiness indicator disabled locally. Reload the app for it to take effect everywhere.": "已在本地禁用智能代理模式就绪指示器。重新加载应用后全局生效。",
+    "Creating pull request...": "正在创建拉取请求…",
+    "Something went wrong while approving request": "审批请求时出了点问题",
+    "Something went wrong while inviting users": "邀请用户时出了点问题",
+    "Something went wrong while updating the integration": "更新集成时出了点问题",
+    "Something went wrong while updating a new integration": "更新新集成时出了点问题",
+    "Something went wrong while deleting your integration. Please try again later.": "删除集成时出了点问题，请稍后重试。",
+    "Something went wrong while fetching integrations, please try again": "获取集成时出了点问题，请重试",
+    "Something went wrong while fetching components, please try again": "获取组件时出了点问题，请重试",
+    "Something went wrong while fetching connected account, please reload the page or reauthenticate.": "获取已连接账户时出了点问题，请重新加载页面或重新认证。",
+    "Something went wrong while fetching run logs": "获取运行日志时出了点问题",
+    "Something went wrong while fetching reports.": "获取报告时出了点问题。",
+    "Something went wrong while fetching your team's usage data.": "获取团队用量数据时出了点问题。",
+    "Something went wrong while fetching your team’s usage data.": "获取团队用量数据时出了点问题。",
+    "Something went wrong while fetching the API Network. Please retry in some time.": "获取 API 网络时出了点问题，请稍后重试。",
+    "Something went wrong while fetching pull request settings for this collection": "获取此集合的拉取请求设置时出了点问题",
+    "Something went wrong while fetching dependency data. Please try again later.": "获取依赖数据时出了点问题，请稍后重试。",
+    "Something went wrong while fetching the application inventory. Please try again later.": "获取应用清单时出了点问题，请稍后重试。",
+    "Something went wrong while fetching application dependencies. Clear filters or try a different branch.": "获取应用依赖时出了点问题。请清除筛选条件或换一个分支试试。",
+    "Something went wrong while fetching test results for this run.": "获取本次运行的测试结果时出了点问题。",
+    "Something went wrong while fetching data.": "获取数据时出了点问题。",
+    "Something went wrong in fetching data.": "获取数据时出了点问题。",
+    "Something went wrong while fetching List": "获取列表时出了点问题",
+    "Something went wrong while fetching the workspaces.": "获取工作区时出了点问题。",
+    "Something went wrong while fetchings the APIs": "获取 API 时出了点问题",
+    "Something went wrong while authenticating. Please try again.": "认证时出了点问题，请重试。",
+    "Something went wrong while connecting, please try again.": "连接时出了点问题，请重试。",
+    "Something went wrong while generating the link.": "生成链接时出了点问题。",
+    "Something went wrong while saving your preference": "保存偏好设置时出了点问题",
+    "Something went wrong while activating the trial": "激活试用时出了点问题",
+    "Something went wrong while creating the folder": "创建文件夹时出了点问题",
+    "Something went wrong while deleting the folder": "删除文件夹时出了点问题",
+    "Something went wrong while updating the folder": "更新文件夹时出了点问题",
+    "Something went wrong while creating the workspace": "创建工作区时出了点问题",
+    "Something went wrong while creating the collection.": "创建集合时出了点问题。",
+    "Something went wrong while sharing this API": "分享此 API 时出了点问题",
+    "Something went wrong while sharing this collection": "分享此集合时出了点问题",
+    "Something went wrong while sharing this environment": "分享此环境时出了点问题",
+    "Something went wrong while sharing this API and removing from the workspace": "分享此 API 并将其从工作区移除时出了点问题",
+    "Something went wrong while sharing this collection and removing from the workspace": "分享此集合并将其从工作区移除时出了点问题",
+    "Something went wrong while sharing this environment and removing from the workspace": "分享此环境并将其从工作区移除时出了点问题",
+    "Something went wrong while moving the API": "移动此 API 时出了点问题",
+    "Something went wrong while unpublishing the API": "取消发布此 API 时出了点问题",
+    "Something went wrong while forking collection, please try again": "复刻集合时出了点问题，请重试",
+    "Something went wrong while moving this mock server from the workspace.": "把此模拟服务器移出工作区时出了点问题。",
+    "Something went wrong while creating this mock. You can try again later.": "创建此模拟服务器时出了点问题，可以稍后重试。",
+    "Something went wrong loading the API calls for this run.": "加载本次运行的 API 调用时出了点问题。",
+    "Something went wrong loading the per-run history for this test.": "加载此测试的逐次运行历史时出了点问题。",
+    "Something went wrong loading the per-run history for this call site.": "加载此调用点的逐次运行历史时出了点问题。",
+    "Something went wrong. Contact Postman Support if the issue persists.": "出了点问题。如果一直如此，请联系 Postman 支持。",
+    "Learn more about the new integration.": "了解这个新集成。",
+    "Creating mock server file...": "正在创建模拟服务器文件…",
+    "Creating local mock server file...": "正在创建本地模拟服务器文件…",
+    "Getting mock servers...": "正在获取模拟服务器…",
+    "Error executing mock file:": "执行模拟文件出错：",
+    "Mock server failed to serve the request.": "模拟服务器未能处理该请求。",
+    "This action cannot be taken on a deactivated mock server.": "已停用的模拟服务器无法执行该操作。",
+    "Moving here will make the mock server public.": "移动到这里会让该模拟服务器变为公开。",
+    "Switch to workspace to create a mock server": "切换到工作区后才能创建模拟服务器",
+    "Moving this mock server to the selected workspace will remove it from all other workspaces.": "把此模拟服务器移动到所选工作区后，它会从其他所有工作区中移除。",
+    "Mock is not supported for Runner run items": "运行器的运行项不支持模拟服务器",
+    "Monitor is not supported for Runner run items": "运行器的运行项不支持监视器",
+    "Document is not supported for Runner run items": "运行器的运行项不支持文档",
+    "AddToCollection is not supported for Runner run items": "运行器的运行项不支持“添加到集合”",
+    "Performance test error": "性能测试出错",
+    "Performance test failed:": "性能测试失败：",
+    "All tests passed": "全部测试通过",
+    "Errors (count)": "错误数",
+    "Result type": "结果类型",
+    "Go to analytics": "前往分析",
+    "Getting flow analytics...": "正在获取流程分析…",
+    "Use Collection Runner": "使用集合运行器",
+    "The maximum number of virtual users to simulate. Each user runs the collection in parallel and repeatedly for the test duration.": "要模拟的最大虚拟用户数。每个虚拟用户会在测试时长内并行、反复运行该集合。",
+    "System resources are constrained. The system may not be able to generate the load needed for this test and the test is likely to stop.": "系统资源紧张。系统可能无法产生此测试所需的负载，测试很可能会中止。",
+    "Filter by branch": "按分支筛选",
+    "Filter by author": "按作者筛选",
+    "Filter by resource": "按资源筛选",
+    "Filter by spec": "按规范筛选",
+    "Read shared variable values": "读取共享变量值",
+    "Enter name of your team": "输入你的团队名称",
+    "Enter name, email or group": "输入姓名、邮箱或群组",
+    "Select a workspace to share from": "选择要从中分享的工作区",
+    "Select a workspace from which you want to add collections or environments to this workspace.": "选择一个工作区，从中把集合或环境添加到当前工作区。",
+    "Confirm your request to join": "确认你的加入申请",
+    "Your request is being reviewed": "你的申请正在审核中",
+    "Request to use resources in the API network": "申请使用 API 网络中的资源",
+    "Your request to give your team access is in review.": "你为团队申请访问权限的请求正在审核中。",
+    "Your request to give your team access is already in review.": "你为团队申请访问权限的请求已在审核中。",
+    "Your request to give your organization access is already in review.": "你为组织申请访问权限的请求已在审核中。",
+    "There's already a request in review to make this a team workspace.": "已有一个把此工作区改为团队工作区的申请正在审核中。",
+    "There’s already a request in review to make this a team workspace.": "已有一个把此工作区改为团队工作区的申请正在审核中。",
+    "There's already a request in review to make this a public workspace.": "已有一个把此工作区改为公开工作区的申请正在审核中。",
+    "There’s already a request in review to make this a public workspace.": "已有一个把此工作区改为公开工作区的申请正在审核中。",
+    "There's already a request in review to make this a partner workspace.": "已有一个把此工作区改为合作伙伴工作区的申请正在审核中。",
+    "There’s already a request in review to make this a partner workspace.": "已有一个把此工作区改为合作伙伴工作区的申请正在审核中。",
+    "Your request to make this a Partner workspace is yet to be approved by a Partner Manager.": "你把此工作区改为合作伙伴工作区的申请还在等待合作伙伴管理员批准。",
+    "Your request to make this a public workspace is yet to be approved by a Community Manager.": "你把此工作区改为公开工作区的申请还在等待社区管理员批准。",
+    "Someone from your team has already raised a request to change visibility of this workspace.": "你的团队中已有人提交了修改此工作区可见性的申请。",
+    "Once a Community Manager approves your request to change the visibility, all workspace data will be made public.": "社区管理员批准你的可见性变更申请后，此工作区的全部数据都会公开。",
+    "Once the team admin approves your request, you’ll be added to the team automatically.": "团队管理员批准你的申请后，你会被自动加入团队。",
+    "Once the team admin approves your request, you'll be added to the team automatically.": "团队管理员批准你的申请后，你会被自动加入团队。",
+    "Before we can send your request, please answer this question from the team admin": "提交申请前，请先回答团队管理员的这个问题",
+    "A short note that will help the reviewers to approve your request": "一段有助于评审者批准你申请的简短说明",
+    "A short note that will help the Partner Manager approve your request": "一段有助于合作伙伴管理员批准你申请的简短说明",
+    "A short note that will help the Community Manager approve your request": "一段有助于社区管理员批准你申请的简短说明",
+    "This modal can be used to request an action to be performed by another user who has the permission to do so.": "可以用这个弹窗，请求有相应权限的其他用户来执行某项操作。",
+    "Only workspace members can send a request. Join this workspace to send the request.": "只有工作区成员才能发送请求。加入此工作区后即可发送。",
+    "Only workspace members can send a request. You can either join this workspace or fork the collection to your own workspace and send the request from there.": "只有工作区成员才能发送请求。你可以加入此工作区，或把集合复刻到自己的工作区后再发送。",
+    "This token is only available to you. Sync the token to let collaborators on this request use it.": "此令牌目前仅你可见。同步后，此请求的协作者也能使用它。",
+    "Sharing this token will allow anyone with access to this request to view and use it.": "分享此令牌后，任何能访问此请求的人都可以查看并使用它。",
+    "Syncing this token will allow anyone with access to this request to view and potentially use it.": "同步此令牌后，任何能访问此请求的人都可以查看，并可能使用它。",
+    "Request should be saved to sync the token. Syncing this token will allow anyone with access to this request to view and potentially use it.": "同步令牌前需要先保存请求。同步后，任何能访问此请求的人都可以查看，并可能使用它。",
+    "This new token will replace the one that's currently synced. Anyone with access to the request will be able to view and use the new token.": "此新令牌会替换当前已同步的令牌。任何能访问该请求的人都可以查看并使用新令牌。",
+    "This new token will replace the one that’s currently synced. Anyone with access to the request will be able to view and use the new token.": "此新令牌会替换当前已同步的令牌。任何能访问该请求的人都可以查看并使用新令牌。",
+    "People with access to this request will no longer be able to see or use this token. They will be able to generate their own access token instead.": "能访问此请求的人将无法再查看或使用此令牌，他们可以自行生成访问令牌。",
+    "Your expired token will be auto-refreshed before sending a request": "发送请求前会自动刷新已过期的令牌",
+    "Waiting for authorization...": "正在等待授权…",
+    "Waiting for GitHub authorization...": "正在等待 GitHub 授权…",
+    "Failed to prepare OAuth request": "准备 OAuth 请求失败",
+    "OAuth request not found for server": "未找到该服务器对应的 OAuth 请求",
+    "Sending token request to endpoint:": "正在向端点发送令牌请求：",
+    "This authorization method will be used for every request in this folder. You can override this by specifying one in the request.": "此文件夹中的每个请求都会使用该授权方式。你可以在单个请求里另行指定来覆盖它。",
+    "This body param is added because of the authorization method used for this request. Use the authorization tab to remove authorization or to change the value of this param.": "此正文参数是由该请求所用的授权方式自动添加的。可在“授权”标签页移除授权或修改该参数的值。",
+    "This query param is added because of the authorization method used for this request. Use the authorization tab to remove authorization or to change the value of this param.": "此查询参数是由该请求所用的授权方式自动添加的。可在“授权”标签页移除授权或修改该参数的值。",
+    "This header is added because of the authorization method used for this request. The value of this header is tentative. You can find the exact value in the console once the request is sent. Use the authorization tab to remove authorization or to change the value of this header.": "此请求头是由该请求所用的授权方式自动添加的，其值为暂定值。请求发出后可在控制台查看确切值。可在“授权”标签页移除授权或修改该请求头的值。",
+    "Static uses the access key and secret entered here. Environment loads credentials from your machine's AWS configuration (via the AWS CLI) when the request is sent.": "“静态”使用此处填写的访问密钥和密钥；“环境”会在发送请求时从本机的 AWS 配置（通过 AWS CLI）读取凭据。",
+    "Static uses the access key and secret entered here. Environment loads credentials from your machine’s AWS configuration (via the AWS CLI) when the request is sent.": "“静态”使用此处填写的访问密钥和密钥；“环境”会在发送请求时从本机的 AWS 配置（通过 AWS CLI）读取凭据。",
+    "RSA private key in PEM format for signing the request.": "用于给请求签名的 PEM 格式 RSA 私钥。",
+    "Select whether to include authentication parameters in the example request.": "选择示例请求中是否包含认证参数。",
+    "An error occurred while running test scripts for this request. Check": "运行此请求的测试脚本时出错。请检查",
+    "An error occurred while running pre-request scripts for this request. Check": "运行此请求的预请求脚本时出错。请检查",
+    "An error occurred while fetching comments for this request. Please try again.": "获取此请求的评论时出错，请重试。",
+    "These tests will execute after every request in this folder. Learn more about": "这些测试会在此文件夹中每个请求之后执行。了解更多：",
+    "These tests will execute after every request in this collection. Learn more about": "这些测试会在此集合中每个请求之后执行。了解更多：",
+    "This script will execute before every request in this folder. Learn more about": "此脚本会在此文件夹中每个请求之前执行。了解更多：",
+    "This script will execute before every request in this collection. Learn more about": "此脚本会在此集合中每个请求之前执行。了解更多：",
+    "Pre-request scripts are written in JavaScript, and are run before the request is sent. Learn more about": "预请求脚本用 JavaScript 编写，在请求发出前运行。了解更多：",
+    "Check for successful POST request": "检查 POST 请求是否成功",
+    "You have unsaved changes": "你有未保存的更改",
+    "Discard changes in this tab": "放弃此标签页中的更改",
+    "Checking for unsaved changes...": "正在检查未保存的更改…",
+    "Are you sure you wish to sign out?": "确定要退出登录吗？",
+    "Are you sure you want to delete this method?": "确定要删除此方法吗？",
+    "Are you sure you want to delete this scorecard? This action cannot be undone.": "确定要删除此记分卡吗？此操作无法撤销。",
+    "Are you sure you want to delete this comment? This can’t be undone.": "确定要删除此评论吗？此操作无法撤销。",
+    "Are you sure you want to delete this comment? This can't be undone.": "确定要删除此评论吗？此操作无法撤销。",
+    "Are you sure you want to clear all your history requests for this workspace?": "确定要清空此工作区的全部历史请求吗？",
+    "Are you sure you want to clear all the selected history requests from this workspace?": "确定要从此工作区清除所选的全部历史请求吗？",
+    "Closing the tab will discard the unsaved changes on the monitor for the": "关闭标签页会丢弃该监视器上未保存的更改：",
+    "The mock servers, documentation, environments, test suites and monitors linked to this API won't be affected.": "与此 API 关联的模拟服务器、文档、环境、测试套件和监视器不会受影响。",
+    "The mock servers, documentation, environments, test suites and monitors linked to this API won’t be affected.": "与此 API 关联的模拟服务器、文档、环境、测试套件和监视器不会受影响。",
+    "Associated monitors will pause and stay in the current workspace. Scheduled runs will move with the collection and run as usual. Any pinned environments won't be moved.": "关联的监视器会暂停并留在当前工作区。计划运行会随集合一起迁移并照常运行。已固定的环境不会被迁移。",
+    "Associated monitors will pause and stay in the current workspace. Scheduled runs will move with the collection and run as usual. Any pinned environments won’t be moved.": "关联的监视器会暂停并留在当前工作区。计划运行会随集合一起迁移并照常运行。已固定的环境不会被迁移。",
+    "Associated monitors will pause and stay in the current workspace. Scheduled runs will move with the collection and run as usual. Any pinned environments won't be moved. Linked requests will no longer follow updates from the original.": "关联的监视器会暂停并留在当前工作区。计划运行会随集合一起迁移并照常运行。已固定的环境不会被迁移。关联的请求将不再跟随原始来源更新。",
+    "Associated monitors will pause and stay in the current workspace. Scheduled runs will move with the collection and run as usual. Any pinned environments won’t be moved. Linked requests will no longer follow updates from the original.": "关联的监视器会暂停并留在当前工作区。计划运行会随集合一起迁移并照常运行。已固定的环境不会被迁移。关联的请求将不再跟随原始来源更新。",
+    "Monitors of this collection will pause and stay in the current workspace. Scheduled runs will move as a part of the collection and continue to run. Linked requests will no longer follow updates from the original.": "此集合的监视器会暂停并留在当前工作区。计划运行会作为集合的一部分一起迁移并继续运行。关联的请求将不再跟随原始来源更新。",
+    "Monitors, scheduled collection runs, mock servers and integrations using this environment may no longer work. Additionally, this environment will be removed from all collections where it is currently pinned.": "使用此环境的监视器、集合计划运行、模拟服务器和集成可能无法继续工作。此外，此环境会从所有当前固定它的集合中移除。",
+    "Removing this environment might cause any monitors or mock servers using it in this workspace to stop functioning properly.": "移除此环境可能导致本工作区中使用它的监视器或模拟服务器无法正常工作。",
+    "Removing this collection will also remove any monitors, mock servers and integrations created on this collection from this workspace.": "移除此集合的同时，也会从本工作区移除基于该集合创建的所有监视器、模拟服务器和集成。",
+    "Current value is used while sending a request. These values are never synced to Postman's servers. If left empty, the current value automatically uses the initial value.": "发送请求时使用的是当前值。这些值永远不会同步到 Postman 服务器。留空时，当前值会自动采用初始值。",
+    "Current value is used while sending a request. These values are never synced to Postman’s servers. If left empty, the current value automatically uses the initial value.": "发送请求时使用的是当前值。这些值永远不会同步到 Postman 服务器。留空时，当前值会自动采用初始值。",
+    "Sync cookies directly from your browser with Interceptor": "使用 Interceptor 直接从浏览器同步 Cookie",
+    "Capture cookies from any domain to use in Postman requests with the Interceptor. Learn more about": "使用 Interceptor 从任意域名捕获 Cookie，供 Postman 请求使用。了解更多：",
+    "Learn how to capture cookies with interceptor": "了解如何使用 Interceptor 捕获 Cookie",
+    "Jsonp request timed out. Cookie could not be set": "JSONP 请求超时，无法设置 Cookie",
+    "Learn more about this": "了解详情",
+    "Learn how to create examples": "了解如何创建示例",
+    "Learn more about scope hierarchy": "了解作用域层级",
+    "Learn how to collaborate in Postman": "了解如何在 Postman 中协作",
+    "Learn how to utilise Postman to its fullest": "了解如何充分发挥 Postman 的能力",
+    "Learn more about restoring archived collections": "了解如何恢复已归档的集合",
+    "Learn how Postman can help you at every stage of the API development.": "了解 Postman 如何在 API 开发的每个阶段帮到你。",
+    "Over 15 million developers use Postman. Get started by signing up or downloading the desktop app.": "已有超过 1500 万开发者在使用 Postman。注册账号或下载桌面端即可开始。",
+    "For questions, additional resources, or to talk to a human, visit:": "如有疑问、需要更多资源或想联系真人，请访问：",
+    "A workspace is where people come together to work on APIs. Set up your workspace by moving your Scratch Pad data.": "工作区是大家共同开发 API 的地方。把草稿箱数据迁移过来即可完成工作区设置。",
+    "Make up to 10,000 Postman API, monitoring, and mock server calls.": "最多可进行 10,000 次 Postman API、监控和模拟服务器调用。",
+    "Insights reproduction mode for debugging production issues, capturing payloads, live debugging": "Insights 复现模式：用于调试生产问题、捕获数据载荷和实时调试",
+    "GitHub, GitLab, Bitbucket sync, CI/CD pipelines (Jenkins, GitHub Actions), monitoring (Datadog, PagerDuty), communication (Slack, Teams), API gateways, webhooks": "GitHub、GitLab、Bitbucket 同步，CI/CD 流水线（Jenkins、GitHub Actions），监控（Datadog、PagerDuty），协作沟通（Slack、Teams），API 网关，Webhook",
+    "Install a new Insights Agent to get started. Active services will show up here and can then be integrated into the API Catalog.": "安装一个新的 Insights 代理即可开始。活跃的服务会显示在这里，之后可以接入 API 目录。",
+    "Insights has not been set up for this system environment. Configure Insights to view the service graph.": "此系统环境尚未设置 Insights。配置 Insights 后即可查看服务拓扑图。",
+    "Checking Insights sidebar configuration...": "正在检查 Insights 侧边栏配置…",
+    "On the enterprise plan, you will be able to add your own rules or import rules from Postman's extensive rule library to create an ideal Governance standard for your team.": "在企业版套餐中，你可以添加自定义规则，或从 Postman 丰富的规则库导入规则，为团队打造理想的治理标准。",
+    "On the enterprise plan, you will be able to add your own rules or import rules from Postman’s extensive rule library to create an ideal Governance standard for your team.": "在企业版套餐中，你可以添加自定义规则，或从 Postman 丰富的规则库导入规则，为团队打造理想的治理标准。",
+    "This report shows views, forks, and additional data about your collections on the Private Team Workspace.": "此报告展示你在私有团队工作区中集合的浏览量、复刻数等数据。",
+    "When a developer forks a collection, they essentially create a copy of your public collection within their own workspace, allowing them to make and save changes without affecting your public collection. This action is generally a pre-cursor for longer term usage and more API calls compared to API calls made directly from your public workspace": "开发者复刻集合，本质上是在自己的工作区里创建你公开集合的副本，从而可以修改并保存，而不影响你的公开集合。相比直接在你的公开工作区中调用 API，复刻通常意味着更长期的使用和更多的 API 调用。",
+    "Members who have access to the collection can get its JSON with this request URL in the": "有权访问此集合的成员可以通过这个请求 URL 获取它的 JSON，位置在",
+    "Use secure Webhook URL": "使用安全的 Webhook URL",
+    "Payment request sent": "付款请求已发送",
+    "Sampling request rejected": "采样请求已被拒绝",
+    "Reloading config file:": "正在重新加载配置文件：",
+    "Conflict in default settings file:": "默认设置文件存在冲突：",
+    "Could not find source file: '": "找不到源文件：'",
+    "Could not find source file: ’": "找不到源文件：'",
+    "Could not read the source file: permission denied. Check the file permissions.": "无法读取源文件：权限被拒绝。请检查文件权限。",
+    "Could not parse RAML file:": "无法解析 RAML 文件：",
+    "Aborted: 204 No Content": "已中止：204 No Content",
+    "Drag and drop or select a .proto file from your local system to use with this request.": "拖入或从本机选择一个 .proto 文件，供此请求使用。",
+    "A Kafka producer request needs at least one message": "Kafka 生产者请求至少需要一条消息",
+    "The saved HTTP request could not be converted.": "已保存的 HTTP 请求无法转换。",
+    "The saved collection did not contain an HTTP request.": "已保存的集合中不包含 HTTP 请求。",
+    "We could not save the response in the history because it was too large. Invoke the request again to get a response.": "响应过大，未能保存到历史记录。重新发送请求即可再次获取响应。",
+    "You can't share this request. This might be because the collection is still being synced or might've been deleted. Please wait some time and try again": "无法分享此请求。可能是集合仍在同步，或已被删除。请稍后重试",
+    "You can’t share this request. This might be because the collection is still being synced or might’ve been deleted. Please wait some time and try again": "无法分享此请求。可能是集合仍在同步，或已被删除。请稍后重试",
+    "Some headers may be missing. Send this request with the Postman Desktop Agent to view accurate request headers.": "部分请求头可能缺失。使用 Postman 桌面代理发送此请求即可查看准确的请求头。",
+    "You are trying to open a link using a non-standard protocol (HTTP/HTTPS). Are you sure you want to continue?": "你正在尝试用非标准协议（HTTP/HTTPS 之外）打开链接。确定要继续吗？",
+    "You need to be signed in to add a request to a collection. Don't have an account yet? No worries - creating one is quick and free!": "把请求添加到集合需要先登录。还没有账号？没关系，注册又快又免费！",
+    "You need to be signed in to add a request to a collection. Don’t have an account yet? No worries - creating one is quick and free!": "把请求添加到集合需要先登录。还没有账号？没关系，注册又快又免费！",
+    "Something went wrong while running this tool, failed to save request to collection": "运行此工具时出了点问题：保存请求到集合失败",
+    "Something went wrong while running this tool, failed to open request": "运行此工具时出了点问题：打开请求失败",
+    "Something went wrong while running this tool, failed to list collections": "运行此工具时出了点问题：列出集合失败",
+    "Something went wrong while running this tool, failed to create collection": "运行此工具时出了点问题：创建集合失败",
+    "Something went wrong while trying to update your app. Check the DevTools for more details.": "尝试更新应用时出了点问题。详情请查看开发者工具。",
+    "Specifies the amount of time in seconds that the results of a preflight request can be cached.": "指定预检请求的结果可以缓存的秒数。",
+    "Used in preflight requests. Tells the server what HTTP method will be used in the actual request.": "用于预检请求，告知服务器实际请求将使用哪种 HTTP 方法。",
+    "Used in preflight requests. Tells the server what HTTP headers will be used in the actual request.": "用于预检请求，告知服务器实际请求将使用哪些 HTTP 请求头。",
+    "Used in response to a preflight request. Specifies which method or methods can access the resource.": "用于响应预检请求，指定哪些方法可以访问该资源。",
+    "Used in response to a preflight request. Specifies which HTTP headers can be used in the actual request.": "用于响应预检请求，指定实际请求中可以使用哪些 HTTP 请求头。",
+    "A general header that is implementation specific and may have various effects along the request-response chain.": "一个与具体实现相关的通用请求头，可能在请求-响应链路上产生各种影响。",
+    "Added by proxies and used to track message forwards, avoid request loops and identify protocol capabilities of senders.": "由代理添加，用于追踪消息转发、避免请求循环，并标识发送方的协议能力。",
+    "The Content-Length header was added to indicate to the server the size of the request body that is added to this request. Server uses this value to parse the request body accurately. You can remove the header or enter a new one with a different value.": "添加 Content-Length 请求头是为了告知服务器此请求正文的大小，服务器据此准确解析请求正文。你可以移除该请求头，或改填其他值。",
+    "Comma-separated list of header names to remove from request": "要从请求中移除的请求头名称列表，用逗号分隔",
+    "Mime type of the request or response body": "请求或响应正文的 MIME 类型",
+    "The request body didn't match the specified schema": "请求正文与指定的 Schema 不匹配",
+    "The request body didn’t match the specified schema": "请求正文与指定的 Schema 不匹配",
+    "If set to true, the current query parameter will not be sent with the request.": "设为 true 时，当前查询参数不会随请求发送。",
+    /* === batch-translated (auto-merged) === */
+    "Validate request correctness and test results": "校验请求正确性和测试结果",
+    "Performance test run": "性能测试运行",
+    "Start Performance Test": "开始性能测试",
+    "Stop Performance Test": "停止性能测试",
+    "Performance Test Usage": "性能测试用量",
+    "Test Runner": "测试运行器",
+    "Review Run Order": "审核运行顺序",
+    "Review Changes": "审核更改",
+    "Untitled request": "未命名请求",
+    "Untitled WebSocket Request": "未命名 WebSocket 请求",
+    "Running request...": "正在运行请求…",
+    "Getting request...": "正在获取请求…",
+    "Fetching request details...": "正在获取请求详情…",
+    "Sends a request": "发送请求",
+    "Send a GET request": "发送 GET 请求",
+    "Select request body type": "选择请求正文类型",
+    "Override the request name with a custom value.": "用自定义值覆盖请求名称。",
+    "Set number of seconds the request should wait for a response before timing out (use 0 for infinity)": "设置请求等待响应的超时秒数（填 0 表示不限）",
+    "Error processing request.": "处理请求时出错。",
+    "Hierarchy request error": "层级请求错误",
+    "User Data": "用户数据",
+    "User avatar": "用户头像",
+    "User input required": "需要用户输入",
+    "User ID not found": "未找到用户 ID",
+    "User Id not found while fetching Partnerships": "获取合作关系时未找到用户 ID",
+    "User did not grant permission.": "用户未授予权限。",
+    "User cancelled the flow.": "用户已取消该流程。",
+    "User defined timeout for device code polling reached": "已达到用户设定的设备码轮询超时时间",
+    "User created a vault secret": "用户创建了保管库密钥",
+    "User updated a vault secret": "用户更新了保管库密钥",
+    "List Workspace Roles": "列出工作区角色",
+    "Everyone in Team": "团队中的所有成员",
+    "Change Auth Type": "更改授权类型",
+    "Scheduled Collection": "定时集合",
+    "Scheduled collection paused": "定时集合已暂停",
+    "Select a collection/folder": "选择集合/文件夹",
+    "Unable to load collections": "无法加载集合",
+    "Failed to load specifications": "加载规范失败",
+    "Set active environment": "设为当前环境",
+    "Check Insights Enabled": "检查 Insights 是否已启用",
+    "Error reading SDK entity metadata file:": "读取 SDK 实体元数据文件出错：",
+    "Import from code repositories like GitHub or Bitbucket is only available in workspaces.": "从 GitHub、Bitbucket 等代码仓库导入仅在工作区中可用。",
+    "Something went wrong while adding a new integration": "添加新集成时出了点问题",
+    "Something went wrong while making Agent Mode request.": "发起智能代理模式请求时出了点问题。",
+    "Further extensions to the request are required for the server to fulfill it.[22]": "服务器需要该请求提供进一步的扩展才能完成处理。[22]",
+    "Transparent content negotiation for the request results in a circular reference.[21]": "该请求的透明内容协商导致了循环引用。[21]",
+    "The members of a DAV binding have already been enumerated in a previous reply to this request, and are not being included again.": "此请求的先前响应中已枚举过该 DAV 绑定的成员，本次不再重复包含。",
+    /* === batch-translated (auto-merged) === */
+    "Last CLI Status": "最近一次 CLI 状态",
+    "Configure CI/CD": "配置 CI/CD",
+    "Learn how to install a certificate": "了解如何安装证书",
+    "Enable Postman as a proxy": "启用 Postman 作为代理",
+    "Capture HTTPS requests via Proxy": "通过代理捕获 HTTPS 请求",
+    "Adding domain names will automatically sync cookies for its subdomains as well": "添加域名后会自动同步其子域名的 Cookie",
+    "Sync cookies from any device or browser with Postman's built-in proxy.": "使用 Postman 内置代理，从任意设备或浏览器同步 Cookie。",
+    "Sync cookies from any device or browser with Postman’s built-in proxy.": "使用 Postman 内置代理，从任意设备或浏览器同步 Cookie。",
+    "Try SpecHub": "试用 SpecHub",
+    "Design and govern your APIs, all in one place": "在一处完成 API 的设计与治理",
+    "SpecHub is your single home for API design and governance.": "SpecHub 是 API 设计与治理的统一平台。",
+    "Author specs visually, convert them to collections that stay in sync, and enforce standards across your team with custom governance rules.": "可视化编写规范，转换成保持同步的集合，并用自定义治理规则在团队内推行标准。",
+    "SpecHub is your single home for API design and governance. Author specs visually, convert them to collections that stay in sync, and enforce standards across your team with custom governance rules.": "SpecHub 是 API 设计与治理的统一平台。可视化编写规范，转换成保持同步的集合，并用自定义治理规则在团队内推行标准。",
+    "Select whether to resolve remote references.": "选择是否解析远程引用。",
+    "Select whether to include Webhooks in the generated collection": "选择生成的集合中是否包含 Webhook",
+    "Select whether to create folders according to the spec’s paths or tags.": "选择按规范的路径还是标签创建文件夹。",
+    "Select whether to create folders according to the spec's paths or tags.": "选择按规范的路径还是标签创建文件夹。",
+    "Select whether to create folders according to the WSDL port/endpoint service or without folders": "选择按 WSDL 端口/端点服务创建文件夹，还是不创建文件夹",
+    "Select whether to include deprecated operations, parameters, and properties in generated collection or not": "选择生成的集合中是否包含已弃用的操作、参数和属性",
+    "Select true to validate your collection requests/responses headers are correctly set": "选择 true 以校验集合请求/响应的头是否设置正确",
+    "Enable this option to create subfolders in the collection based on the order of tags.": "启用此选项可按标签顺序在集合中创建子文件夹。",
+    "Schema and content are mutually exclusive, at least one is required": "Schema 和 content 互斥，且至少需要一个",
+    "Determines whether or not this parameter is required or optional.": "决定此参数是必填还是可选。",
+    "Some properties are not allowed if content is present": "存在 content 时不允许使用某些属性",
+    "This will be the name of the file in Dropbox": "这将作为文件在 Dropbox 中的名称",
+    "This will be the format in which the collection be saved": "这将是集合保存时使用的格式",
+    "Select workspace access level": "选择工作区访问级别",
+    "Workspace pending EoS": "工作区待终止服务",
+    "Unlimited invites": "无限邀请",
+    "Invite your team members to explore free premium access to the platform for collaborative API development.": "邀请团队成员免费体验平台高级功能，一起进行协作式 API 开发。",
+    "Measure response times and load behavior": "测量响应时间和负载表现",
+    "p95 Latency": "p95 延迟",
+    "Critical Insights": "关键洞察",
+    "Failed to fetch metric count.": "获取指标计数失败。",
+    "Active environment": "当前环境",
+    "All system environments": "全部系统环境",
+    "Set up vault": "设置保管库",
+    "Toggle line wrapping": "切换自动换行",
+    "Search in response": "在响应中搜索",
+    "Download response": "下载响应",
+    "No fix to apply.": "没有可应用的修复。",
+    "Couldn't apply the fix": "无法应用修复",
+    "Couldn’t apply the fix": "无法应用修复",
+    "Translating 1s and 0s… This could take a few minutes...": "正在翻译 0 和 1…可能需要几分钟…",
+    "The coast is clear!": "一切正常！",
+    "Standing by for launch!": "准备就绪，等待启动！",
+    "DISCONNECTED": "已断开连接",
+    "Failed to create terminal.": "创建终端失败。",
+    "Update failed, view details": "更新失败，查看详情",
+    "You don’t have permission to take this action.": "你没有权限执行此操作。",
+    "We couldn't verify your plan entitlements. Please check your connection and try again.": "无法验证你的套餐权益。请检查网络连接后重试。",
+    "We couldn’t verify your plan entitlements. Please check your connection and try again.": "无法验证你的套餐权益。请检查网络连接后重试。",
+    "Try clearing a filter or broadening your search.": "试试清除筛选条件或放宽搜索范围。",
+    "Try a different branch or status, or clear all filters.": "换个分支或状态，或清除所有筛选条件。",
+    "Conversation ID copied to clipboard": "会话 ID 已复制到剪贴板",
+    "A Community Manager has been notified.": "已通知社区管理员。",
+    "High Contrast Dark": "高对比度深色",
+    "High Contrast Light": "高对比度浅色",
+    "MultiSelect": "多选",
+    "Evals": "评估",
+    "Monitoring": "监控",
+    "Destination": "目标",
+    "Annually": "每年",
+    "Reference font by URL": "通过 URL 引用字体",
+    /* === batch-translated (auto-merged) === */
     "Choose Monitor": "选择监视器",
     "Edit Monitor": "编辑监视器",
     "Get Monitor": "获取监视器",
@@ -4140,7 +4653,7 @@
     "The element permits touch-driven panning on the vertical axis. The touch pan is performed on the nearest ancestor with vertically scrollable content.": "元素允许在垂直轴上进行触摸平移。触摸平移在最近的具有垂直可滚动内容的祖先元素上执行。",
     "The exclusion element inherits its parent node's wrapping context. Its descendant inline content wraps around exclusions defined outside the element.": "排除元素继承其父节点的环绕上下文。其后代行内内容会环绕元素外部所定义的排除区域。",
     /* === batch-translated (auto-merged) === */
-    "The :local-link CSS pseudo-class represents an link to the same document": "The :local-link CSS 伪类表示指向同一文档的链接",
+    "The :local-link CSS pseudo-class represents an link to the same document": ":local-link CSS 伪类表示指向同一文档的链接",
     "Any of the range of line values available to the -ms-layout-grid-line property.": "-ms-layout-grid-line 属性可用取值范围内的任意 line 值。",
     "Any of the range of mode values available to the -ms-layout-grid-mode property.": "-ms-layout-grid-mode 属性可用取值范围内的任意 mode 值。",
     "Any of the range of type values available to the -ms-layout-grid-type property.": "-ms-layout-grid-type 属性可用取值范围内的任意 type 值。",
@@ -16544,6 +17057,24 @@
     [/^(\d+)\s+weeks?\s+ago$/i, "$1 周前"],
     [/^(\d+)\s+months?\s+ago$/i, "$1 个月前"],
     [/^(\d+)\s+years?\s+ago$/i, "$1 年前"],
+    // 紧凑写法的相对时间（活动流、通知列表里用的是 "49m ago"、"3h ago" 这种）
+    [/^(\d+)s\s+ago$/, "$1 秒前"],
+    [/^(\d+)m\s+ago$/, "$1 分钟前"],
+    [/^(\d+)h\s+ago$/, "$1 小时前"],
+    [/^(\d+)d\s+ago$/, "$1 天前"],
+    [/^(\d+)w\s+ago$/, "$1 周前"],
+    [/^(\d+)mo\s+ago$/, "$1 个月前"],
+    [/^(\d+)y\s+ago$/, "$1 年前"],
+    // 同样的紧凑写法也会单独出现在时间轴刻度上（不带 ago）
+    [/^(\d+)mo$/, "$1 个月"],
+    [/^Current version:\s*v?([\d.]+)\s*(?:→|->)\s*New version:\s*v?([\d.]+)$/i, "当前版本：v$1 → 新版本：v$2"],
+    [/^Current version:\s*v?([\d.]+)$/i, "当前版本：v$1"],
+    [/^New version:\s*v?([\d.]+)$/i, "新版本：v$1"],
+    [/^\.?\s*(\d+)\s+items? hidden due to space constraints$/i, "因空间不足隐藏了 $1 项"],
+    [/^New notifications \((\d+)\)$/i, "新通知（$1）"],
+    [/^Successfully updated to version ([\d.]+)$/i, "已成功更新到版本 $1"],
+    [/^(\d+) entities modified\s*,\s*(\d+) entities added,\s*(\d+) entities removed,\s*(\d+) entities moved\.$/i,
+      "修改 $1 个实体，新增 $2 个，删除 $3 个，移动 $4 个。"],
     [/^in\s+(\d+)\s+seconds?$/i, "$1 秒后"],
     [/^in\s+(\d+)\s+minutes?$/i, "$1 分钟后"],
     [/^in\s+(\d+)\s+hours?$/i, "$1 小时后"],
@@ -17404,6 +17935,104 @@
     return el.tagName.toLowerCase() + (cls ? "." + cls : "");
   }
 
+  // 英文虚词/高频动词表。这些词一旦和中文同时出现在同一句里，说明这句话
+  // 只被 PHRASES 换掉了个别词、整体仍是英文——也就是
+  // "Validate 请求 correctness and test results" 那种半截翻译。
+  // 单字母（A、Z、I）不算：像 "文件夹优先，A 到 Z" 是正常译文。
+  var HALF_TRANSLATION_STOPWORDS = {};
+  (function () {
+    var words = ("the of and or to in on at for with from by as is are was were be been being am " +
+      "has have had do does did will would can could should shall may might must " +
+      "this that these those it its you your yours we our ours they their them us my me " +
+      "his her him not no nor if when while where which who whom whose what how why " +
+      "all any some each every both few more most other others such than then there here so " +
+      "up out off about into over under after before during without within between through " +
+      "across against along around because also only just very too already still yet again once " +
+      "use using used make making makes made get getting gets got add adding adds added " +
+      "set setting sets see seeing seen want wants need needs needed let lets take takes " +
+      "give gives know knows find finds try trying tries wait waiting send sending sent " +
+      "cannot dont doesnt wont isnt arent wasnt werent hasnt havent didnt couldnt shouldnt " +
+      "wouldnt please sorry now later soon provide provided provides instead " +
+      "required optional available enabled disabled allowed supported unsupported " +
+      "failed failure success successful correctness details avatar").split(" ");
+    for (var i = 0; i < words.length; i += 1) {
+      HALF_TRANSLATION_STOPWORDS[words[i]] = true;
+    }
+  })();
+
+  // 词级技术词表：这些词在成品中文译文里以英文出现是正常的。
+  // 与整串匹配的 TECHNICAL_EXACT 不同，这里按单词判断。
+  var TECHNICAL_WORDS = {};
+  (function () {
+    var words = ("api apis http https json xml yaml yml html css sql url uri urn id ids uid uuid " +
+      "sdk cli ide cdn dns tcp udp tls ssl ssh ftp smtp oauth jwt saml sso rbac acl cors waf rum " +
+      "rest restful grpc grpcurl graphql websocket websockets sse mqtt amqp mcp curl npm npx git " +
+      "sha md5 base64 utf ascii csv tsv pem pfx wsdl soap openapi asyncapi swagger raml protobuf " +
+      "proto smithy schema webhook webhooks regex cron node nodejs javascript typescript python " +
+      "java ruby php golang rust markdown text hex bin blob env var vars pm mock mocks " +
+      "postman postbot spechub newman interceptor flows monaco electron chrome firefox safari " +
+      "windows macos linux wsl android ios aws azure gcp docker kubernetes terraform " +
+      "get post put patch delete head options trace connect " +
+      "ms mb kb gb tb px em rem vu vus rps qps tps utc iso").split(" ");
+    for (var i = 0; i < words.length; i += 1) {
+      TECHNICAL_WORDS[words[i]] = true;
+    }
+  })();
+
+  // 剔除代码上下文，避免把标识符、引号字面量、带数字的 token 误判成残留英文。
+  // 例如 "未通过 i18next.use 添加后端"、"可以是 'user'、'group' 或 'team'"、
+  // "请勿提供 name、queryParams、body" 里的英文都是刻意保留的。
+  function stripCodeSpans(text) {
+    return String(text)
+      .replace(/`[^`]*`/g, " ")                                  // 反引号代码段
+      .replace(/'[^']*'/g, " ")                                  // 单引号字面量
+      .replace(/"[^"]*"/g, " ")                                  // 双引号字面量
+      .replace(/“[^”]*”/g, " ")                                  // 中文双引号（译文里包代码用的就是这个）
+      .replace(/‘[^’]*’/g, " ")                                  // 中文单引号
+      .replace(/「[^」]*」/g, " ")                                // 直角引号
+      .replace(/『[^』]*』/g, " ")
+      .replace(/[A-Za-z][\w-]*:[A-Za-z][\w-]*/g, " ")            // 命名空间字面量 read:org、scope:name
+      .replace(/[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)+/g, " ")  // 点号标识符 a.b.c
+      .replace(/[a-z]+[A-Z][A-Za-z]*/g, " ")                     // camelCase 标识符
+      .replace(/[:@#/\\][A-Za-z][\w-]*/g, " ")                   // :required、/path、@scope
+      .replace(/[A-Za-z]*\d[\w]*/g, " ")                         // 含数字的 token
+      .replace(/[A-Za-z_$][\w$]*\s*\(/g, " ");                   // 函数调用 foo(
+  }
+
+  // PHRASES 是子串替换，天生可能只换掉句中一两个词。整句没进 EXACT 时，
+  // 结果就是中英混杂。这里做最后一道闸：混杂就整句退回英文。
+  // 与 AGENTS.md 规则 1（动词兜底“翻不出中文则整句保留英文”）同一原则。
+  function looksHalfTranslated(result) {
+    if (!/[一-鿿]/.test(result)) {
+      return false;
+    }
+    var words = stripCodeSpans(result).match(/[A-Za-z][A-Za-z'’]*/g);
+    if (!words) {
+      return false;
+    }
+    for (var i = 0; i < words.length; i += 1) {
+      var bare = words[i].toLowerCase().replace(/['’]/g, "");
+      if (!bare || TECHNICAL_WORDS[bare]) {
+        continue;
+      }
+      // 单字母：只在原文本身是小写时才参与判定。小写的 "a"/"i" 基本只出现在
+      // 没翻完的英文句子里（"Accepts a 请求"）；大写的 "A"/"Z" 常是正常译文的
+      // 一部分（"文件夹优先，A 到 Z"），不能当成残留。
+      if (bare.length < 2 && words[i] !== words[i].toLowerCase()) {
+        continue;
+      }
+      // 英文虚词/高频动词：铁证
+      if (HALF_TRANSLATION_STOPWORDS[bare]) {
+        return true;
+      }
+      // 全小写的普通英文词（≥3 字母）在成品中文译文里基本不会出现
+      if (bare.length >= 3 && words[i] === words[i].toLowerCase()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   function translate(text) {
     if (!text || typeof text !== "string") {
       return text;
@@ -17451,6 +18080,11 @@
     replaced = cleanupEnterpriseTrialMixedTranslation(replaced);
 
     if (replaced !== trimmed && /[\u4e00-\u9fff]/.test(replaced)) {
+      // \u53ea\u6362\u6389\u4e86\u4e2a\u522b\u8bcd\u3001\u6574\u53e5\u4ecd\u662f\u82f1\u6587 \u2192 \u9000\u56de\u82f1\u6587\u539f\u6587\u3002\u534a\u622a\u4e2d\u82f1\u6df7\u6742\u6bd4\u7eaf\u82f1\u6587\u66f4\u96be\u770b\uff0c
+      // \u800c\u4e14\u9000\u56de\u540e\u8fd0\u884c\u65f6\u6536\u96c6\u5668\u4f1a\u628a\u5b83\u8bb0\u6210\u6f0f\u7ffb\uff0c\u6b63\u597d\u8fdb\u5165\u8865\u8bcd\u6761\u7684\u95ed\u73af\u3002
+      if (looksHalfTranslated(replaced)) {
+        return text;
+      }
       return preserveOuter(text, replaced);
     }
 
@@ -18615,7 +19249,207 @@
       fixCompositeTextBlocks(root);
       forceRequestTypeSpecialText(root);
       forceGlobalSearchSpecialText(root);
+      // React 重渲染会抹掉外来节点，靠这轮轮询补回；同时把命令行改过的状态同步回按钮。
+      installUpdateToggle(root);
+      refreshUpdateToggle();
     }, 900);
+  }
+
+  // 汉化工具自己的自动更新总闸，注入到 Postman「设置 > 更新」页。
+  // 偏好由主进程守卫（安装汉化.ps1 prepend 到 main.js）持有，这里只经 IPC 读写，
+  // 页面本身不碰文件。取不到 ipcRenderer 就静默跳过，绝不影响翻译主流程。
+  var updateToggleIpc;
+  function getUpdateToggleIpc() {
+    if (updateToggleIpc !== undefined) {
+      return updateToggleIpc;
+    }
+    updateToggleIpc = null;
+    try {
+      if (typeof require === "function") {
+        var electron = require("electron");
+        if (electron && electron.ipcRenderer && electron.ipcRenderer.invoke) {
+          updateToggleIpc = electron.ipcRenderer;
+        }
+      }
+    } catch (e) {}
+    return updateToggleIpc;
+  }
+
+  function renderUpdateToggleState(button, enabled) {
+    var on = enabled === true;
+    button.setAttribute("aria-checked", on ? "true" : "false");
+    button.setAttribute("data-enabled", on ? "true" : "false");
+    var label = typeof document.getElementById === "function"
+      ? document.getElementById("postman-zh-update-switch-label")
+      : null;
+    if (label) {
+      label.textContent = on ? "已开启" : "已关闭";
+    }
+  }
+
+  // 「设置 > 更新」页在不同状态下渲染完全不同的组件，锚点也不一样：
+  //   .settings-autoupdate                  → 旧版“已是最新”状态里 Postman 自带的自动下载开关
+  //   .settings-update-changelog-container  → “有可用更新”状态（发布说明视图）
+  // 但 12.25.1 的“已是最新”状态两个都没有，只能靠状态按钮定位：
+  // Postman 给这些按钮起的是语义类名（update-not-available__button、
+  // update-idle__button 等），比 styled-components 随机类名稳定得多。
+  var UPDATE_TOGGLE_ANCHORS = [".settings-autoupdate", ".settings-update-changelog-container"];
+  var UPDATE_STATE_BUTTON = '[class*="update-"][class*="__button"]';
+  var SETTINGS_PANE = ".settings-tab-contents";
+
+  // 返回 { parent, before }：把开关插到 parent 里、before 之前（before 为 null 则追加到末尾）
+  function findUpdateToggleSlot(scope) {
+    // 1) 优先用自带的自动更新块 / 发布说明块，插在它前面
+    for (var i = 0; i < UPDATE_TOGGLE_ANCHORS.length; i += 1) {
+      var nodes;
+      try {
+        nodes = scope.querySelectorAll(UPDATE_TOGGLE_ANCHORS[i]);
+      } catch (e) {
+        continue;
+      }
+      for (var j = 0; j < nodes.length; j += 1) {
+        // 跳过我们自己注入的那块（它复用了 settings-autoupdate 类名）
+        if (nodes[j].id === "postman-zh-update-switch") {
+          continue;
+        }
+        if (nodes[j].parentNode) {
+          return { parent: nodes[j].parentNode, before: nodes[j] };
+        }
+      }
+    }
+
+    // 2) 兜底：靠更新状态按钮确认当前在“更新”页，插到状态块之后
+    var btn;
+    try {
+      btn = scope.querySelector(UPDATE_STATE_BUTTON);
+    } catch (e) {
+      btn = null;
+    }
+    if (!btn || typeof btn.closest !== "function") {
+      return null;
+    }
+    var pane = btn.closest(SETTINGS_PANE);
+    if (!pane) {
+      return null;
+    }
+    // 找到 pane 的直接子节点里包含该按钮的那个
+    var child = btn;
+    while (child.parentElement && child.parentElement !== pane) {
+      child = child.parentElement;
+    }
+    if (child.parentElement !== pane) {
+      return null;
+    }
+    return { parent: pane, before: child.nextSibling };
+  }
+
+  function installUpdateToggle(root) {
+    // 静态扫描（scripts/data/提取界面文案.js）只为了拿 translate() 就在 vm 沙箱里
+    // 加载本文件，那里的 document 是极简桩，没有 getElementById/querySelectorAll。
+    // 缺任一 API 就直接放弃注入，绝不能让翻译主流程崩掉。
+    if (typeof document.getElementById !== "function" || typeof document.querySelectorAll !== "function") {
+      return;
+    }
+    if (document.getElementById("postman-zh-update-switch")) {
+      return;
+    }
+    var scope = root && typeof root.querySelectorAll === "function" ? root : document;
+    var slot = findUpdateToggleSlot(scope);
+    if (!slot && scope !== document) {
+      slot = findUpdateToggleSlot(document);
+    }
+    if (!slot || !slot.parent) {
+      return;
+    }
+    var ipc = getUpdateToggleIpc();
+    if (!ipc) {
+      return;
+    }
+    if (typeof document.createElement !== "function") {
+      return;
+    }
+
+    var box = document.createElement("div");
+    box.id = "postman-zh-update-switch";
+    box.className = "settings-autoupdate";
+
+    var container = document.createElement("div");
+    container.className = "settings-autoupdate-info-container";
+
+    var header = document.createElement("div");
+    header.className = "settings-autoupdate-header";
+    header.textContent = "Postman 自动更新（汉化工具开关）";
+
+    var body = document.createElement("div");
+    body.className = "settings-autoupdate-body";
+    // 做成真正的滑动开关：一个 role=switch 的按钮当轨道，里面一个圆钮，右侧配文字。
+    var button = document.createElement("button");
+    button.type = "button";
+    button.id = "postman-zh-update-switch-button";
+    button.setAttribute("role", "switch");
+    // 给自动化审计一个明确的“别点我”标记：本轮真出过事——审计脚本把按钮文字
+    // 「已关闭」当成设置页标签名点了一下，自动更新被打开，Postman 随即自更新，
+    // 汉化被英文原版覆盖。
+    button.setAttribute("data-postman-zh-audit-skip", "true");
+    var knob = document.createElement("span");
+    knob.id = "postman-zh-update-switch-knob";
+    button.appendChild(knob);
+
+    var stateLabel = document.createElement("span");
+    stateLabel.id = "postman-zh-update-switch-label";
+
+    body.appendChild(button);
+    body.appendChild(stateLabel);
+    renderUpdateToggleState(button, false);
+
+    var footer = document.createElement("div");
+    footer.className = "settings-autoupdate-footer";
+    footer.textContent = "默认关闭以保护汉化。开启后 Postman 可能自动升级，升级后界面会变回英文，需要重新运行汉化工具。";
+
+    container.appendChild(header);
+    container.appendChild(body);
+    container.appendChild(footer);
+    box.appendChild(container);
+    // 插到状态块附近：这是总闸，应该出现在 Postman 自带的「自动下载主要更新」
+    // 细项、发布说明或更新状态块旁边。
+    slot.parent.insertBefore(box, slot.before || null);
+
+    var busy = false;
+    button.addEventListener("click", function () {
+      if (busy) {
+        return;
+      }
+      busy = true;
+      var next = button.getAttribute("data-enabled") !== "true";
+      Promise.resolve(ipc.invoke("postman-zh:updates:set", next)).then(function (value) {
+        renderUpdateToggleState(button, value);
+      })["catch"](function () {})
+        .then(function () {
+          busy = false;
+        });
+    });
+
+    Promise.resolve(ipc.invoke("postman-zh:updates:get")).then(function (value) {
+      renderUpdateToggleState(button, value);
+    })["catch"](function () {});
+  }
+
+  // `postman-zh.bat updates on|off` 直接写偏好文件，页面开关要跟着回正。
+  function refreshUpdateToggle() {
+    if (typeof document.getElementById !== "function") {
+      return;
+    }
+    var button = document.getElementById("postman-zh-update-switch-button");
+    if (!button) {
+      return;
+    }
+    var ipc = getUpdateToggleIpc();
+    if (!ipc) {
+      return;
+    }
+    Promise.resolve(ipc.invoke("postman-zh:updates:get")).then(function (value) {
+      renderUpdateToggleState(button, value);
+    })["catch"](function () {});
   }
 
   function injectStyle() {
@@ -18631,6 +19465,52 @@
       "html[data-postman-zh-localized='true'] button,",
       "html[data-postman-zh-localized='true'] select {",
       "  font-family: Inter, 'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', system-ui, sans-serif;",
+      "}",
+      // 更新总闸：做成滑动开关。尽量借用 Postman 的主题变量，深色/浅色主题都能读。
+      "html[data-postman-zh-localized='true'] #postman-zh-update-switch .settings-autoupdate-body {",
+      "  display: flex;",
+      "  align-items: center;",
+      "  gap: 10px;",
+      "}",
+      "html[data-postman-zh-localized='true'] #postman-zh-update-switch-button {",
+      "  position: relative;",
+      "  flex: 0 0 auto;",
+      "  width: 40px;",
+      "  height: 22px;",
+      "  padding: 0;",
+      "  border: none;",
+      "  border-radius: 11px;",
+      "  cursor: pointer;",
+      "  background: var(--border-color-strong, #b5b5b5);",
+      "  transition: background 0.15s ease;",
+      "}",
+      "html[data-postman-zh-localized='true'] #postman-zh-update-switch-button[data-enabled='true'] {",
+      "  background: var(--base-color-brand, #ff6c37);",
+      "}",
+      "html[data-postman-zh-localized='true'] #postman-zh-update-switch-button:focus-visible {",
+      "  outline: 2px solid var(--base-color-brand, #ff6c37);",
+      "  outline-offset: 2px;",
+      "}",
+      "html[data-postman-zh-localized='true'] #postman-zh-update-switch-knob {",
+      "  position: absolute;",
+      "  top: 2px;",
+      "  left: 2px;",
+      "  width: 18px;",
+      "  height: 18px;",
+      "  border-radius: 50%;",
+      "  background: #ffffff;",
+      "  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);",
+      "  transition: transform 0.15s ease;",
+      "}",
+      "html[data-postman-zh-localized='true'] #postman-zh-update-switch-button[data-enabled='true'] #postman-zh-update-switch-knob {",
+      "  transform: translateX(18px);",
+      "}",
+      "html[data-postman-zh-localized='true'] #postman-zh-update-switch-label {",
+      "  font-size: 12px;",
+      "  color: var(--content-color-secondary, #6b6b6b);",
+      "}",
+      "html[data-postman-zh-localized='true'] #postman-zh-update-switch .settings-autoupdate-footer {",
+      "  color: var(--content-color-warning, #e07b39);",
       "}"
     ].join("\n");
     (document.head || document.documentElement).appendChild(style);
@@ -18652,6 +19532,7 @@
     }
     if (document.body || document.documentElement) {
       walk(document.body || document.documentElement);
+      installUpdateToggle(document);
     }
     observe();
   }

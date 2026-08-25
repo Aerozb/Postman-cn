@@ -47,6 +47,39 @@ function Stop-WithCode {
   exit $Code
 }
 
+# 自动更新开关的偏好文件。主进程守卫（安装汉化.ps1 注入到 main.js）在每次更新
+# 调用时读它，Postman「设置 > 更新」页里的开关经 IPC 写它。这里是应用起不来、
+# 或想在命令行里直接改时的兜底入口。
+# 注意必须写成无 BOM：守卫用 JSON.parse 读，BOM 会让解析失败并静默退回“已关闭”。
+function Get-UpdatePreferencePath {
+  if (-not $env:APPDATA) {
+    throw '找不到 APPDATA 目录，无法定位自动更新开关配置。'
+  }
+  return Join-Path (Join-Path $env:APPDATA 'Postman') 'postman-zh-updates.json'
+}
+
+function Get-UpdatePreference {
+  param([string]$Path)
+
+  if (-not (Test-Path -LiteralPath $Path)) { return $false }
+  try {
+    return [bool]((Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json).enabled)
+  } catch {
+    return $false
+  }
+}
+
+function Set-UpdatePreference {
+  param([string]$Path, [bool]$Enabled)
+
+  $dir = Split-Path -Parent $Path
+  if (-not (Test-Path -LiteralPath $dir)) {
+    New-Item -ItemType Directory -Path $dir -Force | Out-Null
+  }
+  $json = if ($Enabled) { '{"enabled":true}' } else { '{"enabled":false}' }
+  [System.IO.File]::WriteAllText($Path, $json, (New-Object System.Text.UTF8Encoding $false))
+}
+
 function Assert-NodeRuntime {
   $node = Get-Command node -ErrorAction SilentlyContinue
   if (-not $node) {
@@ -120,6 +153,7 @@ Postman 中文汉化工具
 常用命令：
   install       安装汉化、关闭自动更新并验证（菜单里直接回车即为此项）
   restore       还原英文原版
+  updates       查看自动更新开关；updates on 允许更新，updates off 恢复拦截（默认）
   collect       导出运行时收集到的漏翻；加 -Clear 清空记录，--details 查看候选明细
   verify        只验证当前 Postman 汉化状态；加 --details 查看完整诊断
   start         启动 Postman 并等待 CDP 调试端口
@@ -160,8 +194,15 @@ Postman 中文汉化工具
 
 安装示例：
   .\postman-zh.bat install
-  .\postman-zh.bat install -PostmanDir C:\Path\To\app-12.24.6 -NoVerify
+  .\postman-zh.bat install -PostmanDir C:\Path\To\app-12.25.1 -NoVerify
   .\postman-zh.bat restore
+
+自动更新开关：
+  安装后默认拦截 Postman 自动更新，避免官方升级把汉化覆盖掉。
+  也可以在 Postman 的「设置 > 更新」页里直接切换同一个开关。
+  .\postman-zh.bat updates       查看当前状态
+  .\postman-zh.bat updates on    允许 Postman 自动更新（升级后需要重新汉化）
+  .\postman-zh.bat updates off   恢复拦截
 '@
 }
 
@@ -205,8 +246,9 @@ function Show-Menu {
     @{ Key = '7';  Command = 'static-scan'; Label = '静态扫描界面文案'; Note = '扫出未翻译候选，供补词条' }
     @{ Key = '8';  Command = 'merge';       Label = '合并译文';         Note = '把 _generated/trans-*.json 并入词典' }
     @{ Key = '9';  Command = 'audit';       Label = '深度审计界面';     Note = '需要再选一个审计名称' }
-    @{ Key = '10'; Command = 'fix-browser'; Label = '修复浏览器链接';   Note = '仅在登录页外部链接异常时用' }
-    @{ Key = '11'; Command = 'publish';     Label = '发布（维护者）';   Note = '推送代码到 GitHub 并发 Release' }
+    @{ Key = '10'; Command = 'updates';     Label = '自动更新开关';     Note = '默认关闭；开启后官方升级会覆盖汉化' }
+    @{ Key = '11'; Command = 'fix-browser'; Label = '修复浏览器链接';   Note = '仅在登录页外部链接异常时用' }
+    @{ Key = '12'; Command = 'publish';     Label = '发布（维护者）';   Note = '推送代码到 GitHub 并发 Release' }
     @{ Key = 'h';  Command = 'help';        Label = '查看完整命令帮助'; Note = '' }
     @{ Key = '0';  Command = 'exit';        Label = '退出';             Note = '不执行任何操作' }
   )
@@ -287,6 +329,35 @@ function Show-Menu {
       if ($arguments.Count -eq 0) { continue }
     }
 
+    if ($picked.Command -eq 'updates') {
+      $currentPref = Get-UpdatePreference -Path (Get-UpdatePreferencePath)
+      while ($true) {
+        Write-Host ''
+        Write-Host '=== 自动更新开关 ===' -ForegroundColor Cyan
+        if ($currentPref) {
+          Write-Host '当前状态：已开启' -ForegroundColor Yellow
+        } else {
+          Write-Host '当前状态：已关闭（默认）' -ForegroundColor Green
+        }
+        Write-Host '开启后 Postman 可能自动升级，升级后界面会变回英文，需要重新安装汉化。'
+        Write-Host ''
+        Write-Host '  1   开启自动更新'
+        Write-Host '  2   关闭自动更新'
+        Write-Host '  0   返回上一级'
+        Write-Host ''
+
+        $updateChoice = ''
+        try { $updateChoice = (Read-Host '请选择').Trim() } catch { return $null }
+        if ($updateChoice -eq 'q' -or $updateChoice -eq 'Q') { return $null }
+        if ($updateChoice -eq '0') { break }
+        if ($updateChoice -eq '1') { $arguments = @('on'); break }
+        if ($updateChoice -eq '2') { $arguments = @('off'); break }
+        Write-Host "无效选择：$updateChoice，请重新输入。" -ForegroundColor Red
+      }
+
+      if ($arguments.Count -eq 0) { continue }
+    }
+
     Write-Host ''
     Write-Host "正在执行：$($picked.Label)" -ForegroundColor Cyan
     Write-Host ''
@@ -305,7 +376,7 @@ try {
     }
   }
 
-  $validCommands = @('install', 'restore', 'collect', 'verify', 'start', 'stop', 'fix-browser', 'static-scan', 'merge', 'probe', 'scan', 'audit', 'publish', 'help')
+  $validCommands = @('install', 'restore', 'updates', 'collect', 'verify', 'start', 'stop', 'fix-browser', 'static-scan', 'merge', 'probe', 'scan', 'audit', 'publish', 'help')
   if ($validCommands -notcontains $Command) {
     Write-Host "未知命令：$Command"
     Write-Host "请运行 .\postman-zh.bat help 查看可用命令。"
@@ -340,6 +411,29 @@ try {
       if ($PostmanDir) { $params.PostmanDir = $PostmanDir }
       if ($NoRestart) { $params.NoRestart = $true }
       Invoke-PowerShellScript (Join-Path $internalRoot '安装汉化.ps1') $params
+    }
+
+    'updates' {
+      $prefPath = Get-UpdatePreferencePath
+      $action = if ($RemainingArguments.Count -gt 0) { ([string]$RemainingArguments[0]).ToLowerInvariant() } else { '' }
+
+      if ($action -eq '') {
+        if (Get-UpdatePreference -Path $prefPath) {
+          Write-Host '自动更新：已开启。Postman 可能自动升级，升级后界面会变回英文，需要重新运行 install。'
+        } else {
+          Write-Host '自动更新：已关闭（默认）。官方升级不会覆盖汉化。'
+        }
+      } elseif (@('on', 'enable', 'true', '1') -contains $action) {
+        Set-UpdatePreference -Path $prefPath -Enabled $true
+        Write-Host '自动更新已开启。升级后界面会变回英文，届时请重新运行 install 恢复汉化。'
+      } elseif (@('off', 'disable', 'false', '0') -contains $action) {
+        Set-UpdatePreference -Path $prefPath -Enabled $false
+        Write-Host '自动更新已关闭，汉化不会被官方升级覆盖。'
+      } else {
+        Write-Host "无法识别的参数：$($RemainingArguments[0])"
+        Write-Host '用法：.\postman-zh.bat updates [on|off]'
+        Stop-WithCode 2
+      }
     }
 
     'collect' {

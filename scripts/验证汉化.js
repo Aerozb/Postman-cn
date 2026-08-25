@@ -11,7 +11,8 @@ const POSTMAN_PAGE_URL_RE = /(?:^https:\/\/desktop\.postman\.com(?::\d+)?(?:[\/?
 
 const UPDATE_PATCH_MARKERS = [
   "postman-zh:update-guard",
-  "__postmanZhUpdatesDisabled",
+  "__postmanZhUpdateGuard",
+  "postman-zh:updates:get",
   'p("checkForUpdates"',
   'p("quitAndInstall"',
   "updates disabled by postman-zh",
@@ -487,17 +488,21 @@ function createPatchSource(postmanDir) {
 
 function inspectUpdatePatch(source) {
   if (!source.checked) {
-    return { checked: false, disabled: false, reason: source.reason };
+    return { checked: false, installed: false, reason: source.reason };
   }
-  // isUpdateEnabled is intentionally left untouched now; blocking
-  // downloadUpdate/restartAppToUpdate is what actually prevents updates
+  // isUpdateEnabled is intentionally left untouched now; gating
+  // downloadUpdate/restartAppToUpdate is what actually controls updates
   // while keeping the Settings > Update page functional.
-  const runtimeGuard = UPDATE_PATCH_MARKERS.slice(0, 4).every((needle) => source.includes(needle));
+  // The guard is a user-facing switch (default off), so we verify that it is
+  // INSTALLED — not that updates are currently blocked. Whether they are
+  // blocked right now depends on %APPDATA%\Postman\postman-zh-updates.json,
+  // which the user owns via the Settings page toggle or `updates on|off`.
+  const runtimeGuard = UPDATE_PATCH_MARKERS.slice(0, 5).every((needle) => source.includes(needle));
   const sourceOptimizations = {
-    download: source.includes(UPDATE_PATCH_MARKERS[4]),
-    restart: source.includes(UPDATE_PATCH_MARKERS[5])
+    download: source.includes(UPDATE_PATCH_MARKERS[5]),
+    restart: source.includes(UPDATE_PATCH_MARKERS[6])
   };
-  return { checked: true, source: source.source, disabled: runtimeGuard, runtimeGuard, sourceOptimizations };
+  return { checked: true, source: source.source, installed: runtimeGuard, runtimeGuard, sourceOptimizations };
 }
 
 function inspectExternalUrlPatch(source) {
@@ -1874,9 +1879,9 @@ async function main() {
     if (!result.contextMenuSkipped && (!Array.isArray(result.menuLabels) || !result.menuLabels.length)) {
       failures.push("没有采集到右键菜单文案。");
     }
-    if (expectUpdatesDisabled && (!result.updatePatch || !result.updatePatch.disabled)) {
+    if (expectUpdatesDisabled && (!result.updatePatch || !result.updatePatch.installed)) {
       const updateDetails = SHOW_DETAILS ? `：${JSON.stringify(sanitizeAuditReport(result.updatePatch))}` : "";
-      failures.push(`自动更新拦截补丁未生效${updateDetails}`);
+      failures.push(`自动更新守卫未安装${updateDetails}`);
     }
     if (!result.externalUrlPatch || !result.externalUrlPatch.installed) {
       const externalUrlDetails = SHOW_DETAILS ? `：${JSON.stringify(sanitizeAuditReport(result.externalUrlPatch))}` : "";

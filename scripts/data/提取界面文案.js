@@ -91,7 +91,11 @@ function loadTranslator() {
       documentElement: noopEl,
       body: null,
       createTreeWalker() { return { nextNode: () => false, currentNode: null }; },
-      querySelectorAll() { return []; }
+      querySelectorAll() { return []; },
+      // 只为拿 translate() 而加载 payload，但 run() 会顺带碰这几个 API。
+      // 补上桩函数，避免 payload 新增 DOM 功能时静态扫描整轮失败。
+      querySelector() { return null; },
+      getElementById() { return null; }
     }
   };
   sandbox.window = sandbox;

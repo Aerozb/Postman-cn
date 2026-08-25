@@ -20,7 +20,7 @@
 ```
 Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（勿动其官方文件）
   Postman.exe  Update.exe
-  app-12.24.6\                        ← 当前版本；resources\app.asar 是补丁目标
+  app-12.25.1\                        ← 当前版本；resources\app.asar 是补丁目标
     resources\app.asar.original       ← 首次安装时自动备份的英文原版
   packages\                           ← 官方安装包 + RELEASES
   postman-zh-workspace\               ← 所有非官方内容都在这里
@@ -65,7 +65,7 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
 .\postman-zh.bat restore
 ```
 
-**不带命令运行（或双击 bat）会显示中文交互菜单**，主菜单为：1 安装、2 验证、3 还原、4 启动、5 关闭、6 导出漏翻、7 静态扫描、8 合并译文、9 深度审计、10 修复浏览器链接、11 发布、`h` 帮助、`0` 退出；空回车默认安装，`q` 等同退出。选“深度审计界面”后会显示 11 项中文审计子菜单，`0` 返回主菜单。菜单只是 `统一入口.ps1` 里 `Show-Menu` 对同一批子命令的包装，带命令调用的行为完全不变。`probe` 和通用 `scan` 是维护者 CLI 命令，不放入 TUI。
+**不带命令运行（或双击 bat）会显示中文交互菜单**，主菜单为：1 安装、2 验证、3 还原、4 启动、5 关闭、6 导出漏翻、7 静态扫描、8 合并译文、9 深度审计、10 自动更新开关、11 修复浏览器链接、12 发布、`h` 帮助、`0` 退出；空回车默认安装，`q` 等同退出。选“深度审计界面”后会显示 11 项中文审计子菜单，选“自动更新开关”后显示当前状态和开/关两项，`0` 均返回主菜单。菜单只是 `统一入口.ps1` 里 `Show-Menu` 对同一批子命令的包装，带命令调用的行为完全不变。`probe` 和通用 `scan` 是维护者 CLI 命令，不放入 TUI。
 
 菜单选择可以使用 `Read-Host`。每次选中任务后只执行一次；任务结束必须直接退出并由 bat 自动关闭双击窗口，禁止增加用于收尾的 `Read-Host`、`pause` 或其他按键等待。
 
@@ -153,6 +153,18 @@ TUI 不会自动添加 `--thorough`，因此日常选择高级审计时使用的
 ### D. 冒烟测试单条译文（不重装）
 连 CDP 后插入一个隐藏 div 写入英文，等约 1.2s 让 MutationObserver 处理，再读回它的文本看是否变中文。比重装快。
 
+### E. 排查"半截翻译"（中英混杂，比漏翻更显眼）
+纯漏翻用户还能忍，`Validate 请求 correctness and test results` 这种一眼就看出来。它不属于"没翻"，所以 `static-scan` 和 `collect` 都不会报——必须单独查。见规则 14。
+
+两条互补的查法：
+
+1. **离线全量**：把磁盘缓存（`%APPDATA%\Postman\Partitions`，gzip/brotli 压缩）和 `app.asar.original` 里所有像界面文案的英文串抽出来，逐个过 `translate()`，输出里**同时含中文和残留英文词**的就是半截。剔除代码上下文和技术词后再判定，否则误报极多。
+2. **实时页面**：走 CDP 遍历活页面的全部文本节点（含 shadow DOM）和翻译属性，挑出中英混杂的。离线抽取拿不到运行时拼装的文案（运行器的运行类型说明就是这样漏掉的），只能从活页面取。
+
+查出来后分两类修：走 `PHRASES` 兜底的补整句 `EXACT` 词条；走 `EXACT`/`RULES` 的直接改词典里那条的值。用 `git show HEAD:payload/zh-localize.js` 和工作区版本各建一个沙箱对比 `translate()` 输出，能精确列出"因闸门而退回英文"的条目，那批就是该补译文的对象。
+
+一次性脚本可以写在 `_generated` 里，但别当成项目固定入口。
+
 ---
 
 ## 6. 关键规则与陷阱（改代码前必读）
@@ -161,7 +173,15 @@ TUI 不会自动添加 `--thorough`，因此日常选择高级审计时使用的
 
 2. **`data-placeholder` 必须在 `ATTRS` 列表里**。评论框等富文本编辑器用它渲染占位符，漏了评论面板占位符就不翻译。
 
-3. **禁更新补丁策略**：`-DisableUpdates` **不要**改 `isUpdateEnabled`（会让"设置>更新"页报"出现了一些问题"连接错误）。当前实现同时安装运行时更新守卫，并用版本无关锚点拦截 `downloadUpdate`、`restartAppToUpdate` 等下载和重启路径；更新页仍应正常显示"已是最新版本"。找不到可确认的源码锚点时应报错，而不是假装成功。
+3. **更新守卫是开关，不是墙**：`-DisableUpdates` **不要**改 `isUpdateEnabled`（会让"设置>更新"页报"出现了一些问题"连接错误）。当前实现在 `main.js` 顶部装一个运行时守卫，并用版本无关锚点把 `downloadUpdate`、`restartAppToUpdate` 改写成**条件**分支；更新页仍应正常显示"已是最新版本"。找不到可确认的源码锚点时应报错，而不是假装成功。
+
+   守卫每次更新调用都读 `%APPDATA%\Postman\postman-zh-updates.json`（缓存约 1 秒），**文件不存在即视为关闭**，所以默认行为和以前一样是拦截。允许时走 Postman 原始实现（覆盖前已 `bind` 保存）。三个入口写同一个文件：Postman「设置 > 更新」页里注入的开关（经守卫注册的 `postman-zh:updates:get/set` IPC）、`postman-zh.bat updates on|off`、TUI 菜单第 10 项。
+
+   改这块时注意：**写偏好文件必须无 BOM**，守卫用 `JSON.parse` 读，BOM 会让解析失败并静默退回"已关闭"；`验证汉化.js` 校验的是"守卫已安装"（`updatePatch.installed`），不是"当前已拦截"——当前是否拦截由用户的开关决定，不该让 `verify` 失败。
+
+   **开关是滑动开关，单击即切换**：页面开关做成 `role=switch` 的滑动样式（轨道 + 圆钮 + 右侧「已开启/已关闭」文字），单击直接写偏好、无需二次确认。曾经为防误触加过"点两次确认开启"，但用户觉得不方便，已改回单击（2026-08-25）。防自动化误点改为只靠按钮上的 `data-postman-zh-audit-skip="true"` 标记——**新写审计脚本必须跳过带这个属性的元素**，别再靠合成点击去点它。渲染状态只改 `data-enabled`/`aria-checked` 和 label 文字，`refreshUpdateToggle`（900ms 轮询）和初始 `updates:get` 会照常把外部（命令行）改动同步回按钮。
+
+   **注入锚点不能只认一个**：更新页在不同状态下渲染的是完全不同的组件。`findUpdateToggleSlot()` 按三级兜底找位置——`.settings-autoupdate`（旧版“已是最新”里 Postman 自带的自动下载开关）、`.settings-update-changelog-container`（“有可用更新”的发布说明视图），都没有时再靠 `[class*="update-"][class*="__button"]`（`update-not-available__button`、`update-idle__button` 这类语义类名）确认当前在更新页，插到 `.settings-tab-contents` 里状态块之后。12.25.1 的“已是最新”状态前两个锚点**都不存在**，只有第三级能兜住；换 Postman 版本后要重新确认这三级还有效。
 
 4. **菜单汉化用全局 `Menu.buildFromTemplate` 包装器**（prepend 到 `main.js`），不依赖压缩后的变量名锚点，跨版本稳定。若要加原生菜单词条，改这个包装器里的词典，且**只能用 `\u` 转义**中文，避免打包后 `main.js` 编码问题。
 
@@ -186,6 +206,16 @@ TUI 不会自动添加 `--thorough`，因此日常选择高级审计时使用的
 12. **CDP 调试端口每次重启都会变，必须每次重读端口文件（2026-07-22，反复踩坑）**：Postman 用 `--remote-debugging-port=0` 启动，`0`=系统随机分配端口，**每次重启（进程真正退出再拉起）都换一个新端口**，写进 `%APPDATA%\Postman\DevToolsActivePort` 文件第一行。Postman 不重启则端口不变。**任何要连 CDP 的脚本，都必须在连接前重新读端口文件当前内容取端口，绝不能用上一次记住的旧端口**——这是"重装后验证一直连不上/`ECONNREFUSED`"的根源。注意端口文件第 2 行是 `/devtools/browser/...` 路径，只取第 1 行数字。连通性用 `http://127.0.0.1:<port>/json/version` 探活，再 `/json/list` 找 `desktop.postman.com` 主页面（不是 `about:blank` 等 helper frame）。
 
 13. **杀 Postman 要用 PowerShell 循环杀到清零，`taskkill` 杀不干净（2026-07-22）**：Postman 有守护/子进程会互相拉起，`taskkill /F /IM Postman.exe` 单次执行后常残留 5 个进程（PID 还在变）。可靠做法：PowerShell 里 `while (Get-Process Postman -EA SilentlyContinue) { Stop-Process -Name Postman -Force -EA SilentlyContinue; Start-Sleep 1 }` 循环杀到 `Get-Process` 返回空为止（通常 2 轮压制住）。重装前务必确认进程清零，否则 `app.asar` 被占用锁定、写入失败。
+
+14. **半截翻译闸门 `looksHalfTranslated`（2026-08-24 加入，改 PHRASES 前必读）**：`PHRASES` 是**子串**替换。一句话没进 `EXACT`、但句中某个词命中 `PHRASES` 时，会产出 `Validate 请求 correctness and test results` 这种中英混杂的半截文本——比纯英文更难看，且用户一眼就能发现。
+
+    `translate()` 末尾的闸门负责兜底：短语替换结果里若还残留**英文虚词/高频动词**（`the`/`of`/`while`/`are`…，见 `HALF_TRANSLATION_STOPWORDS`），或残留**全小写的普通英文词**（≥3 字母，且不在 `TECHNICAL_WORDS` 里），就判定为半截，**整句退回英文**。这与规则 1 对 `RULES` 的原则一致：翻不干净就别翻。退回后运行时收集器会把它记成漏翻，正好进入第 5 节的补词条闭环。
+
+    判定前会先用 `stripCodeSpans()` 剔除代码上下文（反引号/中英文引号里的字面量、点号标识符、camelCase、`:required`、`/path`、含数字 token、`foo(`），否则 `未通过 i18next.use 添加后端`、`可以是 'user'、'group' 或 'team'` 这类正常译文会被误判。**新增技术词请加进 `TECHNICAL_WORDS`，不要放宽闸门**。
+
+    注意：闸门只管 `PHRASES` 兜底那条路径。走 `EXACT`/`RULES` 的结果是手工写的，视为可信、不过闸门——所以**手工词条本身写成半截也不会被拦**，改词条时要自己看清楚（本轮就修了一条 `The :local-link CSS 伪类…` 开头残留 `The` 的）。
+
+    排查手法见第 5 节 E。
 
 ---
 
