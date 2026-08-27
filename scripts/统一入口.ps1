@@ -30,18 +30,45 @@ try {
   [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 } catch {}
 
-# 菜单模式（双击 bat、未带命令）下，任务结束后由 bat 直接关闭窗口。
-# 不要在这里等待按键：Read-Host 会让双击窗口看起来无法退出。
+# 菜单模式（双击 bat、未带命令）下，任务结束后窗口会随进程退出而消失。
+# 直接退出的话用户根本来不及看结果（会被当成"闪退"），所以这里倒计时几秒再退。
+# 但**不要用 Read-Host / pause 等阻塞式按键等待**：那会让双击窗口看起来卡住。
+# 倒计时期间按任意键可以立即关闭。
 $script:MenuMode = $false
+
+function Wait-BeforeClose {
+  param([int]$Seconds = 8)
+
+  for ($i = $Seconds; $i -gt 0; $i--) {
+    Write-Host ("`r窗口将在 {0,2} 秒后自动关闭（按任意键立即关闭）… " -f $i) -NoNewline -ForegroundColor DarkGray
+    # 分成 5 段轮询按键，既能及时响应又不阻塞。
+    for ($tick = 0; $tick -lt 5; $tick++) {
+      Start-Sleep -Milliseconds 200
+      try {
+        if ([Console]::KeyAvailable) {
+          [Console]::ReadKey($true) | Out-Null
+          Write-Host ''
+          return
+        }
+      } catch {
+        # stdin 被重定向（自动化调用）时 KeyAvailable 会抛异常，忽略即可。
+      }
+    }
+  }
+  Write-Host ''
+}
 
 function Stop-WithCode {
   param([int]$Code = 0)
   if ($script:MenuMode) {
     Write-Host ''
     if ($Code -eq 0) {
-      Write-Host '操作完成，窗口即将自动关闭。' -ForegroundColor Green
+      Write-Host '操作完成。' -ForegroundColor Green
+      Wait-BeforeClose -Seconds 8
     } else {
-      Write-Host "操作失败（退出码 $Code），窗口即将自动关闭。" -ForegroundColor Yellow
+      Write-Host "操作失败（退出码 $Code）。上面的中文提示说明了原因。" -ForegroundColor Yellow
+      # 失败时多留一会儿，让用户看清报错。
+      Wait-BeforeClose -Seconds 25
     }
   }
   exit $Code
@@ -194,7 +221,7 @@ Postman 中文汉化工具
 
 安装示例：
   .\postman-zh.bat install
-  .\postman-zh.bat install -PostmanDir C:\Path\To\app-12.25.1 -NoVerify
+  .\postman-zh.bat install -PostmanDir C:\Path\To\app-12.25.5 -NoVerify
   .\postman-zh.bat restore
 
 自动更新开关：

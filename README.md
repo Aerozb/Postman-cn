@@ -89,7 +89,7 @@ TUI 中的高级审计默认使用受控档。发布前确需扩大覆盖时，�
 安装到指定版本目录：
 
 ```powershell
-.\postman-zh.bat install -PostmanDir C:\Path\To\Postman\app-12.25.1
+.\postman-zh.bat install -PostmanDir C:\Path\To\Postman\app-12.25.5
 ```
 
 脚本会自动备份 `resources\app.asar` 为 `app.asar.original`，从备份解包、注入汉化、重新打包并启动验证。Postman 更新后再次运行 `install` 即可。

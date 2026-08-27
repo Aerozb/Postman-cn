@@ -20,7 +20,7 @@
 ```
 Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（勿动其官方文件）
   Postman.exe  Update.exe
-  app-12.25.1\                        ← 当前版本；resources\app.asar 是补丁目标
+  app-12.25.5\                        ← 当前版本；resources\app.asar 是补丁目标
     resources\app.asar.original       ← 首次安装时自动备份的英文原版
   packages\                           ← 官方安装包 + RELEASES
   postman-zh-workspace\               ← 所有非官方内容都在这里
@@ -67,7 +67,7 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
 
 **不带命令运行（或双击 bat）会显示中文交互菜单**，主菜单为：1 安装、2 验证、3 还原、4 启动、5 关闭、6 导出漏翻、7 静态扫描、8 合并译文、9 深度审计、10 自动更新开关、11 修复浏览器链接、12 发布、`h` 帮助、`0` 退出；空回车默认安装，`q` 等同退出。选“深度审计界面”后会显示 11 项中文审计子菜单，选“自动更新开关”后显示当前状态和开/关两项，`0` 均返回主菜单。菜单只是 `统一入口.ps1` 里 `Show-Menu` 对同一批子命令的包装，带命令调用的行为完全不变。`probe` 和通用 `scan` 是维护者 CLI 命令，不放入 TUI。
 
-菜单选择可以使用 `Read-Host`。每次选中任务后只执行一次；任务结束必须直接退出并由 bat 自动关闭双击窗口，禁止增加用于收尾的 `Read-Host`、`pause` 或其他按键等待。
+菜单选择可以使用 `Read-Host`。每次选中任务后只执行一次。任务结束后走 `Stop-WithCode`：它会打印中文结果，然后**倒计时几秒**（成功 8 秒、失败 25 秒）再退出，倒计时期间按任意键立即关闭。**禁止用 `Read-Host`、`pause` 等阻塞式按键等待收尾**——那会让双击窗口看起来卡死。倒计时是 2026-08-27 加的：在那之前任务一结束窗口就消失，用户根本看不到「验证通过」，反馈是"脚本闪退了"。轮询按键用 `[Console]::KeyAvailable`，stdin 被重定向时它会抛异常，必须 try/catch 兜住（自动化调用就是这种情况）。
 
 默认输出必须是简洁中文，不要打印 Postman/Electron/npm 内部日志或独立的大段 JSON。完整诊断只能由维护者显式传入 `--details` 后显示。
 
@@ -140,6 +140,27 @@ TUI 不会自动添加 `--thorough`，因此日常选择高级审计时使用的
 .\postman-zh.bat install
 ```
 
+**`static-scan` 有一块固定盲区，别只靠它（2026-08-27 定位）**：它只抽 `uiKey:"value"` 这种**属性形式**的字符串，而 React 有大量界面文字放在 `createElement` 的**位置参数（children）**里：
+
+```js
+createElement(ModalHeader, null, "RESTART AND INSTALL UPDATE")
+createElement(Button, {type:"primary"}, "Restart and Install Update")
+```
+
+这种写法属性形式一条都抽不到；更糟的是弹窗标题常是**全大写**，`static-scan` 里"必须含小写字母"的启发式还会额外排除掉它们。用户报的"重启并安装更新"弹窗就是这样连续漏了好几轮。
+
+补法是加一条取材路径：**按 `createElement(组件, props, "文字")` 的第 3 个及以后字符串参数抽取**，另外把 JSX 自动运行时的 `children:"…"` 也一并抽（`static-scan` 虽然认 `children` 这个键，但把它归进 `WEAK_KEYS`，单个词的值会被"至少两个词"的规则丢掉，所以按钮上的单词标签会漏）。这条路径精度很高——本地 `app.asar` 抽出约 1700 条候选，噪声主要是通用单词和半句碎片。一次性脚本可写在 `_generated` 里。
+
+三条取材路径互补，缺一不可：
+
+| 路径 | 覆盖 | 盲区 |
+|---|---|---|
+| `static-scan --disk` | 属性形式 `uiKey:"value"` | createElement children、全大写标题、单词 children |
+| `collect` | 用户实际触发过的界面 | 没走到的分支 |
+| createElement/JSX children 抽取 | 弹窗标题、按钮文字、表头 | 远程 bundle 里改名过的 JSX 工厂函数 |
+
+**翻的时候只翻完整的标题/标签/句子**，通用单词（`error`/`import`/`share`）和半句碎片（`Make sure the`、`or create a collection`）一律跳过——碎片由 `fixCompositeTextBlocks` 负责整句拼装，单独翻会破坏整句结果并触发 `验证汉化.js` 的守卫（本轮返工过一次）。
+
 ### B. 兜底：运行时收集用户实际遇到的漏翻
 ```powershell
 .\postman-zh.bat collect          # 导出 _generated/zh-misses.json
@@ -181,7 +202,7 @@ TUI 不会自动添加 `--thorough`，因此日常选择高级审计时使用的
 
    **开关是滑动开关，单击即切换**：页面开关做成 `role=switch` 的滑动样式（轨道 + 圆钮 + 右侧「已开启/已关闭」文字），单击直接写偏好、无需二次确认。曾经为防误触加过"点两次确认开启"，但用户觉得不方便，已改回单击（2026-08-25）。防自动化误点改为只靠按钮上的 `data-postman-zh-audit-skip="true"` 标记——**新写审计脚本必须跳过带这个属性的元素**，别再靠合成点击去点它。渲染状态只改 `data-enabled`/`aria-checked` 和 label 文字，`refreshUpdateToggle`（900ms 轮询）和初始 `updates:get` 会照常把外部（命令行）改动同步回按钮。
 
-   **注入锚点不能只认一个**：更新页在不同状态下渲染的是完全不同的组件。`findUpdateToggleSlot()` 按三级兜底找位置——`.settings-autoupdate`（旧版“已是最新”里 Postman 自带的自动下载开关）、`.settings-update-changelog-container`（“有可用更新”的发布说明视图），都没有时再靠 `[class*="update-"][class*="__button"]`（`update-not-available__button`、`update-idle__button` 这类语义类名）确认当前在更新页，插到 `.settings-tab-contents` 里状态块之后。12.25.1 的“已是最新”状态前两个锚点**都不存在**，只有第三级能兜住；换 Postman 版本后要重新确认这三级还有效。
+   **注入锚点不能只认一个**：更新页在不同状态下渲染的是完全不同的组件。`findUpdateToggleSlot()` 按三级兜底找位置——`.settings-autoupdate`（旧版“已是最新”里 Postman 自带的自动下载开关）、`.settings-update-changelog-container`（“有可用更新”的发布说明视图），都没有时再靠 `[class*="update-"][class*="__button"]`（`update-not-available__button`、`update-idle__button` 这类语义类名）确认当前在更新页，插到 `.settings-tab-contents` 里状态块之后。12.25.5 的“已是最新”状态前两个锚点**都不存在**，只有第三级能兜住；换 Postman 版本后要重新确认这三级还有效。
 
 4. **菜单汉化用全局 `Menu.buildFromTemplate` 包装器**（prepend 到 `main.js`），不依赖压缩后的变量名锚点，跨版本稳定。若要加原生菜单词条，改这个包装器里的词典，且**只能用 `\u` 转义**中文，避免打包后 `main.js` 编码问题。
 
