@@ -158,7 +158,7 @@ createElement(Button, {type:"primary"}, "Restart and Install Update")
 | `static-scan --disk` | 属性形式 `uiKey:"value"` | createElement children、全大写标题、单词 children |
 | `collect` | 用户实际触发过的界面 | 没走到的分支 |
 | createElement/JSX children 抽取 | 弹窗标题、按钮文字、表头 | 远程 bundle 里改名过的 JSX 工厂函数 |
-| 官方 i18n 资源包（见规则 15） | 官方登记的全部界面文案，权威、带命名空间 | 未走 i18next 的老代码、canvas 文本 |
+| 官方 i18n 资源包（见规则 15，**每次都要重新拉，别用旧快照**） | 官方登记的全部界面文案，权威、带命名空间 | 未走 i18next 的老代码、canvas 文本 |
 
 **翻的时候只翻完整的标题/标签/句子**，通用单词（`error`/`import`/`share`）和半句碎片（`Make sure the`、`or create a collection`）一律跳过——碎片由 `fixCompositeTextBlocks` 负责整句拼装，单独翻会破坏整句结果并触发 `验证汉化.js` 的守卫（本轮返工过一次）。
 
@@ -239,7 +239,25 @@ createElement(Button, {type:"primary"}, "Restart and Install Update")
 
     排查手法见第 5 节 E。
 
-15. **官方 i18n 清单取材路径与两个写词条陷阱（2026-08-29 定位）**：Postman 自己用 i18next 做多语言，`en-US` 资源包在 `https://desktop.postman.com/_ar-assets/locales/en-US/<namespace>-<hash>.json`，URL 可从磁盘缓存里挖出来（`_generated/i18n-assets.json`）。这是第四条、也是最权威的取材路径——每一条都是官方登记为「需要翻译」的界面文案，不是启发式猜的。工具链：`_generated/fetch-i18n-en.js` 拉取，`diff-i18n.js` 对比当前词典给出覆盖率和待翻清单，`batch-i18n.js` 按命名空间/长度切批，`probe-i18n-rules.js` 单独评估含占位符那批。
+15. **官方 i18n 清单取材路径与两个写词条陷阱（2026-08-29 定位）**：Postman 自己用 i18next 做多语言，`en-US` 资源包在 `https://desktop.postman.com/_ar-assets/locales/en-US/<namespace>-<hash>.json`。这是第四条、也是最权威的取材路径——每一条都是官方登记为「需要翻译」的界面文案，不是启发式猜的。
+
+    **每次动这批文案前，必须先重新获取一遍清单，不能直接用 `_generated` 里现成的 JSON。** URL 里的 `<hash>` 是内容哈希，Postman 每次发版都会换；`_generated/i18n-assets.json`、`i18n-en-raw.json`、`i18n-en-unique.json` 都是某次快照，隔一个版本就过期。12.24 → 12.25.7 之间清单从 12602 条涨到 13292 条，新增 348 条全是新功能文案（JDBC 数据源、组织迁移…），拿旧快照就会整块漏掉。
+
+    获取步骤（顺序不能换，前两步是为了让新版本把当前的 locale 包写进磁盘缓存）：
+
+    ```powershell
+    .\postman-zh.bat install        # 1. 先把补丁打到新版本并启动 Postman
+    # 2. 让它跑一会儿（十几秒），界面加载时会自动拉取 locale 资源包
+    node ..\_generated\probe-i18n-assets.js   # 3. 从 %APPDATA%\Postman\Partitions 缓存里挖出资源包 URL
+    node ..\_generated\fetch-i18n-en.js       # 4. 拉取全部 en-US 包，写 i18n-en-raw.json / i18n-en-unique.json
+    node ..\_generated\diff-i18n.js           # 5. 与当前词典对比，给出覆盖率和待翻清单
+    ```
+
+    `probe-i18n-assets.js` 是 URL 的唯一来源：它遍历 Postman 的磁盘缓存（gzip/brotli 都会解），把形如 `/_ar-assets/locales/<lng>/` 的 URL 全部捞出来。**缓存里没有的包也就拉不到**，所以第 2 步不能省——如果 probe 出来的 `en-US` 包数量比上次明显少，说明新版本还没加载够界面，等一会儿再 probe。
+
+    确认自己拿的是新清单，而不是旧快照：抓取前先备份一份（`cp i18n-en-unique.json i18n-en-unique.prev.json`），抓取后比一下条数与新增文案；`probe` 结果同样可以和 `i18n-assets.prev.json` 比资源包数量和换了 hash 的包名。
+
+    后续工具链：`batch-i18n.js` 按命名空间/长度切批（`i18n-skip.json` 里是刻意保留英文的），`probe-i18n-rules.js` 单独评估含占位符那批。
 
     写词条时有两个坑，都会让词条**静默失效**（合并成功、`rg` 也能查到，但运行时永远命中不了）：
     - **键必须是 `normalize()` 之后的形态**。`translate()` 先 `normalize()`（去零宽字符、`&nbsp;`→空格、**连续空白压成单个空格**、`trim()`）再查 `EXACT`。所以官方原文里带首尾空格的（`"Parse Error: "`）或带换行的多段文案，键都要写成去首尾空白、换行压成空格的形式；输出的首尾空白由 `preserveOuter` 自动补回。
@@ -286,7 +304,11 @@ createElement(Button, {type:"primary"}, "Restart and Install Update")
 3. 解压 nupkg 的 `lib/net45` 为 `app-<新版本>`
 4. 在 `packages/RELEASES` 追加新版本行
 5. 运行 `.\postman-zh.bat install -CleanOldVersions`——打补丁成功后自动删除旧 `app-*`、旧 nupkg，只保留当前版本
-6. 运行 `.\postman-zh.bat static-scan --disk` 扫新版新增文案，走第 5A 节闭环补齐
+6. **重新获取官方 i18n 清单并补齐新增文案**（最重要的一步，按规则 15 的步骤走）：等新版本跑起来十几秒，然后
+   `probe-i18n-assets.js` → `fetch-i18n-en.js` → `diff-i18n.js`。**不要直接用 `_generated` 里现成的清单 JSON**，
+   资源包 URL 带内容哈希、每次发版都会变，旧快照会整块漏掉新功能的文案。
+7. 运行 `.\postman-zh.bat static-scan --disk` 扫新版新增文案，走第 5A 节闭环补齐剩下的（官方清单覆盖不到的部分）
+8. 顺手核对文档里写死的版本号（`AGENTS.md` 第 2 节目录树、`README.md` 与 `docs/汉化教程.md` 里的 `-PostmanDir app-*` 示例）
 
 看到 `[Postman 汉化] 验证通过` 即成功。
 
