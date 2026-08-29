@@ -151,13 +151,14 @@ createElement(Button, {type:"primary"}, "Restart and Install Update")
 
 补法是加一条取材路径：**按 `createElement(组件, props, "文字")` 的第 3 个及以后字符串参数抽取**，另外把 JSX 自动运行时的 `children:"…"` 也一并抽（`static-scan` 虽然认 `children` 这个键，但把它归进 `WEAK_KEYS`，单个词的值会被"至少两个词"的规则丢掉，所以按钮上的单词标签会漏）。这条路径精度很高——本地 `app.asar` 抽出约 1700 条候选，噪声主要是通用单词和半句碎片。一次性脚本可写在 `_generated` 里。
 
-三条取材路径互补，缺一不可：
+四条取材路径互补，缺一不可：
 
 | 路径 | 覆盖 | 盲区 |
 |---|---|---|
 | `static-scan --disk` | 属性形式 `uiKey:"value"` | createElement children、全大写标题、单词 children |
 | `collect` | 用户实际触发过的界面 | 没走到的分支 |
 | createElement/JSX children 抽取 | 弹窗标题、按钮文字、表头 | 远程 bundle 里改名过的 JSX 工厂函数 |
+| 官方 i18n 资源包（见规则 15） | 官方登记的全部界面文案，权威、带命名空间 | 未走 i18next 的老代码、canvas 文本 |
 
 **翻的时候只翻完整的标题/标签/句子**，通用单词（`error`/`import`/`share`）和半句碎片（`Make sure the`、`or create a collection`）一律跳过——碎片由 `fixCompositeTextBlocks` 负责整句拼装，单独翻会破坏整句结果并触发 `验证汉化.js` 的守卫（本轮返工过一次）。
 
@@ -237,6 +238,30 @@ createElement(Button, {type:"primary"}, "Restart and Install Update")
     注意：闸门只管 `PHRASES` 兜底那条路径。走 `EXACT`/`RULES` 的结果是手工写的，视为可信、不过闸门——所以**手工词条本身写成半截也不会被拦**，改词条时要自己看清楚（本轮就修了一条 `The :local-link CSS 伪类…` 开头残留 `The` 的）。
 
     排查手法见第 5 节 E。
+
+15. **官方 i18n 清单取材路径与两个写词条陷阱（2026-08-29 定位）**：Postman 自己用 i18next 做多语言，`en-US` 资源包在 `https://desktop.postman.com/_ar-assets/locales/en-US/<namespace>-<hash>.json`，URL 可从磁盘缓存里挖出来（`_generated/i18n-assets.json`）。这是第四条、也是最权威的取材路径——每一条都是官方登记为「需要翻译」的界面文案，不是启发式猜的。工具链：`_generated/fetch-i18n-en.js` 拉取，`diff-i18n.js` 对比当前词典给出覆盖率和待翻清单，`batch-i18n.js` 按命名空间/长度切批，`probe-i18n-rules.js` 单独评估含占位符那批。
+
+    写词条时有两个坑，都会让词条**静默失效**（合并成功、`rg` 也能查到，但运行时永远命中不了）：
+    - **键必须是 `normalize()` 之后的形态**。`translate()` 先 `normalize()`（去零宽字符、`&nbsp;`→空格、**连续空白压成单个空格**、`trim()`）再查 `EXACT`。所以官方原文里带首尾空格的（`"Parse Error: "`）或带换行的多段文案，键都要写成去首尾空白、换行压成空格的形式；输出的首尾空白由 `preserveOuter` 自动补回。
+    - **`合并译文.js` 会拒收不含中文的译文**。像 `"SCIM API keys": "SCIM API Key"` 这种全英文的值会被静默丢弃，得给出含中文的写法（`"SCIM API 密钥"`）。
+
+    含 `{count}` 这类单花括号插值的官方文案（约 1300 条）**不能进 `EXACT`**——运行时 DOM 里出现的是填好值的结果，原串永远不会出现，必须写 `RULES`。这批已用一条生成管线做完，工具在 `_generated`：
+
+    | 脚本 | 作用 |
+    |---|---|
+    | `rules-skeletons.js` | 把官方文案的 ICU plural/select 展开成「运行时真正出现的骨架」，只留下现有词典还翻不出的；`rules-skip.json` / `rules-rejected.json` 里的骨架会跳过 |
+    | `rules-compile.js` | 把「骨架 → 中文模板」编译成 `[正则, 替换]`，含四项自检（填样例必须命中、译文必须含中文、不得命中常见短串、名称插值不得过宽） |
+    | `gen-rules-b*.js` | 逐批手写的翻译表，输出 `rules-b*.json` |
+    | `merge-rules.js` | 用一对 `BEGIN/END` 哨兵注释整块重写 payload 里的生成规则区，幂等 |
+    | `regress-i18n.js save\|diff` | 全量语料回归：改动前存快照，改动后列出「丢了中文」和「新增半截」的条目 |
+
+    写生成规则时踩过四个坑，都由上面的自检/回归兜住了，改这块前务必理解：
+    - **生成规则要插在 RULES 头部**。手写规则里有 `^Delete (.+)$`、`^Copy (.+)$` 这种通用动词兜底，排在前面会把具体规则整个吃掉。具体优先于通用。
+    - **同一块内也要按具体度排序**：先比骨架里的字面量字符数，相同再让「实体名候选列表」型规则优先。否则 `^Delete (.+?)\?$` 会抢在 `^Delete (环境|集合|…)\?$` 前面，把 `Delete environment?` 只翻出半截。
+    - **名称插值贴在句首最危险**：`^(名称) workspace$` 会把 `Share workspace` 变成「Share 工作区」。所以要求句首名称插值的字面量至少两个英文单词（或 ≥12 个非空白字符），句尾的至少 6 个字符；不达标的骨架直接拒收并记进 `rules-rejected.json`。
+    - **实体名/类型名插值必须走 `i18nTerm()`**（payload 里新加的辅助函数 + `I18N_TERMS` 词表）。做法是把已知实体名的候选列表直接编进正则，这样输入不是实体名时规则根本不命中、会继续往后走手写兜底，而不是被吃掉后返回英文。
+
+    每次 `merge-rules.js` 之后都要跑 `regress-i18n.js diff`，指标是「新增半截 = 0」；仍需人工判断的骨架清单见 `rules-skeletons.txt`。
 
 ---
 

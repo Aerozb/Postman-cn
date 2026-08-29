@@ -1,0 +1,1052 @@
+[
+  {
+    "text": "HashiCorp Vault",
+    "count": 10,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Azure Key Vault",
+    "count": 8,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "1Password Account",
+    "count": 8,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "AWS Secrets Manager",
+    "count": 8,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Encrypted (recommended)",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Invalid service account token",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "MFA data in unexpected format",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Enter a value for the secret.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Secrets exported successfully",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Create a service account token",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Locally store secrets in vault",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "No preferences data available.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Allow Vault secrets in scripts",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Missing value for vault secret",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Enter scopes separated by space",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Shared vault saved successfully",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Linked secret cannot be resolved",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Personal Vault saved successfully",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Shared vault created successfully",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Shared vault deleted successfully",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Shared vault renamed successfully",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Shared Vault is currently disabled",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Unable to autofill AWS Credentials",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Download your vault as a JSON file",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Personal Vault created successfully",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Personal Vault deleted successfully",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Personal Vault renamed successfully",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Start using Vault secrets in scripts",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Shhh... This was supposed to be a secret…",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "ARN of the role to be assumed to fetch the secret",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Automatically mask secrets in the console by default.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Invalid response received while trying to fetch token",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Your AWS Account requires multi factor authentication",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "This secret is not supported on domain of this request",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Already using a secret manager? Set it up with Postman:",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Link a secret to fetch the value from an existing vault",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "An unknown error occured. Please try again after sometime.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Invalid response received while trying to authenticate token",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Use the desktop app or desktop agent to resolve this secret.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "This vault secret is disabled. Enable it to access its value.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Contact your team admin to enable Vault export for your team.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Make sure the desktop agent is running to save your vault key.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "This vault integration has been configured for all team members",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Start using vault to securely save secrets on your local system",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Assigning a vault key and creating your local encrypted vault...",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "It's not you, it's us. We hit a snag on our end. Please try again.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Something went wrong while exporting your vault. Please try again.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Enter a value for the secret and and we'll update it in your vault.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "This token allows a service account to authenticate with 1Password CLI.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Vault export is disabled for your team. Please contact your team admin.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Switch to the Desktop Agent or Desktop App to access your Vault secrets.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Allow scripts to securely access Vault secrets during request execution.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "No Personal vaults found. Provide a vault name to create a new Personal vault. e.g. \"backup\"",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "For security reasons, you need to enter your vault key after signing out and signing in again.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "It seems this vault secret is missing. No worries, just enter its value we'll add it to your vault.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "This vault secret has been locked to specific domains. You can check and edit these from your vault.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "The file will be encrypted with a password. You'll need this password to import it back into Postman.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Use vault secrets across workspaces in requests, test scripts, authorizations, environments, etc., using",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Something went wrong while trying to authenticate. Please try again, or contact support if the issue continues.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Setting up HashiCorp vault will allow all team members to authenticate and link secrets to their Postman vault.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Switch to Desktop Agent, and we'll automatically get the vault key from your native password manager every time.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "You have reached the maximum number of vault secrets allowed on your plan. Reach out to support for further help.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "This is a combination of the vault name, item, section, and field where a secret is stored in your 1Password account.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "This request is using secrets stored in vault. To use vault secrets, you need to switch to the Postman Desktop Agent.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Add an extra layer of security by encrypting your secrets on your local storage. Don’t worry your secrets will be safe.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Manage which workspaces and collections can use your Vault secrets in scripts. Reset access to revoke it for future runs.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Set how long cached secrets from integrated apps stay valid. After this duration, we'll auto-fetch the secret data again.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Unshared secret variables from your environments, collections, or globals are stored in the Local Vault and displayed here.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "You have reached the maximum number of vault secrets allowed on your plan.<1> </1><2>Reach out to support</2> for further help.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "We're working on a new feature called Vault that will soon enable you to securely store and manage your sensitive info locally.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Start by configuring your Vault to securely store your sensitive data. Once configured, you can manage your Vault settings here.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "We're unable to connect to specified OIDC Provider URL. Please make sure that the URL is correct and accessible from your network.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "If this workspace is made public, all secrets stored in the Shared Vault will be automatically removed to prevent public exposure.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Securely sync your sensitive data to your Personal Vault on the cloud using end-to-end encryption, accessible across devices and workspaces. ",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Clearing the vault will permanently delete the data in your local vault. Make sure you’ve backed up any important information before continuing.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Securely sync your vault secrets across devices with end-to-end encryption. Access your synchronized secrets from any session using your vault key.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Store sensitive data locally. Local Vault secrets work across workspaces, are only accessible to you, remain on your device, and are never synced.<4></4>",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Store and share secrets within your workspace. Shared Vault secrets are workspace-specific, accessible to workspace members, and available across devices. ",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "This unique key for your account will be needed when you sign out and sign in. Losing the key will result in the loss of all your secrets. Vault secrets can't be accessed when logged out.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Scripts in this request may access vault secrets directly or by running other requests from your workspace. Only proceed if you trust the source of this request and any requests it triggers.",
+    "count": 4,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Shared Vault turned on for your team",
+    "count": 3,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Shared Vault turned off for your team",
+    "count": 3,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Successfully updated Shared Vault setting",
+    "count": 3,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Failed to update workspace setting. Please try again.",
+    "count": 3,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Try adjusting your filters or search to find workspaces.",
+    "count": 3,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Failed to update Shared Vault setting. Please try again later.",
+    "count": 3,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Something went wrong while loading your secrets. Please try again.",
+    "count": 3,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Secrets that you've been granted access to on Passport will appear here.",
+    "count": 3,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "For security reasons, Shared Vault is not supported in public workspaces.",
+    "count": 3,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "We couldn't load Shared Vault settings for your workspaces. Please try again.",
+    "count": 3,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Move to Shared Vault Policy is active for this workspace. Please change Policy to turn off Shared Vault.",
+    "count": 3,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Move to Shared Vault Policy is active for some workspaces. Please change Policy to turn off Shared Vault.",
+    "count": 3,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "KV version 2",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "KV version 1",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "OIDC client ID",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Field selector",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Secret version",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Sign-in failed",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "OIDC issuer URL",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "You're connected",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Select workspaces",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Additional scopes",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "AppRole (machine)",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "KV engine version",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "404. Page not found",
+    "count": 2,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Only this workspace",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Specific workspaces",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "OIDC (per-user SSO)",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Completing sign-in…",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Secrets engine mount",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Couldn't start sign-in",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Who can access this secret",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "All workspaces (team-wide)",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Redirecting you to your identity provider…",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "The page you are looking for is not available.",
+    "count": 2,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "You can close this window and return to Postman.",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Select which workspaces in this team can use this secret.",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Choose which other workspaces in this team can use this secret.",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Every current and future workspace in this team can use this secret.",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Vault Enterprise / HCP namespace. Leave blank for open-source Vault.",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "The public client ID registered with your identity provider for Postman.",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Optional extra OIDC scopes, space-separated. 'openid' is always requested.",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Optional specific version to read (KV v2 only). Defaults to the latest version.",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "We couldn't complete the sign-in. Close this window and try again from Postman.",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "We couldn't start the sign-in. Make sure you're signed in to Postman and try again.",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "This callback is missing required parameters. Close this window and try connecting again from Postman.",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Your identity provider's issuer URL. Postman discovers its endpoints via /.well-known/openid-configuration.",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "This sign-in link is missing its connection reference. Close this window and try connecting again from Postman.",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "JSON Pointer to a single field within the secret (e.g. /password). Required when the secret has more than one field.",
+    "count": 2,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Save settings",
+    "count": 1,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Vault settings",
+    "count": 1,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Keep masking on",
+    "count": 1,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Close vault settings",
+    "count": 1,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Vault settings saved",
+    "count": 1,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Yes, turn off masking",
+    "count": 1,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Team-wide vault controls",
+    "count": 1,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Turn off secret masking?",
+    "count": 1,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Allow vault secrets in scripts",
+    "count": 1,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Share secrets across all workspaces",
+    "count": 1,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Only team admins can update vault settings.",
+    "count": 1,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Failed to save vault settings. Please try again.",
+    "count": 1,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Allow scripts to access vault secrets during request execution.",
+    "count": 1,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Could not load vault settings. Save is disabled until this is resolved.",
+    "count": 1,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Your team admin controls console masking for Shared Vault secrets in Team Settings.",
+    "count": 1,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Script access for Shared Vault secrets is enabled by your team admin and cannot be changed here.",
+    "count": 1,
+    "ns": [
+      "vault"
+    ]
+  },
+  {
+    "text": "Configure console masking for your team. Click Save settings, then refresh Postman before testing.",
+    "count": 1,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Make Shared Vault accessible to all workspaces the team has access to, not just the current workspace.",
+    "count": 1,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Automatically mask secrets in the console so they cannot be read in plain text. Recommended; keep this on.",
+    "count": 1,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Securely share sensitive data with your team. Shared Vault is available by default in every workspace except public workspaces. Override per workspace to enforce least privilege.",
+    "count": 1,
+    "ns": [
+      "team-shared-vault"
+    ]
+  },
+  {
+    "text": "Disabling this setting means vault secrets will be visible in plain text in the console. Any teammate with access to the console will be able to read secret values directly. Are you sure you want to continue?",
+    "count": 1,
+    "ns": [
+      "team-shared-vault"
+    ]
+  }
+]

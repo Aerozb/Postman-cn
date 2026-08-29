@@ -1,0 +1,2711 @@
+3	[workspace-sidebar-core]	Something went wrong while creating your specification. Please try again
+4	[workspace-sidebar-core]	You can’t make changes to a published version of an API.
+4	[workspace-sidebar-core]	You need access to create resources
+4	[workspace-sidebar-core]	Request access to create resources
+4	[workspace-sidebar-core]	You don’t have permission to create an HTTP request in this workspace.
+4	[workspace-sidebar-core]	You don’t have permission to create a GraphQL request in this workspace.
+4	[workspace-sidebar-core]	You don’t have permission to create a gRPC request in this workspace.
+4	[workspace-sidebar-core]	You don’t have permission to create an AI request in this workspace.
+4	[workspace-sidebar-core]	You don’t have permission to create an MCP request in this workspace.
+4	[workspace-sidebar-core]	Create a toolset to group related AI tools
+4	[workspace-sidebar-core]	You don’t have permission to create an MQTT request in this workspace.
+4	[workspace-sidebar-core]	You don’t have permission to create a collection in this workspace.
+4	[workspace-sidebar-core]	You don’t have permission to create an environment in this workspace.
+4	[workspace-sidebar-core]	Schedule your Postman Collections to run periodically using monitors.
+4	[workspace-sidebar-core]	Monitors help you run your Postman Collections on a schedule.
+4	[workspace-sidebar-core]	You don't have permission to create a monitor in this workspace.
+4	[workspace-sidebar-core]	You don’t have permission to create a flow in this workspace.
+4	[workspace-sidebar-core]	Stay organized and collaborate with your teammates using workspaces.
+4	[workspace-sidebar-core]	You don't have permission to create an insights project.
+4	[workspace-sidebar-core]	You don't have permission to create a spec in this workspace.
+3	[workspace-sidebar-core]	You don't have permission to create a mock server in this workspace.
+2	[workspace-sidebar-core]	Create a code-powered mock server.
+2	[workspace-sidebar-core]	Create a code-powered mock server that runs locally.
+4	[workspace-sidebar-core]	Create a document to write guides, notes, or API documentation.
+4	[workspace-sidebar-core]	You don't have permission to create a document in this workspace.
+4	[workspace-sidebar-core]	You don't have permission to generate an SDK in this workspace.
+4	[workspace-sidebar-core]	You need edit access to this collection to generate SDKs.
+4	[workspace-sidebar-core]	You need edit access to this API definition to generate SDKs.
+4	[workspace-sidebar-core]	You don’t have permission to create a webhook in this workspace.
+4	[workspace-sidebar-core]	You do not have permissions required to perform the action.
+4	[workspace-sidebar-core]	Since you don't have a team, we will create one for you.
+4	[workspace-sidebar-core]	Team managers are reviewing the request to update this role.
+4	[workspace-sidebar-core]	Team managers are reviewing the request to upgrade this role.
+4	[workspace-sidebar-core]	Your unsaved changes will not be shared.
+4	[workspace-sidebar-core]	Make sure you’re online if you want to share
+4	[workspace-sidebar-core]	Choose how you want to collaborate
+4	[workspace-sidebar-core]	Choose how you want to collaborate after team creation
+4	[workspace-sidebar-core]	Convert this into a team workspace
+4	[workspace-sidebar-core]	Convert this into a private workspace
+4	[workspace-sidebar-core]	Your suggestion will be sent to Team Admin for approval.
+4	[workspace-sidebar-core]	Enter name, group name or email
+4	[workspace-sidebar-core]	Enter name, email, or group name
+4	[workspace-sidebar-core]	Add an environment to the workspace to enable this option.
+4	[workspace-sidebar-core]	Everyone on Postman can view and fork this public collection.
+4	[workspace-sidebar-core]	Get collection JSON using Postman API Key
+4	[workspace-sidebar-core]	Get collection JSON using Collection Access Key
+4	[workspace-sidebar-core]	Link to collection in public workspace
+4	[workspace-sidebar-core]	Anyone with this link can view and fork your collection.
+4	[workspace-sidebar-core]	Allow <1><0>Guests</0></1> to view collection via Run in Postman
+4	[workspace-sidebar-core]	Allow <1><0>Guests</0></1> to view collection via link
+4	[workspace-sidebar-core]	Documentation makes it easy for your team to understand requests.
+4	[workspace-sidebar-core]	This collection cannot be restored from the trash.
+4	[workspace-sidebar-core]	Deleting this request will stop linked requests from following updates.
+4	[workspace-sidebar-core]	Export this before deleting, as it cannot be restored from the trash.
+4	[workspace-sidebar-core]	Some collections may not be restorable from Trash. Export them if needed.
+4	[workspace-sidebar-core]	Deleted collections cannot be restored from trash.
+4	[workspace-sidebar-core]	<0><0>Archive</0></0> <1>this workspace, it's inactive for over 6 months.</1>
+4	[workspace-sidebar-core]	<0>It's removed from view. Monitors are turned off.</0> <1><0>Restore</0></1>
+5	[local-filesystem]	Initialize Git in this folder:
+5	[local-filesystem]	Add a remote origin (for cloud sync):
+10	[local-filesystem]	git remote add origin https://github.com/username/repo.git
+4	[local-filesystem]	All workspace mocks are already configured
+4	[local-filesystem]	Cannot edit slug while simulation is running. Stop the simulation first.
+4	[local-filesystem]	Could not update simulation configuration
+4	[local-filesystem]	Stop the local mock server to change this configuration
+2	[local-filesystem]	Link a collection or API spec to auto-generate this mock from it.
+2	[local-filesystem]	When the source changes, this mock is regenerated automatically.
+3	[local-filesystem]	Initialize Postman config for the project
+3	[local-filesystem]	Ask AI to setup capture plugin and update tests
+3	[local-filesystem]	Ask AI to create a collection based on your network traffic
+5	[local-filesystem]	Share your local changes via a link
+4	[workspace-overview]	Couldn’t load contributors. Try reloading.
+4	[workspace-overview]	People who contribute to this workspace will show up here.
+4	[workspace-overview]	Uh-oh, we couldn’t load the templates
+4	[workspace-overview]	Your request to give your organization access is in review.
+4	[workspace-overview]	No collections have been pinned to this workspace yet.
+4	[workspace-overview]	Select an environment that you recommend for this collection.
+4	[workspace-overview]	Partnering in Postman just got better!
+4	[workspace-overview]	We've improved how you collaborate with other organizations.
+4	[workspace-overview]	Seamless Partner Access for Teams
+4	[workspace-overview]	People can now join partner workspaces from their own team.
+4	[workspace-overview]	A Central Hub for Managing Partnerships
+4	[workspace-overview]	The new <Link><Text>Partnerships page</Text></Link> lets you manage all partnerships in one place.
+4	[workspace-overview]	As a Partner in this workspace you can,
+4	[workspace-overview]	Explore Postman collections and read API documentation
+4	[workspace-overview]	Top recommendations to get started
+4	[workspace-overview]	Add projects to your workspace
+4	[workspace-overview]	Bring in projects from your desktop, Github, and more.
+4	[workspace-overview]	Build a strong team to help you develop powerful APIs.
+4	[workspace-overview]	Discover and assign the right permissions to teammates.
+4	[workspace-overview]	Apply variables to collections by creating environments.
+4	[workspace-overview]	Help others learn how to interact with your endpoints.
+4	[workspace-overview]	Write your test scripts or use our snippets to validate data.
+4	[workspace-overview]	Learn how to write scripts to automate your workflow.
+4	[workspace-overview]	Learn how to set up a monitor to get notified about errors.
+4	[workspace-overview]	Try sending some requests to explore what your teammates have built.
+4	[workspace-overview]	Request to edit is pending review
+4	[workspace-overview]	We couldn't load your sandbox workspace
+4	[workspace-overview]	You don't have permission to change the workspace type.
+3	[workspace-overview]	You don’t have permission to change the asset type.
+3	[workspace-overview]	Couldn’t update the asset type. Try again.
+4	[workspace-overview]	Contact your team admin for details on enabling partner workspaces.
+4	[workspace-overview]	Who can access this workspace?
+4	[workspace-overview]	You need the developer role on the team to select this option.
+4	[workspace-overview]	You do not have access to convert this workspace to private.
+4	[workspace-overview]	Only Admins of this workspace can change the visibility.
+4	[workspace-overview]	This is now an internal workspace
+4	[workspace-overview]	Only members invited to this workspace can access it now.
+4	[workspace-overview]	Partners can now be invited to this workspace.
+4	[workspace-overview]	Share APIs securely with trusted partners.
+4	[workspace-overview]	Make APIs accessible to the world.
+4	[workspace-overview]	You don't have permission to convert
+4	[workspace-overview]	Anyone with workspace access can view and engage in discussions
+4	[workspace-overview]	Now, only workspace admins can view and engage in discussions.
+3	[workspace-overview]	Couldn't load namespace status. Just a faulty wire. Try again.
+4	[workspace-overview]	Restrict partners from seeing each other by enabling multi-partner mode
+4	[workspace-overview]	Partners cannot see other partners or make changes to this workspace.
+4	[workspace-overview]	Collaborate privately with multiple partners
+4	[workspace-overview]	Partners cannot see each other
+4	[workspace-overview]	Only your team members will be visible to partners.
+4	[workspace-overview]	Partners cannot edit this workspace 
+4	[workspace-overview]	They can view all workspace resources and send requests
+4	[workspace-overview]	To prevent accidental data exposure, this action cannot be undone.
+4	[workspace-overview]	Only your team members can see this
+4	[workspace-overview]	After changing the workspace type, you'll become the <1><0>Partner Manager</0></1>.
+4	[workspace-overview]	It's removed from view. Monitors are turned off.
+4	[workspace-overview]	Enter workspace name to confirm
+4	[workspace-overview]	Also delete associated workspaces with pending changes
+4	[workspace-overview]	request to be an Editor on this workspace will be denied.
+4	[workspace-overview]	request to be a Partner Editor on this workspace will be denied.
+4	[workspace-overview]	Your team's profile will also be made public.
+4	[workspace-overview]	Request Approval to Perform Action
+4	[workspace-overview]	Something went wrong while updating the pinned document. Try again.
+4	[workspace-overview]	Couldn't update workspace theme. There was an error updating the theme.
+4	[workspace-overview]	This workspace has a different theme
+4	[workspace-overview]	Workspace Admins are reviewing your request for edit access.
+4	[workspace-overview]	You are now the Partner Manager
+4	[workspace-overview]	This new role allows you to approve or deny Partner Workspace requests.
+4	[workspace-overview]	You need the Partner Manager role to view the request.
+4	[workspace-overview]	You are about to invite a user to workspace the active workspace.
+4	[api-client-core]	Unable to get issuer certificate
+4	[api-client-core]	Unable to get certificate CRL
+4	[api-client-core]	Unable to decrypt CRL's signature
+4	[api-client-core]	Unable to decode issuer public key
+4	[api-client-core]	Hostname/IP does not match certificate's altnames
+4	[api-client-core]	Unable to get CRL issuer certificate
+4	[api-client-core]	Proxy certificates not allowed, please set the appropriate flag
+4	[api-client-core]	Unsupported or invalid name syntax
+4	[api-client-core]	Suite B: certificate version invalid
+4	[api-client-core]	Suite B: invalid signature algorithm
+4	[api-client-core]	No matching DANE TLSA records
+4	[api-client-core]	Certificate Transparency required, but no valid SCTs found
+4	[api-client-core]	New streams cannot be created after receiving a GOAWAY
+4	[api-client-core]	Cannot specify additional headers after response initiated
+4	[api-client-core]	Response has already been initiated.
+4	[api-client-core]	The session has been destroyed
+4	[api-client-core]	The stream has been destroyed
+4	[api-client-core]	Maximum number of pending settings acknowledgements reached
+4	[api-client-core]	HTTP/2 sockets should not be directly manipulated (e.g. read and written)
+4	[api-client-core]	No stream ID is available because maximum stream ID has been reached
+4	[api-client-core]	HTTP/2 ping payload must be 8 bytes
+4	[api-client-core]	Offset or length can only be specified for regular files
+4	[api-client-core]	Session closed with an error.
+4	[api-client-core]	The socket has been disconnected from the HTTP/2 Session
+4	[api-client-core]	HTTP status code 101 (Switching Protocols) is forbidden in HTTP/2
+4	[api-client-core]	The pending stream has been canceled
+4	[api-client-core]	Stream closed with and error.
+4	[api-client-core]	A stream cannot depend on itself
+4	[api-client-core]	Too many invalid HTTP/2 frames
+4	[api-client-core]	Trailing headers cannot be sent until after the wantTrailers event is emitted
+4	[api-client-core]	Unable to create the workspace
+4	[api-client-core]	Select the workspace where you want to move this collection.
+4	[api-client-core]	Make sure you’re online if you want to manage roles
+4	[api-client-core]	Get editor access to manage roles on this collection.
+4	[api-client-core]	Get editor access to manage roles on this environment.
+4	[api-client-core]	You don’t have access to edit and manage roles on this flow.
+4	[api-client-core]	This monitor is in your personal workspace, which only you can access.
+4	[api-client-core]	This flow is in your personal workspace, which only you can access.
+4	[api-client-core]	Only you have access to this monitor
+4	[api-client-core]	Only you have access to this API
+4	[api-client-core]	Only you have access to this flow
+4	[api-client-core]	Your team is full. <2 /> to add more team members.
+4	[api-client-core]	Team Admins are reviewing the role change from Guest to Developer.
+4	[api-client-core]	By default all the destination collection editors will be able to merge.
+4	[api-client-core]	Private key used to generate the JWT signature, in PKCS#8 PEM format
+4	[api-client-core]	private key in PKCS#8 PEM format
+4	[api-client-core]	To customize your auth scheme, use the Postman Desktop Agent.
+4	[api-client-core]	Username is a restricted word
+4	[api-client-core]	Encode the parameters in the Authorization header
+4	[api-client-core]	Access token is not available
+4	[api-client-core]	Cannot refresh OAuth2.0 Token. Refresh Token Missing
+4	[api-client-core]	Algorithm used for generating the Code Challenge.
+4	[api-client-core]	The issuer of the token, mandatory.
+4	[api-client-core]	The audience for the token, mandatory.
+4	[api-client-core]	The ID of the key used to sign the token, mandatory.
+4	[api-client-core]	Unable to delete this header preset
+4	[api-client-core]	Toggle the sensitive variable state
+4	[api-client-core]	This will disable syncing initial value of the variable.
+4	[api-client-core]	Change type from secret to default?
+4	[api-client-core]	Change type from default to secret?
+4	[api-client-core]	This variable has been overwritten by a duplicate key.
+4	[api-client-core]	Remove the filter query to perform this action
+4	[api-client-core]	Remove sort to perform this action
+4	[api-client-core]	Give feedback on types in collection
+4	[api-client-core]	I'd like Postman to reach-out to me for followup
+4	[api-client-core]	You can run this collection when you're back online.
+4	[api-client-core]	Link copied with active environment!
+4	[api-client-core]	Some error occurred while trying to copy the link!
+4	[api-client-core]	Request for access is in review
+4	[api-client-core]	Once approved, you can add comments and collaborate with teammates.
+4	[api-client-core]	Could not create Request to comment
+4	[monitors-core]	Can't perform disabled actions as you are offline
+4	[monitors-core]	You don't have permission to perform disabled actions
+4	[monitors-core]	This user's profile is private.
+4	[monitors-core]	You need editor access to publish or unpublish the monitor report
+4	[monitors-core]	Replacement monitor created (change in team membership)
+4	[monitors-core]	Monitor paused (collection or environment was unshared or deleted)
+4	[monitors-core]	Monitor paused (associated collection removed from the workspace)
+4	[monitors-core]	Monitor paused (associated environment removed from the workspace)
+4	[monitors-core]	The associated collection has been deleted.
+4	[monitors-core]	The associated environment has been deleted.
+4	[monitors-core]	The end! You've seen all the activity for this monitor.
+4	[monitors-core]	Adjust your filters and try again.
+4	[monitors-core]	This user’s profile is private.
+4	[monitors-core]	Click on a run on the graph above to see its details
+4	[monitors-core]	The monitor could not be loaded. Please try after some time.
+4	[monitors-core]	Invalid aggregate function in monitor performance view
+4	[monitors-core]	Change your filters and try again.
+4	[monitors-core]	No logs available for this run
+4	[monitors-core]	Error occurred while fetching collections and environments
+4	[monitors-core]	Error occurred while fetching tags
+4	[monitors-core]	Error occurred while fetching user plan
+4	[monitors-core]	Error occurred while fetching collection
+4	[monitors-core]	This email is already present
+4	[monitors-core]	Uptime monitors are currently available only on the Postman Web app.
+4	[monitors-core]	There's a key feature missing
+4	[monitors-core]	Please enter a value greater than 0
+4	[monitors-core]	A monitor run cannot exceed 15 minutes; i.e., 900000 ms.
+4	[monitors-core]	Select a tag for this collection
+4	[monitors-core]	Invalid file format. Only JSON and CSV files are accepted.
+4	[monitors-core]	This monitor type has been discontinued. Use regular monitors instead.
+4	[monitors-core]	Failed to unpublish monitor report
+4	[monitors-core]	e.g. Orders API health report
+4	[monitors-core]	Add a short summary to provide context in shared links and previews.
+4	[monitors-core]	Includes request URLs in the public report.
+4	[monitors-core]	Failed to publish monitor report
+4	[monitors-core]	Request update to published report
+4	[monitors-core]	Note: Your team requires admin approval to publish monitor reports.
+4	[monitors-core]	Explain why this report should be published.
+4	[monitors-core]	Update or withdraw your existing request before submitting another one.
+4	[monitors-core]	Know when your service is down
+4	[monitors-core]	Assertion support is coming soon for this protocol
+4	[monitors-core]	Could not render this request
+4	[monitors-core]	Monitor ID will be generated after creating the monitor
+4	[monitors-core]	Automate runs using Postman CLI.
+3	[settings]	Select a file for SSL/TLS key logging
+3	[settings]	SSL Keylog file selection is not available when cloud agent is active
+3	[settings]	The selected working directory does not exist
+3	[settings]	The working directory can’t be configured while using browser.
+3	[settings]	Use browser tabs to navigate Postman.
+3	[settings]	Reset editor settings to their default values
+3	[settings]	Configure how the application connects to Postman servers.
+3	[settings]	Something went wrong while changing the application language. Try again.
+3	[settings]	Send anonymous functional usage data for product (error reporting, etc.)
+3	[settings]	Send anonymous analytical usage data for product improvement
+3	[settings]	Send anonymous data for advertising purposes
+3	[settings]	Send anonymous data for sale of information purposes
+3	[settings]	Send anonymous data for unknown purposes
+3	[settings]	Personalize your experience with colors that matches your mood and style.
+3	[settings]	We’re having trouble loading themes. <1>Try again</1>
+3	[settings]	This shortcut is already used as a system shortcut. Try another combination.
+3	[settings]	Export all your collections and environments to a single dump file.
+3	[settings]	Could not export the data. Please check the DevTools.
+3	[settings]	Error while importing: format not recognized
+3	[settings]	The selected PEM file is not readable. Please check file permissions.
+3	[settings]	The selected CRT file is not readable, check file permissions.
+3	[settings]	The selected KEY file is not readable, check file permissions.
+3	[settings]	The selected PFX file is not readable, check file permissions.
+3	[settings]	Learn more about <1><0>working with certificates</0></1>
+3	[settings]	Enter comma separated hosts to bypass proxy settings.
+3	[settings]	Choose which request types use the proxy.
+2	[settings]	No Passport Proxy is configured for your team.
+2	[settings]	Could not provision certificates for the Passport Proxy.
+2	[settings]	Could not connect to the Passport Proxy.
+2	[settings]	Connection timed out. Check your network or VPN.
+2	[settings]	Could not reach the proxy management endpoint.
+2	[settings]	TLS handshake failed. The proxy certificate may have rotated.
+3	[settings]	You need to be online to download the update.
+3	[settings]	Something went wrong. Please check your connection and try restarting the app.
+3	[settings]	Switch the active track or enter a custom value.
+3	[settings]	Set active track and refresh the page
+3	[settings]	Show Postman Gateway request details as query params
+3	[settings]	Connect to a custom websocket proxy instead of bifrost.
+3	[settings]	Error establishing connection to websocket proxy
+3	[settings]	Turn on to enable the new HTTP Workbench for all HTTP Requests.
+3	[settings]	Defaults applied when starting new cloud agent tasks.
+3	[settings]	Hosts that the AI Engineer is allowed to reach.
+3	[settings]	No custom hosts added. Default hosts still apply.
+3	[settings]	Unable to load the host allowlist. Please try again.
+3	[settings]	You do not have permission to view the host allowlist.
+3	[settings]	Unable to add host. Please try again later.
+3	[settings]	Unable to remove host. Please try again later.
+3	[settings]	Use a valid hostname or *.example.com pattern.
+3	[settings]	Configure Postman Agent settings for your team.
+3	[settings]	There are no agents to display right now.
+3	[settings]	Something went wrong while fetching agents. Please try again.
+4	[settings]	Postman AI isn't available for your account
+3	[settings]	This agent does not request any scopes.
+3	[settings]	Unable to load your current scope preferences. Close and try again.
+3	[settings]	Unable to update scopes. Please try again.
+3	[settings]	This agent has no scopes to configure.
+2	[unified-analytics]	Tracks how team composition and license utilization evolve over time
+2	[unified-analytics]	To manage users and licenses effectively, consider:
+2	[unified-analytics]	Reviewing inactive users to ensure access is still needed
+2	[unified-analytics]	Monitoring guest and partner access to maintain the right level of visibility
+2	[unified-analytics]	Reassigning unused licenses as your team grows
+2	[unified-analytics]	Watching changes over time to plan for future license needs
+2	[unified-analytics]	Users added as team members to the team
+2	[unified-analytics]	View workspace and it's elements access role user
+2	[unified-analytics]	To improve user engagement, consider:
+2	[unified-analytics]	Adding clear examples and documentation to help new users get started faster
+2	[unified-analytics]	Monitoring trends over time to spot drops or improvements in API usage
+2	[unified-analytics]	Comparing new users to successful users to identify where users get stuck
+2	[unified-analytics]	Users who used Postman at least once.
+2	[unified-analytics]	To reduce your 4XX rates, consider:
+2	[unified-analytics]	The request worked as expected.
+2	[unified-analytics]	The request was sent to a different location to complete.
+2	[unified-analytics]	There's an issue with the request, such as missing or incorrect information.
+2	[unified-analytics]	The server couldn't process the request.
+2	[unified-analytics]	To manage workspaces effectively, consider:
+2	[unified-analytics]	Reviewing inactive or unused workspaces to reduce clutter
+2	[unified-analytics]	Choosing the right workspace type based on collaboration needs
+2	[unified-analytics]	Monitoring growth trends to plan governance and access
+2	[unified-analytics]	Ensuring workspaces are clearly named and purpose-driven
+2	[unified-analytics]	An invite-only workspace for collaborating with external partners on shared API projects.
+2	[unified-analytics]	To improve workspace effectiveness, consider:
+2	[unified-analytics]	Checking highly used elements to ensure they're documented and easy to reuse
+2	[unified-analytics]	Aligning environments and mocks with current development stages
+2	[unified-analytics]	Making sure monitors and flows reflect your most important workflows
+2	[unified-analytics]	Groups of saved API requests you can run and reuse.
+2	[unified-analytics]	Simulated APIs that return example responses without calling a real server.
+2	[unified-analytics]	Automated checks that run requests on a schedule to track API health.
+2	[unified-analytics]	Visual workflows that connect requests and logic without writing code.
+2	[unified-analytics]	View internal workspace metrics and team collaboration insights
+2	[unified-analytics]	To better understand workspace growth, consider:
+2	[unified-analytics]	Reviewing whether new workspaces are created for clear purposes
+2	[unified-analytics]	Encouraging shared workspaces when collaboration is needed
+2	[unified-analytics]	Cleaning up unused or inactive workspaces to reduce clutter
+2	[unified-analytics]	Watching trends over time to plan for team and project growth
+4	[unified-analytics]	Collections with the highest error rates
+2	[unified-analytics]	This view highlights collections where API requests fail most often.
+2	[unified-analytics]	To reduce error rates in collections, consider:
+2	[unified-analytics]	Reviewing request configuration, parameters, and headers
+2	[unified-analytics]	Improving authentication setup and examples
+2	[unified-analytics]	Adding clearer documentation or usage guidance within the collection
+2	[unified-analytics]	Testing requests across environments to catch setup issues early
+2	[unified-analytics]	See how external partners onboard and collaborate with your APIs
+2	[unified-analytics]	Partners who have accepted their invite
+2	[unified-analytics]	Partners who visited the partner workspace
+2	[unified-analytics]	Partners who viewed a collection or its documentation
+2	[unified-analytics]	Partners who sent an API request
+2	[unified-analytics]	Partners who got a successful API response
+2	[unified-analytics]	See how your Partners progress through the onboarding steps
+2	[unified-analytics]	To improve partner onboarding, consider:
+2	[unified-analytics]	Improving documentation and examples for authentication and requests
+2	[unified-analytics]	Tracking progress over time to measure the impact of onboarding improvements
+2	[unified-analytics]	API requests sent by partners from partner workspaces
+2	[unified-analytics]	Partners who may need help getting successful responses
+2	[unified-analytics]	Success rate of partner API requests
+2	[unified-analytics]	Information about pending partner invitations
+2	[unified-analytics]	Sent request, no 200 OK
+2	[unified-analytics]	API success rate < 50%
+2	[unified-analytics]	Total number of users in the team
+2	[unified-analytics]	Failed to load team members
+2	[unified-analytics]	Complete list of all team members
+2	[unified-analytics]	List of members with the selected role
+2	[unified-analytics]	Failed to load member list
+2	[unified-analytics]	Failed to load billed seats
+2	[unified-analytics]	Failed to load unbilled seats
+2	[unified-analytics]	These seats will be included in your next Auto-Flex renewal.
+2	[unified-analytics]	Overage settings for each resource
+2	[unified-analytics]	Failed to load overage settings
+2	[unified-analytics]	Failed to load additional blocks
+2	[unified-analytics]	Last Auto-Flex cycle: User added
+2	[unified-analytics]	Failed to load users added
+2	[unified-analytics]	This entity isn't visible with your current access
+2	[unified-analytics]	Total monitor runs and production flow executions during the selected period.
+2	[unified-analytics]	Number of workspaces published to the API Catalog during the selected period.
+2	[unified-analytics]	Any collection with create, update, or delete actions during the selected period.
+2	[unified-analytics]	Flows with edits or execution activity during the selected period.
+2	[unified-analytics]	SDK generation runs completed during the selected period.
+2	[unified-analytics]	API specifications with create, update, or delete activity during the selected period.
+2	[unified-analytics]	Performance test runs during the selected period, broken down by execution type.
+2	[unified-analytics]	Popular workspaces in API Catalog
+2	[unified-analytics]	Workspaces distributed via Private API Network during the selected period.
+2	[unified-analytics]	Workspaces shared with partners during the selected period.
+2	[unified-analytics]	Workspaces published to the public API Network during the selected period.
+2	[unified-analytics]	Note: Latest data may be partial due to refresh frequency
+2	[unified-analytics]	You don't have access to view this data.
+2	[unified-analytics]	We couldn't load this report. Try again later.
+2	[unified-analytics]	You don't have access to page
+2	[unified-analytics]	This section requires additional permissions. Learn more about this report.
+2	[unified-analytics]	This workspace name isn't visible with your current access
+2	[unified-analytics]	This collection name isn't visible with your current access
+2	[unified-analytics]	Personal workspaces aren't included. Data refreshes after the end of each month.
+2	[unified-analytics]	Learn more about how BYOK affects analytics.
+2	[unified-analytics]	API data is not collected while BYOK is enabled.
+2	[unified-analytics]	This data is not collected due to BYOK security settings.
+2	[unified-analytics]	Workspaces with views, edits, or sent API requests.
+2	[unified-analytics]	Total amount of API calls made in a month.
+2	[unified-analytics]	Users who viewed, created, edited, forked or sent request in internal workspaces
+2	[unified-analytics]	Track Agent Mode usage, user engagement and credit consumption
+2	[unified-analytics]	Date range for Agent mode metrics
+2	[unified-analytics]	No user usage found for this period.
+2	[unified-analytics]	Failed to load user leaderboard data.
+2	[unified-analytics]	No agent model usage found for this period.
+2	[unified-analytics]	Failed to load top agent model data.
+2	[unified-analytics]	Failed to load peak activity data.
+2	[unified-analytics]	No activity distribution for this period.
+2	[unified-analytics]	Failed to load AI report data.
+2	[workbench-example]	Response exceeded the 5 MB limit
+2	[workbench-example]	Try filtering on a different key
+2	[workbench-example]	Filtered data exceeds 50 MB. Try refining the filter.
+2	[workbench-example]	An error occurred in filtering the response
+2	[workbench-example]	Network information unavailable for XHR requests.
+2	[workbench-example]	Everything alright. Proceed with the request.
+2	[workbench-example]	Request to 'upgrade' the connection received. Switching protocol.
+2	[workbench-example]	Processing the response. No response available yet.
+2	[workbench-example]	Request successful. The server has responded as required.
+2	[workbench-example]	A new resource was created successfully.
+2	[workbench-example]	The request has been received but has not yet been acted upon.
+2	[workbench-example]	There is no content to send for this request except for headers.
+2	[workbench-example]	Reset the document that sent this request.
+2	[workbench-example]	Part of the resource is received as per the 'Range' header.
+2	[workbench-example]	The request has more than one possible response.
+2	[workbench-example]	Redirected to another URL for the requested resource.
+2	[workbench-example]	No longer used. Originally meant "Subsequent requests should use the specified proxy."
+2	[workbench-example]	The server could not understand the request. Maybe a bad syntax?
+2	[workbench-example]	The request is unauthenticated. <button>Pass the correct auth credentials</button>.
+2	[workbench-example]	Access to the requested resource requires payment.
+2	[workbench-example]	Access to the resource is prohibited. <button>Try with different auth credentials</button>?
+2	[workbench-example]	Requested resource could not be found.
+2	[workbench-example]	Use of the request method is not allowed on the resource.
+2	[workbench-example]	The request is unauthenticated. <button>Configure Proxy</button>.
+2	[workbench-example]	Requested content is permanently deleted from the server.
+2	[workbench-example]	The server doesn't meet the criteria set in request header.
+2	[workbench-example]	Request is too large for the server to process.
+2	[workbench-example]	That's too long a URI and the server is not having it.
+2	[workbench-example]	The expectation indicated by the 'Expect' request header field cannot be fulfilled.
+2	[workbench-example]	And I refuse to brew coffee!
+2	[workbench-example]	The Cross-Site Request Forgery (CSRF) validation has failed.
+2	[workbench-example]	The request was well-formed but had semantic errors.
+2	[workbench-example]	The requested resource is locked.
+2	[workbench-example]	The request failed due to failure of a previous request.
+2	[workbench-example]	Headers are too large for the server to process.
+2	[workbench-example]	The request couldn't be processed because it doesn't contain the required information.
+2	[workbench-example]	Parental controls block access to the resource.
+2	[workbench-example]	The connection was closed before the timeout period elapsed.
+2	[workbench-example]	The 'X-Forwarded-For' header contains too many IP addresses.
+2	[workbench-example]	HTTP request protocol is incompatible.
+2	[workbench-example]	Either the request or some headers are too large to be processed.
+2	[workbench-example]	The client certificate couldn't be verified. <button>Configure the correct SSL Certificate</button>.
+2	[workbench-example]	Missing client certificate. <button>Configure the correct SSL Certificate</button>.
+2	[workbench-example]	An unsecured (HTTP) request was sent to a secured (HTTPS) port.
+2	[workbench-example]	Auth token is invalid. <button>Pass the correct auth token</button>.
+2	[workbench-example]	The connection was closed before the server could complete the task.
+2	[workbench-example]	The server, working as a gateway got an invalid response.
+2	[workbench-example]	The server is down (maybe for maintenance or maybe overloaded).
+2	[workbench-example]	The server detected an infinite loop while processing the request.
+2	[workbench-example]	The web hosting service has exceeded the available bandwidth.
+2	[workbench-example]	The client needs to authenticate to gain network access.
+2	[workbench-example]	Something's wrong and no idea what.
+2	[workbench-example]	Connection timed out before Cloudflare could connect to the origin server.
+2	[workbench-example]	Could not reach the origin server.
+2	[workbench-example]	Connection timed out before the origin server could complete the request.
+2	[workbench-example]	SSL handshake failed with the origin server.
+2	[workbench-example]	There's an error between Cloudflare and origin's railgun server.
+2	[workbench-example]	Could not process the request because the server is overloaded.
+2	[workbench-example]	Could not connect to the server.
+2	[workbench-example]	The identity Provider (IdP) returned an error during the authentication process.
+2	[workbench-example]	This is a 1xx response. The response should carry some information.
+2	[workbench-example]	This is a 2xx response, so everything must be alright.
+2	[workbench-example]	This is a 3xx response. The response should direct you somewhere else.
+2	[workbench-example]	This is a 5xx response. Something's not right with the server.
+2	[workbench-example]	For accurate size breakdowns, send requests through the Postman Desktop agent.
+2	[workbench-example]	All size calculations are approximate
+2	[workbench-example]	Close the stream to save the response.
+4	[workbench-example]	You need Editor access on this collection to save an example.
+2	[workbench-example]	Can't save examples for media type responses.
+2	[workbench-example]	Responses over 5 MB can't be saved as examples.
+2	[workbench-example]	Save this request to create examples.
+2	[workbench-example]	This request is linked and doesn't support saving examples.
+2	[workbench-example]	Close the stream to download the response.
+2	[workbench-example]	Saving response body to file requires body to not be empty.
+2	[workbench-example]	Close the stream to clear the response.
+2	[workbench-example]	Fetching active environment and sending request
+2	[workbench-example]	Organize your growing collection with Postman AI
+2	[workbench-example]	Cloud agent error: cannot send request.
+2	[workbench-example]	CORS error: cannot send request.
+2	[workbench-example]	The request is blocked because of the Cross-Origin Resource Sharing (CORS) policy.
+2	[workbench-example]	Mixed content error: cannot send request.
+2	[workbench-example]	The request has been blocked because it requested an insecure HTTP resource.
+2	[workbench-example]	Cannot send requests to IPv6 addresses. Select a different agent.
+2	[workbench-example]	Cannot send requests to localhost. Select a different agent.
+1	[workbench-example]	Couldn't resolve secrets in this request.
+1	[workbench-example]	Your access was revoked. Reconnect Passport and try again.
+1	[workbench-example]	Too many requests through the proxy. Please retry shortly.
+1	[workbench-example]	Couldn't reach the target server.
+1	[workbench-example]	Your certificate is missing. Re-enable Secured Access Proxy in settings.
+1	[workbench-example]	Your certificate isn't trusted by the proxy. Reconnect Passport.
+1	[workbench-example]	Your certificate expired. Reconnect Passport.
+1	[workbench-example]	Your certificate is missing identity info. Reconnect Passport.
+1	[workbench-example]	Certificates are missing. Enable Secured Access Proxy in settings to provision certificates.
+1	[workbench-example]	Certificates are expired or expiring soon. Reconnect Passport.
+1	[workbench-example]	Enabled but host/port is not configured.
+1	[workbench-example]	mTLS handshake failed. Reconnect Passport.
+2	[workbench-example]	The request has been blocked because of the CORS policy
+2	[workbench-example]	The request has been blocked because it requested an insecure HTTP resource
+2	[workbench-example]	The server returned a malformed response
+2	[workbench-example]	There seems to be an invalid character in the response header value
+2	[workbench-example]	There seems to be an invalid character in the "Content-Length" response header
+2	[workbench-example]	The response header "Content-Length" can't be empty
+2	[workbench-example]	The response headers can't include "Content-Length" with chunked encoding
+2	[workbench-example]	"Content-Length" and "Transfer-Encoding" can't be present in the response headers together
+2	[workbench-example]	The response has a duplicate "Content-Length" header
+2	[workbench-example]	That wasn't supposed to happen.
+2	[workbench-example]	Something went wrong while rendering the visualization.
+2	[workbench-example]	Set up with a prompt
+2	[workbench-example]	Response body is too large to generate table.
+2	[workbench-example]	Response body is too large to generate preview.
+2	[workbench-example]	No cookies received from the server
+2	[workbench-example]	All your cookies and their associated domains will appear here.
+2	[workbench-example]	Specifies a URI that may access the response.
+2	[workbench-example]	Specifies which headers can be exposed as part of the response.
+2	[workbench-example]	An entity header indicating the encoding method applied to the entity body.
+2	[workbench-example]	An entity header indicating the intended language audience.
+2	[workbench-example]	An entity header indicating the size of the entity-body, in bytes.
+2	[workbench-example]	An entity header containing a Base64-encoded digest of the entity body.
+2	[workbench-example]	Indicates where a partial message belongs in a full body message.
+2	[workbench-example]	Indicates the resource's media type.
+2	[workbench-example]	A general header containing the date and time the message was sent.
+2	[workbench-example]	Identifies a specific resource version.
+2	[workbench-example]	Indicates the date and time after which a response is considered stale.
+2	[workbench-example]	Indicates the date and time a resource was last modified.
+2	[workbench-example]	Indicates the URL to redirect a page to.
+2	[workbench-example]	Indicates how many seconds to wait before making a follow-up request.
+2	[workbench-example]	Contains information about how the server handles requests.
+2	[workbench-example]	Sends cookies from the server to the user agent.
+2	[workbench-example]	HTTP/2 specific pseudo-header that indicates the status of the response.
+2	[workbench-example]	Contains information about possible problems with the message status.
+2	[workbench-example]	Specifies the authentication method that should be used to access a resource.
+2	[workbench-example]	Stops pages from loading when they detect reflected cross-site scripting (XSS) attacks.
+2	[workbench-example]	Specifies the technology (ASP.NET, PHP, JBoss, e.g.) supporting the web application.
+4	[workbench-example]	Write a test script to automate debugging. Learn more about <1><0>writing tests</0></1>
+2	[workbench-example]	No tests available for the selected filter
+2	[workbench-example]	Couldn't evaluate the test script
+3	[workbench-core]	Open a new tab to perform this action
+3	[workbench-core]	No environments found. <0>Create one</0>.
+3	[workbench-core]	Environment selector. Press Enter or Space to open dropdown.
+3	[workbench-core]	Right environments are pinned for this collection
+3	[workbench-core]	📌 Pin this environment to the collection
+3	[workbench-core]	Some environments are unavailable while you’re offline.
+3	[workbench-core]	Create a new collection from the selected requests
+3	[workbench-core]	Couldn’t create the collection. Please try again.
+2	[workbench-core]	Filter by action, locator, or source
+2	[workbench-core]	No interactions match your filter.
+3	[workbench-core]	Get online to view your list of forks.
+3	[workbench-core]	You don't have permission to view merge conditions
+3	[workbench-core]	You don't have permission to create a pull request
+3	[workbench-core]	Get online to view your list of Pull Requests
+4	[workbench-core,collaboration]	No results from these filters
+3	[workbench-core]	No reviewers have been assigned to this pull request.
+3	[workbench-core]	Reviewers with accounts set to private are kept anonymous.
+3	[workbench-core]	No group reviewers have been assigned to this pull request.
+3	[workbench-core]	Something went wrong when loading the changelog.
+3	[workbench-core]	You must be online to load more changes
+3	[workbench-core]	Automatically updated by Live Collection
+3	[workbench-core]	Live Collection update reviewed by user
+3	[workbench-core]	A tag creates a named reference to this change
+3	[workbench-core]	Only users with edit permission can view this diff
+3	[workbench-core]	You must be online to view detailed diff
+3	[workbench-core]	You must be online to perform this action
+3	[workbench-core]	This will delete the tag added to the change permanently
+3	[workbench-core]	This will delete the note added to the change permanently
+3	[workbench-core]	Diff hidden from viewers for this change
+3	[workbench-core]	All users with access to this workspace can now see this diff
+3	[workbench-core]	Gets a variable (environment or global)
+3	[workbench-core]	Clears an environment variable if set
+3	[workbench-core]	Send an HTTP request from a Collection
+3	[workbench-core]	Sends a request and executes its pre-request and post-response scripts
+3	[workbench-core]	Write a basic string check in response body
+3	[workbench-core]	Write a basic response code string check
+3	[workbench-core]	Convert response body from JSON to XML
+3	[workbench-core]	Validate response against a schema with Tiny Validator
+3	[workbench-core]	This variable has one or more duplicates that override it.
+3	[workbench-core]	Admin policy has secured this value in your local vault.
+3	[workbench-core]	Admin policy has secured this value in your shared vault.
+2	[app-header]	<0>Sign In</0><1> to view your notifications.</1>
+2	[app-header]	Workspaces you visit will appear here.
+2	[app-header]	You need to be online to view workspaces.
+2	[app-header]	Join Postman to explore workspaces
+3	[app-header,workspaces-table]	A workspace lets you organize and collaborate on APIs.
+2	[app-header]	Couldn’t load the workspaces. Try reloading. 
+2	[app-header]	You've reached the maximum number of workspaces you can star.
+2	[app-header]	Partners can see other partners in this workspace
+2	[app-header]	You don't have permission to view this.
+2	[app-header]	Explore public APIs on Postman
+2	[app-header]	Explore and integrate with public APIs
+2	[app-header]	View all public APIs →
+2	[app-header]	Reusable APIs across your Organization
+2	[app-header]	Use internal team APIs to ease development
+2	[app-header]	A central hub for internal APIs, to streamline your development.
+2	[app-header]	Collaborate on a single source of truth for your API workflows.
+2	[app-header]	You have reached the monthly usage limits of your plan.
+2	[app-header]	You are about to reach the monthly usage limits of your plan.
+4	[app-header,home]	Postman works best with teams
+2	[app-header]	Switch to Offline API Client to modify settings.
+2	[app-header]	Add people from your Google Directory
+2	[app-header]	We’ve notified Partner Managers to add more slots.
+2	[app-header]	Inviting partners from multiple organizations?
+2	[app-header]	Enable Multi-partner mode to prevent partners from seeing each other.
+2	[app-header]	Something went wrong while sharing this workspace
+2	[app-header]	Failed to assign Flow Editor role to some users.
+2	[app-header]	You can’t invite people who are not part of your team.
+2	[app-header]	Please enter a name or email to send an invite.
+2	[app-header]	Inviting people opens the workspace to everyone in your team.
+3	[app-header,invite-flow-modals]	We'll notify you once the reviewer approves your request.
+2	[app-header]	Your suggestion will be sent to a Team Admin for approval.
+2	[app-header]	After inviting, we’ll help you set up a team.
+2	[app-header]	This partner is still part of your team. <1><0>Remove them</0></1> to re-invite.
+2	[app-header]	You can’t invite a team member as partner to this workspace.
+2	[app-header]	You can only invite partners from your own domain.
+2	[app-header]	Who would you like to invite?
+2	[app-header]	<Link>Partners</Link> are external people outside of your organization.
+2	[app-header]	Team members are people from your organization.
+2	[app-header]	Oops, we couldn’t find anyone within your organization.
+2	[app-header]	Oops, we couldn’t find this person in your organization.
+2	[app-header]	You can still add new users by inviting them via email.
+2	[app-header]	Try a different spelling or invite them via email.
+2	[app-header]	This will allow invited people to edit all flows in this team.
+2	[app-header]	This allows them to invite and manage other partners in this workspace.
+2	[app-header]	Make sure the emails you’ve entered are valid.
+3	[app-header,onboarding-components]	You do not have admin permission to perform this action
+4	[app-header]	Unable to respond to request at the moment. Please try again.
+2	[app-header]	Could not load Git collaborators.
+2	[app-header]	No collaborators found in recent Git history.
+2	[app-header]	Invite collaborators from your Git repo.
+2	[app-header]	All Git collaborators have been invited!
+2	[app-header]	Move workspace to a team to collaborate
+4	[app-header]	You can only invite and collaborate with people in teams.
+2	[app-header]	No active team members right now.
+2	[app-header]	No inactive team members right now.
+2	[app-header]	Search for teams on Postman
+2	[app-header]	Search for exciting new flows
+2	[app-header]	Search for APIs you want to explore
+2	[app-header]	Search for team APIs you want to explore
+2	[app-header]	Search for APIs in your Private API Network
+2	[app-header]	Search for an element within this workspace
+2	[app-header]	Choose the type of entity you want to find
+2	[app-header]	Search all workspaces, collections, specs, teams and users for
+2	[app-header]	Start typing to search within this workspace or collection
+2	[app-header]	Try searching with a shorter query.
+2	[app-header]	Unable to search while offline
+2	[app-header]	You need to be online to perform a search.
+2	[app-header]	Sorry an unexpected error occurred.
+2	[app-header]	Search for workspaces and collections
+2	[app-header]	No workspaces or collections found
+3	[vault]	Something went wrong while loading your secrets. Please try again.
+3	[vault]	Secrets that you've been granted access to on Passport will appear here.
+4	[vault]	Shared Vault is currently disabled
+4	[vault]	Invalid response received while trying to authenticate token
+4	[vault]	This token allows a service account to authenticate with 1Password CLI.
+4	[vault]	Create a service account token
+4	[vault]	Already using a secret manager? Set it up with Postman:
+4	[vault]	Locally store secrets in vault
+4	[vault]	Make sure the desktop agent is running to save your vault key.
+4	[vault]	Assigning a vault key and creating your local encrypted vault...
+4	[vault]	Link a secret to fetch the value from an existing vault
+4	[vault]	Start using Vault secrets in scripts
+4	[vault]	An unknown error occured. Please try again after sometime.
+4	[vault]	Enter scopes separated by space
+4	[vault]	Automatically mask secrets in the console by default.
+4	[vault]	Allow Vault secrets in scripts
+4	[vault]	Allow scripts to securely access Vault secrets during request execution.
+4	[vault]	This vault integration has been configured for all team members
+4	[vault]	Shhh... This was supposed to be a secret…
+4	[vault]	Unable to autofill AWS Credentials
+4	[vault]	Invalid response received while trying to fetch token
+4	[vault]	MFA data in unexpected format
+4	[vault]	Your AWS Account requires multi factor authentication
+4	[vault]	ARN of the role to be assumed to fetch the secret
+4	[vault]	This vault secret is disabled. Enable it to access its value.
+4	[vault]	Use the desktop app or desktop agent to resolve this secret.
+4	[vault]	This secret is not supported on domain of this request
+4	[vault]	Linked secret cannot be resolved
+4	[vault]	Missing value for vault secret
+4	[vault]	Start using vault to securely save secrets on your local system
+4	[vault]	Enter a value for the secret.
+4	[vault]	Contact your team admin to enable Vault export for your team.
+4	[vault]	Download your vault as a JSON file
+4	[vault]	Something went wrong while exporting your vault. Please try again.
+4	[vault]	Vault export is disabled for your team. Please contact your team admin.
+3	[team-settings]	Sandbox is provided for testing and evaluation purposes only
+3	[team-settings]	Postman may delete Sandbox data at any time
+3	[team-settings]	Sandbox is provided "as-is", with no service level commitments, Indemnities, or warranties
+3	[team-settings]	Usage and feature limitations may apply
+3	[team-settings]	Failed to activate Sandbox environment. Please try again.
+3	[team-settings]	I don’t recognize this person
+3	[team-settings]	They belong to a different team in our organization
+3	[team-settings]	There’s no budget for additional members
+6	[team-settings]	Unlock advanced settings for workspaces, collections, and more with Postman <1>Enterprise</1> plan.
+3	[team-settings]	Give granular controls to team members, making it easier to 
+3	[team-settings]	Company systems handle workspace creation
+3	[team-settings]	Only selected people and groups can create workspaces directly in Postman.
+2	[team-settings]	All members can create, no one can edit or delete
+2	[team-settings]	Anyone can create tags. Tags cannot be edited or deleted once created.
+2	[team-settings]	All members can create, specific people can edit or delete
+3	[team-settings]	Manage sharing of collections within your organization.
+3	[team-settings]	Allow Editors to share collections with Guests
+3	[team-settings]	Editors can share collections with guests
+3	[team-settings]	Team members can share collections with people outside the team.
+3	[team-settings]	Team members can't share collections with people outside the team.
+3	[team-settings]	Only team admins can modify export settings
+3	[team-settings]	An error occurred while updating export settings. Please try again.
+3	[team-settings]	When enabled, editors and viewers are prevented from exporting collections.
+3	[team-settings]	Editors and viewers cannot export collections
+3	[team-settings]	Editors and viewers can export collections
+3	[team-settings]	Use packages from external registries like npm and JSR in your scripts.
+3	[team-settings]	Packages that can be used in the scripts.
+3	[team-settings]	how to allow external packages
+3	[team-settings]	Package name must start with a registry (e.g. npm: or jsr:)
+3	[team-settings]	Enter valid package name and version (e.g. npm:lodash@1.1.0 or npm:lodash@*)
+3	[team-settings]	Contact your admin to add more packages to this list.
+3	[team-settings]	Contact your admin to enable external packages for your team.
+3	[team-settings]	Couldn't load the external package configurations.
+3	[team-settings]	Failed to update settings for external packages. Please try again.
+3	[team-settings]	Failed to load settings for external packages. Please try again.
+3	[team-settings]	External package settings are not available for your team.
+3	[team-settings]	Configure access to private npm packages.
+3	[team-settings]	how to add private packages
+3	[team-settings]	Your team can export their vault data.
+3	[team-settings]	Your team can't export their vault data.
+3	[team-settings]	Manage mock servers within your organization
+3	[team-settings]	Creating public mock servers disabled
+3	[team-settings]	Manage mocks within your organization
+3	[team-settings]	Require approval for publishing public mocks
+3	[team-settings]	Enable public Mock Servers to require approval for publishing mocks.
+3	[team-settings]	Manage live sessions within your organization.
+3	[team-settings]	Add members from your team to the sandbox team.
+3	[team-settings]	Define publishing and visibility rules for mock servers.
+3	[team-settings]	Define whether external packages can be used in scripts, and which ones.
+3	[team-settings]	Define whether live sessions can be started.
+3	[team-settings]	Define whether vault data can be exported.
+3	[team-settings]	Manage how people from your organization can join this team.
+3	[team-settings]	Verify your email address to manage team access settings
+3	[team-settings]	Allow people to automatically join from resource links
+3	[team-settings]	Allow people to automatically join this team
+3	[team-settings]	e.g. Why do you want to join this team?
+3	[team-settings]	Please limit your question to 500 characters
+3	[team-settings]	Something went wrong when saving your question. Please try again.
+3	[team-settings]	This way your coworkers can discover and automatically join your team.
+3	[team-settings]	Your team access settings have been updated
+3	[team-settings]	Your team members will now have a smoother onboarding experience
+3	[team-settings]	Failed to update team access settings
+2	[team-settings]	Tag management isn't supported for your team.
+2	[team-settings]	Tag management isn't enabled for your team.
+2	[team-settings]	Failed to load tags. Please try again.
+2	[team-settings]	Organize and discover elements across your organization.
+2	[team-settings]	Track lifecycle stages of collections.
+2	[team-settings]	Tags cannot exceed 64 characters.
+2	[team-settings]	Tags must be at least 2 characters.
+2	[team-settings]	A tag with this name already exists for your team.
+2	[team-settings]	Select an emoji before creating this status tag.
+2	[team-settings]	Select an emoji before saving this status tag.
+2	[team-settings]	Failed to create tag. Please try again.
+2	[team-settings]	Failed to update tag. Please try again.
+2	[team-settings]	Failed to delete tag. Please try again.
+1	[grpc-core]	Select a method to generate example message
+1	[grpc-core]	Invoke the method to send messages
+1	[grpc-core]	Couldn’t load the messages from examples.
+1	[grpc-core]	<0>Create an Example</0> <1>to use its messages.</1>
+2	[grpc-core]	You don't have permission to take this action
+1	[grpc-core]	Search for messages in examples
+1	[grpc-core]	No messages added in examples.
+3	[grpc-core,websocket-core]	Response size is too large to display
+1	[grpc-core]	Using https:// in the URL.
+1	[grpc-core]	Using http:// in the URL.
+1	[grpc-core]	Currently using a secured connection.
+1	[grpc-core]	Disable TLS to invoke the method over an unsecured connection.
+1	[grpc-core]	<0>Select a Protobuf API</0> <1>to use its Mock URL</1>
+1	[grpc-core]	<0>Select a Protobuf Spec</0> <1>to use its Mock URL</1>
+1	[grpc-core]	<0>Publish the Protobuf API</0> <1>to use its Mock URL</1>
+1	[grpc-core]	<0>Failed to load Mock URL.</0> <1>Try again</1>
+1	[grpc-core]	Cannot import multiple files at once
+1	[grpc-core]	Only .proto files are supported. Please try again with a .proto file.
+1	[grpc-core]	Couldn’t load documentation from examples.
+1	[grpc-core]	<0>Add example</0> <1>to illustrate how this request works.</1>
+1	[grpc-core]	<0>Switch to Postman desktop agent</0> to load the methods.
+1	[grpc-core]	Make sure the <2>Desktop Agent</2> is installed and running.
+1	[grpc-core]	Switch message type to sent
+1	[grpc-core]	Switch message type to received
+1	[grpc-core]	Define the client-server communication using messages.
+1	[grpc-core]	Couldn’t load this method from the service definition.
+1	[grpc-core]	Could not load server reflection.
+1	[grpc-core]	The selected API version no longer exists in Postman.
+1	[grpc-core]	Some of the import directives couldn’t be resolved.
+2	[grpc-core]	Something went wrong. Might be a faulty wire on our end.
+1	[grpc-core]	You don’t have access to the API.
+1	[grpc-core]	There might be some issues with the selected Protobuf API.
+1	[grpc-core]	There might be some issues with the selected .proto file.
+1	[grpc-core]	Some of the import directives couldn't be resolved.
+1	[grpc-core]	You don't have access to the specification.
+1	[grpc-core]	There might be some issues with the selected Protobuf specification.
+1	[grpc-core]	Selected method doesn’t exist in the service definition.
+1	[grpc-core]	Could not load the APIs.
+1	[grpc-core]	No Protobuf schema found in this workspace
+1	[grpc-core]	Type in a name to create a new API
+1	[grpc-core]	Select a Protobuf schema or paste a link to one
+1	[grpc-core]	Something went wrong while creating the API.
+1	[grpc-core]	Something went wrong while updating the API.
+1	[grpc-core]	Specify import paths to look for .proto files while resolving 'import' directives.
+1	[grpc-core]	Desktop Agent is required to load Protobuf files
+1	[grpc-core]	Cannot import into a Git linked API
+1	[grpc-core]	Search for a Protobuf schema or paste a link to one
+1	[grpc-core]	Test a property exists for all messages
+1	[grpc-core]	Test message(s) against a JSON schema
+1	[grpc-core]	Test message equals exact content
+1	[grpc-core]	Test message has specific properties
+1	[grpc-core]	Test message against a JSON schema
+1	[grpc-core]	There was an error while running the script.
+1	[grpc-core]	Select a .proto file from your local system.
+1	[grpc-core]	Fields for this message type haven’t been defined in the service definition.
+3	[workbench-request]	Request Method contains invalid characters
+3	[workbench-request]	You don't have permission to save changes in this workspace.
+3	[workbench-request]	Upgrade to Enterprise plan to save overrides on linked requests.
+2	[workbench-request]	Linked requests only support overrides on the request name and params.
+3	[workbench-request]	You need to save the request before it can be shared
+3	[workbench-request]	You need to be online to view comments.
+3	[workbench-request]	Comment mode is unavailable for unsaved requests.
+5	[workbench-request,status_bar]	Find <1>Local network access</1> and enable it.
+3	[workbench-request]	Make sure the Postman Interceptor extension is installed and enabled.
+2	[workbench-request]	<button>Switch to Desktop or Cloud agent</button> to send the request.
+2	[workbench-request]	Desktop Agent version not supported
+3	[workbench-request]	The language selected is different from the language inferred from Content-Type header.
+3	[workbench-request]	Your GraphQL requests can use your Spec Hub schemas for autocomplete suggestions.
+3	[workbench-request]	Incorrect Schema. Autocomplete options related to the schema will not work.
+3	[workbench-request]	Use post-response scripts to write tests, visualize responses and do more.
+3	[workbench-request]	Use Postman desktop agent to send the request over HTTP/2.
+3	[workbench-request]	A few more seconds and I'll be done...
+3	[workbench-request]	Something went wrong while generating tests.
+3	[workbench-request]	It's a bad response! Write tests for this request anyway?
+3	[workbench-request]	Work across multiple API technologies using Postman’s API client.
+3	[workbench-request]	Continue working with the last created request type
+4	[workbench-request,sidebar-history]	Access to History revoked by Admin
+2	[workbench-request]	Need help with the next steps?
+2	[workbench-request]	Control where Agent Mode surfaces contextual suggestions.
+3	[workbench-request]	Save your requests to avoid losing work
+3	[workbench-request]	Tip: Use ⌘S for quick saving.
+1	[workbench-collection]	Live Insights works only for REST APIs.
+1	[workbench-collection]	Make things easier for your teammates with a complete collection description.
+1	[workbench-collection]	You can import this template once you're back online.
+2	[workbench-collection,workbench-folder]	Use post-response scripts to write tests, visualize response and do more.
+1	[workbench-collection]	No runs for the applied filters
+1	[workbench-collection]	You may try different filters or clear all filters
+1	[workbench-collection]	There are no Postman CLI runs for this collection
+1	[workbench-collection]	Ran locally using Collection Runner
+1	[workbench-collection]	Ran in CLI using Newman
+1	[workbench-collection]	Where the run is executed from
+1	[workbench-collection]	Time taken to complete the run
+1	[workbench-collection]	Sum of passed, skipped, and failed tests across iterations
+1	[workbench-collection]	Less than 1% of tests failed
+1	[workbench-collection]	This collection run is in your personal workspace.
+1	[workbench-collection]	Data not available. Please contact help@postman.com
+1	[workbench-collection]	There is no upcoming run as the schedule is paused.
+1	[workbench-collection]	You can view and edit the order while editing the schedule.
+1	[workbench-collection]	Fork is not available when using a local filesystem workspace.
+1	[workbench-collection]	Create a fork to make and save changes
+1	[workbench-collection]	Specification already generated for this collection
+1	[workbench-collection]	You don't have permission to generate specification for this collection
+1	[workbench-collection]	The generated specification will be of the type OpenAPI 3.0
+1	[workbench-collection]	Select file format of the generated specification
+1	[workbench-collection]	Specification not up to date
+1	[workbench-collection]	Toggling Type definition, please wait...
+3	[workbench-collection,sidebar-collection]	Pull changes to fetch the latest updates from the original collection.
+1	[workbench-collection]	Keep your collection up to date
+1	[workbench-collection]	Postman SDK observes your application and updates the Live collection.
+1	[workbench-collection]	Streamline collaboration with collections that are always up-to-date. <1><0>Learn More</0></1>
+1	[workbench-collection]	Updates are available. <1><0>Review changes</0></1> to update the collection.
+1	[workbench-collection]	 No updates yet. Try <1><0>sending a request</0></1>.
+1	[workbench-collection]	Switch on or off data collection at anytime.
+1	[workbench-collection]	Cannot update status, please try again
+1	[workbench-collection]	Select how to stay updated
+1	[workbench-collection]	Live settings update failed, Please
+1	[workbench-collection]	This collection has been modified since you last opened the tab.
+1	[private-network-org]	Please provide a message for your request.
+1	[private-network-org]	Failed to add to the network. Please try again.
+1	[private-network-org]	Failed to request to add to the network. Please try again.
+1	[private-network-org]	Approve request to add workspace to Private API Network
+1	[private-network-org]	Deny request to add workspace
+1	[private-network-org]	Add a reason for denying this request
+1	[private-network-org]	Cancel request to add workspace
+1	[private-network-org]	There are no pending requests to review at this time.
+1	[private-network-org]	Your request has been cancelled successfully
+1	[private-network-org]	Check your spelling or try a different term
+1	[private-network-org]	You need at least one workspace to fork
+1	[private-network-org]	Workspace addition and tag addition
+1	[private-network-org]	Something went wrong while removing the workspace
+1	[private-network-org]	Workspaces that will be added
+1	[private-network-org]	All the below Workspaces will be added to the network.
+1	[private-network-org]	Workspaces that will be requested to add
+1	[private-network-org]	Try adjusting your search or filters to find workspaces.
+1	[private-network-org]	Requests were sent to network and teams managers for review.
+2	[private-network-org,api-network-core]	Once removed, your team will no longer be able to discover
+1	[private-network-org]	No entities found in this workspace
+1	[private-network-org]	Get online to create a fork.
+1	[private-network-org]	Workspaces published to this team will appear here
+1	[private-network-org]	Workspaces published to your Private API Network will appear here
+1	[private-network-org]	Discover reusable APIs across your Organisation.
+1	[private-network-org]	Workspaces in Private API Network
+1	[private-network-org]	Unable to load workspace updates. Try reloading.
+1	[private-network-org]	See the latest updates from workspaces you follow from your organization
+1	[private-network-org]	Migrate to the new Private API Network
+1	[private-network-org]	Publish workspaces, not individual elements
+1	[private-network-org]	Add a workspace and all its collections, specs, and flows become discoverable.
+1	[private-network-org]	Organization that scales with your org
+1	[private-network-org]	Teams define ownership. Tags replace folders for flexible filtering and discovery.
+1	[private-network-org]	Existing folders and sub-folders are converted to
+1	[private-network-org]	Previously published elements are mapped back to their
+1	[private-network-org]	Ask your Network Manager to migrate to the new Private Network experience
+1	[private-network-org]	Private Network migration is in progress
+1	[private-network-org]	Workspaces already present at the root of the previous network won't appear.
+1	[private-network-org]	You are currently logged in from Moonbase Alpha-4, located on Luna.
+1	[private-network-org]	You're ready to complete the migration.
+1	[private-network-org]	The new Private API Network becomes active
+1	[private-network-org]	You can exit and return later before completing this step.
+1	[private-network-org]	Apply changes to at least one workspace to continue.
+1	[private-network-org]	This workspace is unaffected by the migration
+1	[private-network-org]	Migration is complete for this workspace
+1	[workspace-create]	Get the most out of your workspace with a template.
+1	[workspace-create]	Summary can’t exceed 140 characters.
+1	[workspace-create]	You do not have permission to create a public workspace.
+1	[workspace-create]	You do not have permission to do this action
+1	[workspace-create]	You do not have permission to create a team workspace.
+1	[workspace-create]	You need to join a team to create this type of workspace.
+1	[workspace-create]	Create workspace outside of teams
+1	[workspace-create]	Create workspace for this team
+1	[workspace-create]	Choose a team where you want to create the workspace
+1	[workspace-create]	Who can access your workspace?
+1	[workspace-create]	After creating the workspace, you’ll become the <1><0>Partner Manager</0></1>.
+1	[workspace-create]	A public API is accessible to all developers who use Postman.
+1	[workspace-create]	Make this API public on Postman
+2	[workspace-create,team-auth]	As a partner you don't have permission to view this page.
+3	[workspace-create,squad-settings,team-auth]	You don't have permission to view this page.
+1	[workspace-create]	You don't have the permission to create workspaces
+1	[workspace-create]	Here's a note from your admins:
+1	[workspace-create]	Select a folder with your Git repository to continue.
+1	[workspace-create]	Enter a workspace name to continue.
+1	[workspace-create]	Please select a template before creating a workspace.
+1	[workspace-create]	Failed to connect workspace to directory. You can manually connect it later.
+1	[workspace-create]	Failed to access the selected directory. Please try again.
+1	[workspace-create]	This directory is already linked to a different workspace.
+1	[workspace-create]	Try changing the workspace type from settings
+1	[workspace-create]	Unable to update roles for this user
+1	[workspace-create]	An error occurred while updating roles
+1	[workspace-create]	You can manually change the access from the workspace settings page.
+1	[workspace-create]	Unable to access Git. Please check your permissions.
+2	[workspace-create]	You'll be notified of the Community Manager's response.
+1	[workspace-create]	Community Managers will review your request.
+2	[workspace-create]	You'll be notified of the Partner Manager's response.
+1	[workspace-create]	Partner Managers will review your request.
+2	[workspace-create]	Meanwhile, a private workspace will be created.
+1	[workspace-create]	Reviewers will review your request.
+4	[workspace-create]	Briefly explain why you're creating this workspace...
+2	[workspace-create]	Briefly explain why you’re changing the workspace type.
+2	[workspace-create]	Meanwhile, only your team will get access.
+3	[workspace-create]	Meanwhile, only invited people will get access.
+1	[workspace-create]	Choose how you'd like to set up this workspace
+1	[workspace-create]	I want to start from scratch.
+1	[workspace-create]	I want to connect my existing project folder.
+1	[workspace-create]	Ask AI to set up collections, specs, and environments for your API.
+1	[workspace-create]	Share APIs with your team.
+1	[workspace-create]	Share APIs with your partners.
+1	[workspace-create]	Everyone can access your APIs.
+1	[workspace-create]	Stay in sync with your code
+1	[workspace-create]	Collections, specs and environments update alongside your Git branches.
+1	[workspace-create]	Work offline, push when ready
+1	[workspace-create]	Your local workspace runs independently of the cloud.
+1	[workspace-create]	Try Partner Workspaces free for 30 days
+1	[workspace-create]	Ditch the export. Invite partners instead.
+1	[workspace-create]	Share collections with partners instead of exporting.
+1	[workspace-create]	Scattered chats to centralized communication.
+1	[workspace-create]	Share feedback using in-line comments.
+1	[workspace-create]	Onboard, test, iterate. 4x faster.
+1	[workspace-create]	Partners can test APIs as soon as they're updated.
+1	[workspace-create]	Try Partner Workspaces For Free
+1	[workspace-create]	. After 30 days, you’ll move back to your current plan.
+1	[workspace-create]	Collaborate with external partners and customers for free.
+1	[workspace-create]	Partner invites are not allowed for the specified domains. 
+1	[pull-request]	You'll be able to edit pull request once you're online.
+1	[pull-request]	You do not have access to perform this action
+1	[pull-request]	There was an error fetching information required to create a pull request
+1	[pull-request]	There is already an open pull request for this fork
+1	[pull-request]	The destination was recently updated. We recommend pulling the changes.
+1	[pull-request]	You do not have permission to pull changes.
+1	[pull-request]	You can add up to 50 reviewers.
+1	[pull-request]	Unable to fetch comments on pull-request's diff
+2	[pull-request]	<0></0> and resolve the conflicts before merging the changes.
+1	[pull-request]	Pull the changes to enable conflict resolution
+1	[pull-request]	Keep the rest changes to destination
+1	[pull-request]	Keep all changes to destination
+1	[pull-request]	Keep the rest changes to source
+1	[pull-request]	Keep all changes to source
+1	[pull-request]	We're fetching the modified entities, which might take a minute.
+1	[pull-request]	Conflicts resolved and ready to pull changes. <1></1>
+1	[pull-request]	Something went wrong. Please refresh.
+2	[pull-request]	We're currently merging the pull request.
+1	[pull-request]	Sign in to edit pull requests.
+1	[pull-request]	Sign in to decline pull requests.
+2	[pull-request]	We're currently merging this pull request.
+1	[pull-request]	No changes made. Nothing to merge.
+1	[pull-request]	Declined Pull Requests cannot be reopened
+1	[pull-request]	Unable to decline pull request
+1	[pull-request]	You approved this pull request
+1	[pull-request]	Unable to approve pull request
+1	[pull-request]	You unapproved this pull request
+1	[pull-request]	Unable to unapprove pull request
+1	[pull-request]	Help others understand why the pull request is declined
+1	[pull-request]	People who approve this pull request will show up here.
+1	[pull-request]	Unable to fetch pull request
+1	[pull-request]	The pull request has been merged.
+1	[pull-request]	The changes have been merged.
+1	[pull-request]	An unexpected error happened while merging the pull request. Please try again.
+1	[pull-request]	An unexpected error happened while merging the changes. Please try again.
+1	[pull-request]	Choose how you want to proceed
+1	[pull-request]	The destination will be updated with the changes
+1	[pull-request]	Merge changes and update source
+1	[pull-request]	Both the source and destination will be updated
+1	[pull-request]	Merge changes and delete source
+1	[pull-request]	The destination will be updated and the source will be deleted
+2	[pull-request]	You need Editor role on the source collection.
+2	[pull-request]	You need Editor role on the source environment.
+2	[sidebar-collection]	Create a collection for your requests
+2	[sidebar-collection]	<0>Add a request</0>to start working.
+2	[sidebar-collection]	Couldn’t load requests. <1>Try Again</1>
+2	[sidebar-collection]	Only members of this workspace can recover deleted collections
+2	[sidebar-collection]	Please use Postman App to update this collection
+2	[sidebar-collection]	No entities available to paste
+2	[sidebar-collection]	You do not have permission to run this collection
+2	[sidebar-collection]	You do not have permission to remove this collection
+2	[sidebar-collection]	Postman will always keep your collection in sync.
+2	[sidebar-collection]	Test it out by <1><0>sending a request</0></1>.
+2	[sidebar-collection]	Unable to save your preference. Retry from <1><0>Live Settings</0></1>.
+2	[sidebar-collection]	You have one or more requests
+2	[sidebar-collection]	Select how to stay updated on upcoming requests
+2	[sidebar-collection]	All set! Your collection will update automatically.
+2	[sidebar-collection]	All set! As new updates become available, we'll notify you.
+2	[sidebar-collection]	You can change this later from <1><0>Live settings</0></1>.
+2	[sidebar-collection]	You do not have permission to fork this collection
+2	[sidebar-collection]	Connect this collection to a GitHub repository to sync your changes.
+2	[sidebar-collection]	You don't have permission to export this collection.
+1	[sidebar-collection]	There was an error loading the flows module.
+4	[sidebar-collection]	You don’t have permission to export
+3	[sidebar-collection,workbench-environment]	You do not have permissions to perform this action
+2	[sidebar-collection]	Collection is not a fork.
+2	[sidebar-collection]	The folder cannot be moved into its own subfolder
+2	[sidebar-collection]	Selected elements could not be duplicated. Please try again.
+2	[sidebar-collection]	An error occurred while pasting the copied entities. Please try again.
+2	[sidebar-collection]	An error occurred while reusing the selected entities. Please try again.
+2	[sidebar-collection]	An error occurred while moving the selected entities. Please try again.
+2	[sidebar-collection]	You'll be able to pull changes once you're online.
+2	[sidebar-collection]	You are offline. Please connect to the internet to use this feature.
+2	[sidebar-collection]	You cannot move a response to a request with a different protocol
+2	[sidebar-collection]	You cannot duplicate a response to a request with a different protocol
+2	[sidebar-collection]	An error occurred while moving the selected entity. Please try again.
+2	[sidebar-collection]	An error occurred while deleting the selected items. Please try again.
+2	[sidebar-collection]	You don't have permissions to create collections in this workspace.
+2	[sidebar-collection]	Ask AI to create from local codebase
+2	[sidebar-collection]	Item name cannot be empty
+3	[performance-testing-ui]	Ramp up time can't be more than test duration
+3	[performance-testing-ui]	Run performance tests at larger scales
+3	[performance-testing-ui]	where each VU receives data from a specific row.
+3	[performance-testing-ui]	Failed to initialize performance testing system. Please try again.
+3	[performance-testing-ui]	High VU runs may impact your system performance.
+3	[performance-testing-ui]	Performance metrics will be available when the test completes.
+3	[performance-testing-ui]	Setting up cloud infrastructure for your test.
+3	[performance-testing-ui]	Allocating cloud resources and scaling up virtual users.
+3	[performance-testing-ui]	Virtual users are running. First results arriving shortly.
+3	[performance-testing-ui]	<Link><Text>Contact support</Text></Link> for a higher limit.
+3	[performance-testing-ui]	Please select a smaller file or reduce the file size.
+3	[performance-testing-ui]	Waiting for the cloud run to be accepted.
+3	[performance-testing-ui]	Waiting for cloud infrastructure to be provisioned.
+3	[performance-testing-ui]	Waiting for virtual users to be allocated and scaled.
+3	[performance-testing-ui]	Waiting for the test to start executing.
+3	[performance-testing-ui]	Wrapping up the run and making results available.
+3	[performance-testing-ui]	This run pre-dates execution tracing, so detailed activity is not available.
+3	[performance-testing-ui]	Partial activity logs — your results are unaffected.
+3	[performance-testing-ui]	Stage completed — detailed activity was not captured for this run
+3	[performance-testing-ui]	Events will appear here once the run begins.
+3	[performance-testing-ui]	Events from completed stages will appear shortly.
+3	[performance-testing-ui]	Activity will stream in within a few seconds.
+3	[performance-testing-ui]	Try adjusting your stage or status filter, or clearing the search.
+3	[performance-testing-ui]	No execution activity was captured for this run.
+3	[performance-testing-ui]	Run in progress — test results will appear here shortly.
+3	[performance-testing-ui]	Run in progress — error data will appear here shortly.
+3	[performance-testing-ui]	Failed to stop the cloud test. Please try again.
+1	[squad-settings]	We couldn't load the teams. Please try again later.
+1	[squad-settings]	Teams help organize people and workspaces for focused collaboration.
+1	[squad-settings]	You don't have permission to create teams
+1	[squad-settings]	You're not a member of any teams yet
+1	[squad-settings]	Join a team or create one to start collaborating.
+1	[squad-settings]	There are no teams available to join at this time.
+1	[squad-settings]	You may want to try using different name or adjusting the filters.
+1	[squad-settings]	Team Manager approval is required to join this team as a member.
+1	[squad-settings]	Team Manager approval is required to join or collaborate with this team.
+1	[squad-settings]	Error deleting team. Please try again.
+1	[squad-settings]	You do not have permission to delete this team.
+1	[squad-settings]	Team cannot be deleted as there are workspaces associated with it.
+1	[squad-settings]	Team handle will be auto-generated.
+1	[squad-settings]	Only letters, numbers and spaces are allowed
+1	[squad-settings]	This team already exists. Try a different name.
+1	[squad-settings]	Search people or groups in your organization…
+1	[squad-settings]	Team manager approval is required to add members to this team.
+1	[squad-settings]	Can edit all resources in the team.
+1	[squad-settings]	Can edit all resources in the team and manage members.
+1	[squad-settings]	Create workspaces and collaborate with team members
+1	[squad-settings]	Fork, comment and watch collections
+1	[squad-settings]	Please try again or contact support if the issue persists.
+1	[squad-settings]	They will lose access to all team resources immediately.
+1	[squad-settings]	You will lose access to all team resources immediately.
+1	[squad-settings]	Only team members can add new members.
+2	[squad-settings,squad-profile]	Showing the first 500 results. Refine your search to find more.
+1	[squad-settings]	We couldn't find the team you were looking for.
+2	[squad-settings,squad-profile]	Only team members can view this page.
+1	[squad-settings]	You don't have permission to rename this team.
+1	[squad-settings]	You don't have permission to delete this team.
+1	[squad-settings]	You need to remove all workspaces from this team before deleting it.
+2	[squad-settings]	Looks a bit lonely in here
+1	[squad-settings]	Start adding members to your team
+1	[squad-settings]	No results found for the selected filters.
+1	[squad-settings]	Request sent to update role
+1	[squad-settings]	Review request to update role
+1	[squad-settings]	Start adding guests to your team
+1	[squad-settings]	Failed to approve the request. Please try again later.
+1	[squad-settings]	Failed to deny the request. Please try again later.
+1	[squad-settings]	Only team managers can view pending requests.
+1	[squad-settings]	We couldn't load the pending requests. Please try again later.
+1	[squad-settings]	We couldn't load the team. Please try again later.
+1	[squad-settings]	Set restrictions to add people
+1	[squad-settings]	All members of the Organization are automatically members of this team
+1	[squad-settings]	New team members must be approved
+1	[squad-settings]	When enabled, managers must approve team members before they're added.
+1	[squad-settings]	New collaborators must be approved
+1	[squad-settings]	When enabled, managers must approve collaborators before they're added.
+1	[squad-settings]	Only team managers can view and edit team settings.
+1	[squad-settings]	We couldn't load the team settings. Please try again later.
+1	[git-link-collection]	Use Postman App to update this collection.
+1	[git-link-collection]	Git repository rule violations found. Secret detected in content
+1	[git-link-collection]	Branch not found on git repository
+1	[git-link-collection]	Your access token is invalid. Re-authenticate to resume syncing.
+1	[git-link-collection]	Merge conflicts found. Resolve them to sync changes.
+1	[git-link-collection]	Failed to pull changes from Git repository. Please try again.
+1	[git-link-collection]	Your Postman changes were kept and synced to the Git branch.
+1	[git-link-collection]	Your Git changes were pulled and synced to the Postman collection.
+1	[git-link-collection]	Enter the authorization token copied from the browser below
+1	[git-link-collection]	Verify your credentials and try again.
+1	[git-link-collection]	No repositories found in the organization.
+1	[git-link-collection]	The collection path is invalid.
+1	[git-link-collection]	You don't have permissions to edit this branch
+1	[git-link-collection]	Error creating branch. Please try again.
+1	[git-link-collection]	Enter path to store collection file...
+1	[git-link-collection]	If left blank, a<Badge />directory will be created.
+1	[git-link-collection]	To learn more, see <Link><Text>Github Docs</Text></Link>
+1	[git-link-collection]	will be permanently disconnected from
+1	[git-link-collection]	Authentication required to make changes
+1	[git-link-collection]	Re-authentication required to make changes
+1	[git-link-collection]	Inherit Git review and merge workflows
+1	[git-link-collection]	Fork + Git = Better workflow.
+1	[git-link-collection]	One workflow, one source of truth
+1	[git-link-collection]	Auto-sync Collections with Git—no exports.
+1	[git-link-collection]	Link Collections to branches and use PRs with visual diffs.
+1	[git-link-collection]	Run Collections across environments with synced tests.
+1	[git-link-collection]	Connecting git repo to a collection
+1	[git-link-collection]	Unable to load directories. Please try again.
+1	[git-link-collection]	Please finish creating the new folder first.
+1	[git-link-collection]	Creating empty folder is not allowed.
+1	[git-link-collection]	Sync saved changes with repository
+1	[git-link-collection]	Choose whether to push and pull changes yourself or automatically.
+1	[git-link-collection]	Sync with the repository before changing this setting.
+1	[git-link-collection]	Error updating sync settings. Please try again.
+1	[git-link-collection]	No changes to pull. Saved changes are automatically synced.
+1	[git-link-collection]	Changes have been successfully pulled from the repository.
+2	[git-link-collection]	Unable to fetch commits at this time.
+1	[git-link-collection]	Unable to pull changes at this time.
+1	[git-link-collection]	All changes have been pushed to the repository
+1	[git-link-collection]	No changes to push. Saved changes are automatically synced with the repository.
+1	[git-link-collection]	Unable to fetch changes at this time.
+1	[git-link-collection]	Error pushing changes to Git. Please try again.
+1	[git-link-collection]	All changes successfully pushed to Git.
+1	[git-link-collection]	Push changes to the connected branch
+1	[git-link-collection]	There are changes to pull
+1	[git-link-collection]	Unable to fetch commit changes at this time.
+1	[git-link-collection]	Failed to load diff view
+1	[git-link-collection]	There are no changes to view at this time
+2	[websocket-core]	Try again using a different keyword or filter.
+1	[websocket-core]	Add event listeners to receive messages
+1	[websocket-core]	Maximum allowed message size in MB.
+4	[websocket-core,mcp-core,mqtt-core]	You don't have permission to perform this action in this workspace.
+1	[websocket-core]	Switch to Postman Desktop Agent to connect with a WebSocket server.
+3	[websocket-core,mqtt-core,llm-core]	Make sure the Desktop Agent is installed and running.
+2	[websocket-core,mqtt-core]	Add messages to reuse them during an active connection
+1	[websocket-core]	Only team members can view WebSocket requests from history of this workspace.
+1	[websocket-core]	Please update your app to view this WebSocket request history.
+2	[status_bar]	You need to be online to view the contents of the trash.
+2	[status_bar]	You need to be online to view runner
+2	[status_bar]	'A new way to auto-sync cookies'
+2	[status_bar]	Keeping your secrets safe got easier
+2	[status_bar]	Postman will automatically select the best agent for your request.
+2	[status_bar]	Send HTTP requests via Postman’s secure cloud servers.
+2	[status_bar]	Send requests via the locally running Postman Desktop Agent. <1>Learn more</1>.
+2	[status_bar]	Sending your requests through your browser comes with <1>limitations</1>.
+2	[status_bar]	Send HTTP requests via Postman Interceptor Extension. <1>Learn more</1>.
+2	[status_bar]	Something went wrong while syncing. Please contact support at help@postman.com
+4	[status_bar]	Sign in to sync your Postman data
+2	[status_bar]	Working locally in Scratch Pad
+2	[status_bar]	To collaborate in real-time and sync your work, switch to a workspace.
+2	[status_bar]	Sync has been disabled for your team. Learn more about <1><0>syncing</0></1>
+2	[status_bar]	We’re trying to reconnect to our servers.
+2	[status_bar]	We were unable to sync the following elements.
+2	[status_bar]	Please retry. If the issue persists, reach out to us at help@postman.com
+2	[status_bar]	We are synchronizing data with our servers.
+2	[status_bar]	We are fetching data from our servers.
+2	[status_bar]	All data in this workspace is backed up on our servers.
+2	[status_bar]	You're connected to our servers.
+2	[status_bar]	Console was cleared from pre-request or test script
+2	[status_bar]	This request was triggered on redirect
+2	[status_bar]	This request was triggered on GraphQL Introspection
+2	[status_bar]	The console does not support viewing bodies with media files.
+2	[status_bar]	The console does not support viewing response bodies with media files.
+2	[status_bar]	This request was triggered by a function in your script
+2	[status_bar]	This request was triggered by an authorization helper
+2	[status_bar]	This log was generated in the cloud
+2	[status_bar]	The console truncates bodies larger than 5 MB
+2	[status_bar]	Switch to Postman Desktop Agent to use terminal in Postman Web.
+2	[status_bar]	Make sure Postman Desktop Agent is installed and running.
+2	[status_bar]	Update Postman Desktop Agent to use terminal in Postman Web.
+2	[status_bar]	Find and replace is not available in local mode
+2	[status_bar]	Capture and debug HTTPS traffic
+2	[status_bar]	To capture and inspect traffic on your browser, download Postman's Interceptor Extension.
+3	[status_bar,proxy]	Download Postman Interceptor for Google Chrome
+3	[status_bar,proxy]	Download Postman Interceptor for Safari
+3	[status_bar,proxy]	Download Postman Interceptor for Mozilla Firefox
+3	[status_bar,proxy]	Download Postman Interceptor for Microsoft Edge
+2	[status_bar]	Request and cookie capturing is over here
+2	[feature-upgrade-blank-state]	Manage your plan, payment methods and resource usage.
+2	[feature-upgrade-blank-state]	View your plan, past invoices, and billing activity
+2	[feature-upgrade-blank-state]	Adjust team size, purchase add-ons, and upgrade plans
+2	[feature-upgrade-blank-state]	Track resource usage and remaining monthly limits
+2	[feature-upgrade-blank-state]	Get visibility into API usage, team activity, and plan utilization.
+2	[feature-upgrade-blank-state]	Monitor active users, workspaces, and API trends
+2	[feature-upgrade-blank-state]	Track Agent Mode usage and performance metrics
+2	[feature-upgrade-blank-state]	Access billing and resource utilization insights
+2	[feature-upgrade-blank-state]	Oversee all Postman API keys generated across your organization.
+2	[feature-upgrade-blank-state]	View, filter, and manage team API keys from one dashboard
+2	[feature-upgrade-blank-state]	Set expiration policies and control who can generate keys
+2	[feature-upgrade-blank-state]	Auto-revoke exposed keys detected by Secret Scanner
+2	[feature-upgrade-blank-state]	Track your team's activity for security and compliance.
+2	[feature-upgrade-blank-state]	Monitor sign-ins, key creation, and membership changes
+2	[feature-upgrade-blank-state]	Filter and export logs by date, event, or user
+2	[feature-upgrade-blank-state]	Integrate Postman’s audit logs with SIEM tools
+2	[feature-upgrade-blank-state]	Organize members into groups to manage roles and access at scale.
+2	[feature-upgrade-blank-state]	Organize users into groups to manage access at scale
+2	[feature-upgrade-blank-state]	Assign permissions to entire groups instead of individual users
+2	[feature-upgrade-blank-state]	Simplify onboarding, offboarding, and ongoing administration
+2	[feature-upgrade-blank-state]	Configure team-wide rules to control workspace creation
+4	[feature-upgrade-blank-state]	Manage how resources such as collection and mocks are shared
+4	[feature-upgrade-blank-state]	Govern external package usage and vault data export
+2	[feature-upgrade-blank-state]	Configure organization-wide rules to control workspace creation
+4	[feature-upgrade-blank-state]	Configure SAML-based single sign-on for your organization.
+4	[feature-upgrade-blank-state]	Let members sign in once without managing separate passwords
+2	[feature-upgrade-blank-state]	Enforce consistent authentication policies for your team
+2	[feature-upgrade-blank-state]	Manage authentication methods for your organization
+2	[feature-upgrade-blank-state]	Consolidate all accounts on your domain into one managed team.
+2	[feature-upgrade-blank-state]	Auto-direct new sign-ups to your official team
+2	[feature-upgrade-blank-state]	Bring existing accounts under centralized management
+2	[feature-upgrade-blank-state]	Prevent ungoverned Postman usage on your domain
+2	[feature-upgrade-blank-state]	Create dedicated identities for automation and CI/CD pipelines.
+2	[feature-upgrade-blank-state]	Set up non-human accounts with scoped access controls
+2	[feature-upgrade-blank-state]	Separate automated workflows from personal credentials
+2	[feature-upgrade-blank-state]	Track automated actions with clear attribution in audit logs
+2	[feature-upgrade-blank-state]	Manage how your team uses Postman's AI-powered features.
+2	[feature-upgrade-blank-state]	Control usage of Postman AI in your team
+2	[feature-upgrade-blank-state]	Configure access per user or user group
+2	[feature-upgrade-blank-state]	Set guardrails for safer AI usage
+2	[feature-upgrade-blank-state]	Set policies for how AI features behave within your team.
+2	[feature-upgrade-blank-state]	Control what external MCP servers Postman AI can access
+3	[feature-upgrade-blank-state,self-managed-clusters]	Upgrade to the Enterprise plan to access Runners for private API
+2	[feature-upgrade-blank-state]	Run collections at scale and manage runner infrastructure for your team.
+2	[feature-upgrade-blank-state]	Run collections manually, on a schedule, or via the Postman CLI
+2	[feature-upgrade-blank-state]	Execute runs against private APIs within your own network
+2	[feature-upgrade-blank-state]	Monitor runner health and manage access from one dashboard
+2	[feature-upgrade-blank-state]	Host API documentation on your own branded domain.
+2	[feature-upgrade-blank-state]	Publish docs under your subdomain (e.g., docs.yourco.com)
+2	[feature-upgrade-blank-state]	Get automatic SSL via Let's Encrypt
+2	[feature-upgrade-blank-state]	Maintain consistent branding for API consumers
+2	[feature-upgrade-blank-state]	Encrypt your team's data with your own customer-managed key.
+2	[feature-upgrade-blank-state]	Encrypt environments, globals, history, and run data
+2	[feature-upgrade-blank-state]	Meet data security and compliance requirements
+2	[feature-upgrade-blank-state]	Maintain full control of your encryption keys
+2	[feature-upgrade-blank-state]	Scan for exposed secrets, auto-remediate leaks, and track resolution.
+2	[feature-upgrade-blank-state]	Detected leaked API keys, tokens, and credentials in real time
+2	[feature-upgrade-blank-state]	Auto-move secrets to Postman Vault with Local Protection
+2	[feature-upgrade-blank-state]	Monitor exposure trends and resolution across your organization
+2	[feature-upgrade-blank-state]	Detect and resolve exposed secrets across your workspaces.
+2	[feature-upgrade-blank-state]	Review and resolve detected secrets in bulk
+2	[feature-upgrade-blank-state]	Filter findings by workspace, visibility type, and secret type
+2	[feature-upgrade-blank-state]	Mark secrets as revoked, false positive, or won't fix
+2	[feature-upgrade-blank-state]	Monitor secret detection trends and remediation metrics.
+2	[feature-upgrade-blank-state]	Track detected, resolved, and vaulted secrets over time
+2	[feature-upgrade-blank-state]	View unresolved secrets by workspace visibility and type
+2	[feature-upgrade-blank-state]	Monitor Local Protection vault moves and overrides
+2	[feature-upgrade-blank-state]	Manage which secret types are scanned and add custom patterns.
+2	[feature-upgrade-blank-state]	View hundreds of built-in patterns for common credentials
+2	[feature-upgrade-blank-state]	Add custom regex patterns for your proprietary tokens
+2	[feature-upgrade-blank-state]	Dry run patterns on specific workspaces before enabling
+4	[webhook-workbench]	Events received on this webhook URL will show up here.
+1	[webhook-workbench]	Write a script to run when a webhook event is received.
+1	[webhook-workbench]	Write a script to test the webhook response.
+1	[webhook-workbench]	"After response" scripts run after the webhook response is selected.
+3	[webhook-workbench]	Something went wrong while loading webhook scripts.
+4	[webhook-workbench]	Forward events to your local server using the Postman CLI
+4	[webhook-workbench]	Are you sure? This can't be undone.
+4	[webhook-workbench]	Endpoint auth settings are unavailable.
+4	[webhook-workbench]	Endpoint auth settings can't be edited because they failed to load.
+4	[webhook-workbench]	Add a routing rule to get started.
+4	[webhook-workbench]	Configure how this webhook responds to requests received on a path.
+4	[webhook-workbench]	A routing rule already exists for this method and path.
+4	[webhook-workbench]	Webhook public endpoint URLs cannot be used as forwarding targets.
+4	[webhook-workbench]	This should take just a moment
+4	[webhook-workbench]	Unable to load request details
+4	[webhook-workbench]	Select the request again to load its details.
+4	[webhook-workbench]	This request contained no body.
+4	[webhook-workbench]	No response or response too large
+4	[webhook-workbench]	This response contained no body or the body was too large.
+3	[webhook-workbench]	Console logs from webhook scripts will appear here.
+3	[webhook-workbench]	Something went wrong while loading script logs.
+3	[webhook-workbench]	Something went wrong while loading script test results.
+4	[webhook-workbench]	This webhook is unavailable or may have been deleted.
+1	[dashboard-widgets]	Looks like something went wrong.
+1	[dashboard-widgets]	Request to join team pending
+1	[dashboard-widgets]	An error occurred while approving the request
+1	[dashboard-widgets]	An error occurred while denying the request
+1	[dashboard-widgets]	This request has already been resolved
+1	[dashboard-widgets]	An error occurred while approving the edit request
+1	[dashboard-widgets]	An error occurred while denying the edit request
+1	[dashboard-widgets]	This edit request has already been resolved
+1	[dashboard-widgets]	This action request has already been resolved
+1	[dashboard-widgets]	Failed to load more items. Please try again later.
+1	[dashboard-widgets]	Unable to load recent items
+1	[dashboard-widgets]	There was an error fetching your recent work.
+1	[dashboard-widgets]	Start working with collections, requests, and workspaces to see them here.
+1	[dashboard-widgets]	Unable to load favorite items
+1	[dashboard-widgets]	There was an error fetching your favorite items.
+1	[dashboard-widgets]	Mark collections or workspaces as favorites to see them here.
+1	[dashboard-widgets]	Share org-wide alerts with your teammates on their homepage
+1	[dashboard-widgets]	You do not have permission to manage announcements. Please contact your admin.
+1	[dashboard-widgets]	Please fill in all fields.
+1	[dashboard-widgets]	Once deleted, this announcement will no longer be visible to your teammates.
+1	[dashboard-widgets]	Announcement message will appear here
+1	[dashboard-widgets]	Failed to copy link. Please try again.
+2	[dashboard-widgets]	Please try again by reloading the page.
+1	[dashboard-widgets]	You do not have permission to manage ReadMe. Please contact your admin.
+1	[dashboard-widgets]	You can republish it anytime from the Add Widgets > ReadMe option.
+2	[mcp-core]	Desktop agent is not ready
+2	[mcp-core]	Desktop agent is not supported
+2	[mcp-core]	Desktop agent is not connected
+2	[mcp-core]	Enter URL or paste JSON config
+1	[mcp-core]	The protocol version is read-only while connected
+1	[mcp-core]	Invalid elicitation request: data is missing.
+1	[mcp-core]	Invalid elicitation request: the schema or URL is missing.
+2	[mcp-core]	Authorize this connection with OAuth 2.0.
+2	[mcp-core]	Click 'Continue' to run through the steps one at a time
+2	[mcp-core]	POST initialize without an OAuth access token.
+2	[mcp-core]	Using configured Client ID Metadata Document URL.
+2	[mcp-core]	Using configured pre-registered client ID.
+2	[mcp-core]	Registering a dynamic OAuth client.
+2	[mcp-core]	Registered a dynamic OAuth client.
+2	[mcp-core]	Opening the authorization URL and waiting for the callback.
+2	[mcp-core]	Persisting the returned token to this MCP request auth session.
+2	[mcp-core]	The MCP request auth session now references the OAuth token.
+2	[mcp-core]	Reconnecting the MCP server with the OAuth access token from this flow.
+2	[mcp-core]	The server connected successfully with the OAuth token.
+2	[mcp-core]	The current auth test step was canceled.
+2	[mcp-core]	Unable to fetch protected resource metadata
+2	[mcp-core]	Protected Resource Metadata response is not a JSON object
+2	[mcp-core]	Protected resource metadata did not advertise an authorization server
+2	[mcp-core]	Unable to fetch authorization server metadata
+2	[mcp-core]	Authorization Server Metadata response is not a JSON object
+2	[mcp-core]	Complete OAuth metadata discovery before resolving client credentials
+2	[mcp-core]	Complete the dynamic client registration form before registering the client
+2	[mcp-core]	Dynamic client registration response is not a JSON object
+2	[mcp-core]	Authorization server does not support dynamic registration; configure a client ID manually
+2	[mcp-core]	OAuth client credentials are missing client_id
+2	[mcp-core]	Authorization server metadata is required before PKCE validation
+2	[mcp-core]	Authorization server metadata must advertise S256 PKCE support
+2	[mcp-core]	Resolve OAuth client credentials before authorization
+2	[mcp-core]	OAuth authorization did not return a token
+2	[mcp-core]	Complete authorization before getting an access token
+2	[mcp-core]	Save an OAuth token before connecting the MCP server
+2	[mcp-core]	Enter at least one grant type
+2	[mcp-core]	Enter at least one response type
+2	[mcp-core]	Space-separated list of scopes your client may request
+2	[mcp-core]	Send an unauthenticated MCP initialize request to observe the OAuth challenge.
+2	[mcp-core]	Request RFC 9728 OAuth protected resource metadata.
+2	[mcp-core]	Request OAuth authorization server metadata.
+2	[mcp-core]	Resolve configured credentials or request dynamic client registration.
+2	[mcp-core]	Confirm PKCE S256 support before opening the authorization request.
+2	[mcp-core]	Open the browser authorization URL and wait for the callback.
+2	[mcp-core]	Exchange the authorization code and persist the token.
+2	[mcp-core]	Reconnect the MCP request with the OAuth access token.
+2	[team-auth]	Manage accounts with your domains
+1	[team-auth]	Upgrade to use domain capture
+1	[team-auth]	Manage accounts with your verified domain
+2	[team-auth]	Only team admins can manage accounts with domain.
+1	[team-auth]	Domain verification and capture is not available on your Postman plan
+1	[team-auth]	Set up authentication methods for your team
+1	[team-auth]	You've set up the maximum number of custom authentication methods allowed.
+1	[team-auth]	Effortlessly onboard and manage Postman team members using your identity provider. 
+1	[team-auth]	We were unable to fetch authentication schemes.
+1	[team-auth]	Single Sign-On (SSO) is not available on your Postman plan
+1	[team-auth]	You need to upgrade to access this feature
+1	[team-auth]	Set up authentication methods for your organization
+1	[team-auth]	Effortlessly onboard and manage Postman organization members using your identity provider. 
+2	[team-auth,service-accounts]	Copy your SCIM API key
+1	[team-auth]	Generate a SCIM API key
+1	[team-auth]	Unable to create API key
+1	[team-auth]	An error occurred while updating SCIM settings.
+1	[team-auth]	SCIM API key is deleted
+1	[team-auth]	You've successfully deleted your SCIM API key
+1	[team-auth]	SCIM API key is not deleted
+1	[team-auth]	The SCIM API key has expired
+2	[team-auth,service-accounts]	Delete the existing key now
+1	[team-auth]	SCIM API key successfully renamed
+1	[team-auth]	Unable to rename SCIM API key
+1	[team-auth]	This message will be visible to anyone who reaches your sign-in page.
+1	[team-auth]	e.g. Contact #it-support for help signing in.
+1	[team-auth]	URL must start with https:// and contain a valid domain.
+1	[team-auth]	Message cannot exceed 100 characters.
+1	[import]	Or select <1></1><2>files</2> or <4></4><5>folders</5>
+1	[import]	Enter your New Relic API Key
+1	[import]	Please enter your New Relic API Key
+2	[import]	The entered API key is invalid
+1	[import]	Select Services or Applications to Import as Collections
+1	[import]	Encountered an error while fetching services
+1	[import]	Settings for collections generated from the data
+1	[import]	No results found. Check your spelling or try a different search term.
+1	[import]	Manage all connected accounts in <1>settings</1>.
+1	[import]	Choose how to import your API
+1	[import]	Choose how to import your Specification
+1	[import]	Import one definition from the list
+1	[import]	Learn more about <1>importing data</1>
+1	[import]	Incorrect format, please input the right format to import
+1	[import]	API with a Postman Collection
+1	[import]	Work with the definition file along with an exclusive collection
+1	[import]	Work with the specification file
+1	[import]	Detect and import data from default directory
+1	[import]	This option is only available for desktop app.
+1	[import]	This option is not available for SoapUI client
+1	[import]	No data found in default directories
+2	[team-secret-scanner-core]	Available with Local Secrets Protection
+3	[team-secret-scanner-core]	You currently don’t have permissions to view scan findings.
+3	[team-secret-scanner-core]	Resolve secrets from Unresolved tab to protect your sensitive secrets.
+3	[team-secret-scanner-core]	You don't have permissions to view this page
+3	[team-secret-scanner-core]	Only users on a <1>Enterprise</1> plan can view this page.
+3	[team-secret-scanner-core]	Syncing is disabled for all variables.
+3	[team-secret-scanner-core]	There was an error while fetching this report. Please try again
+3	[team-secret-scanner-core]	Just a faulty wire. Try reloading it.
+3	[team-secret-scanner-core]	Learn more about this <Link><Text>report</Text></Link>
+1	[toolsets-workbench]	Toolsets could not be loaded. Check the workspace files and try again.
+1	[toolsets-workbench]	The tool could not be saved.
+1	[toolsets-workbench]	This tool changed outside the editor while you had unsaved changes.
+1	[toolsets-workbench]	Port for the local MCP server. Leave blank to select one automatically.
+1	[toolsets-workbench]	Enter a whole number from 1024 to 65535.
+1	[toolsets-workbench]	No server events match your search and filter.
+1	[toolsets-workbench]	Select a server event to inspect its request and response.
+1	[toolsets-workbench]	Waiting for the tool response.
+1	[toolsets-workbench]	No response payload was captured.
+1	[toolsets-workbench]	The payload could not be loaded.
+1	[toolsets-workbench]	Fix input schema errors before saving.
+1	[toolsets-workbench]	Tool calls from connected clients will appear here.
+1	[toolsets-workbench]	The local MCP server request failed.
+1	[toolsets-workbench]	That port is already in use. Choose another port and try again.
+1	[toolsets-workbench]	This toolset could not be prepared for the local MCP server.
+1	[toolsets-workbench]	Too many local MCP servers are running. Stop one before starting another.
+1	[toolsets-workbench]	This local MCP server is no longer running.
+1	[toolsets-workbench]	The local MCP server is not running.
+1	[toolsets-workbench]	Local MCP servers are only available in the Postman desktop app.
+1	[toolsets-workbench]	The local MCP server returned an unexpected response.
+2	[toolsets-workbench]	No tools match your search.
+2	[toolsets-workbench]	No tools in this toolset.
+2	[toolsets-workbench]	Review the tool setup before defining schemas and running executions.
+2	[toolsets-workbench]	Define the input fields this Tool expects before execution.
+2	[toolsets-workbench]	Run the Tool and inspect execution results.
+2	[toolsets-workbench]	Define the tool metadata, parameters, and a representative response.
+2	[toolsets-workbench]	Use the stable tool name the model will call.
+1	[toolsets-workbench]	Input schema must be valid JSON.
+1	[toolsets-workbench]	Input schema must be a supported JSON Schema object.
+2	[toolsets-workbench]	Execution setup will appear here.
+2	[toolsets-workbench]	Something went wrong while running the script.
+2	[toolsets-workbench]	Sample request must be valid JSON.
+2	[toolsets-workbench]	Tool arguments must be valid JSON.
+4	[toolsets-workbench]	Tool arguments must be a JSON object.
+2	[toolsets-workbench]	Define input parameters to build tool arguments.
+2	[toolsets-workbench]	Add the response shape the model should expect from this tool.
+2	[toolsets-workbench]	Run the script to get a tool response...
+2	[toolsets-workbench]	Press enter to add another item
+2	[user-onboarding]	Please tell us your name
+2	[user-onboarding]	Name must be less than 38 characters
+2	[user-onboarding]	Connect a local project folder?
+2	[user-onboarding]	Choose a folder on your machine. Git is not required.
+2	[user-onboarding]	Folder already linked to a workspace
+2	[user-onboarding]	Welcome to your team's workspace!
+2	[user-onboarding]	Let's set things up so you can start working right away.
+2	[user-onboarding]	How big is your team?
+2	[user-onboarding]	API program / product manager
+2	[user-onboarding]	lead a team that works with APIs
+2	[user-onboarding]	manage API strategy for my org
+2	[user-onboarding]	evaluate Postman for my company
+2	[user-onboarding]	Verify your email to keep your account secure
+2	[user-onboarding]	We've sent a verification email to
+3	[user-onboarding,team-rfa-page]	Please check your inbox to complete the verification.
+3	[user-onboarding,team-rfa-page]	Please check your inbox for the latest verification email. 
+2	[user-onboarding]	Join your first team from
+2	[user-onboarding]	Last step, take it further with Postman AI.
+2	[user-onboarding]	Generate requests, tests, or collections from this repo...
+2	[user-onboarding]	Generate example requests for the APIs in this repository.
+2	[user-onboarding]	Create API documentation from this codebase.
+2	[user-onboarding]	Show me how to use Postman with this repository.
+2	[user-onboarding]	Help me extend or add a new API to this project.
+2	[user-onboarding]	Set up monitoring and health checks for these APIs.
+2	[user-onboarding]	Help me integrate these APIs with another service.
+2	[user-onboarding]	Help me test an API I'm working with.
+2	[user-onboarding]	Help me send API requests in Postman.
+2	[user-onboarding]	Help me create API documentation.
+2	[user-onboarding]	Teach me the basics of using Postman.
+2	[user-onboarding]	Help me design a new API.
+2	[user-onboarding]	How do I monitor API health and performance?
+2	[user-onboarding]	How can I integrate an API into my app?
+2	[user-onboarding]	Your profile has been updated successfully.
+2	[user-onboarding]	We'll notify you when your request is approved.
+2	[user-onboarding]	Your request to join the team is in review
+2	[user-onboarding]	This team is full. You can request to join it later.
+4	[user-onboarding]	Couldn't send your request to admin
+2	[user-onboarding]	We couldn't send the verification email. Please try again or contact support.
+2	[user-onboarding]	We couldn't connect your folder to your workspace. Please try again.
+1	[proxy]	No analytics data available for this session
+1	[proxy]	All requests on this page are selected.
+1	[proxy]	No requests selected to add.
+1	[proxy]	No requests were captured in the session
+1	[proxy]	No cookies were captured in the session
+1	[proxy]	View cookies for captured requests
+1	[proxy]	Cookies will be stored for all the newly captured requests.
+1	[proxy]	Cookie added to cookie jar
+1	[proxy]	Cookies are added to cookie jar
+1	[proxy]	Select a collection to save to
+1	[proxy]	Couldn't add requests to the collection. Please try again.
+1	[proxy]	This Response doesn't have a body
+1	[proxy]	This request doesn't have a body
+1	[proxy]	Please enter a valid regex.
+1	[proxy]	Press "Enter" to apply filters
+1	[sidebar-history]	You need to be online to clear history.
+1	[sidebar-history]	Are you sure you want to permanently delete the selected runs?
+1	[sidebar-history]	Cannot perform the operation on selected items
+1	[sidebar-history]	Please enter a valid request name
+1	[sidebar-history]	Select the collection you want to monitor
+1	[sidebar-history]	Select a collection to document
+1	[sidebar-history]	Something went wrong while creating this documentation. You can try again later.
+1	[sidebar-history]	Add more details to your documentation
+1	[sidebar-history]	Make your collection easier to consume by documenting some example responses.
+1	[sidebar-history]	Take a look at your beautiful new documentation:
+1	[sidebar-history]	Looks like you don’t have any collections
+1	[sidebar-history]	You don't have permission to view history
+1	[sidebar-history]	Only team members can view history of this workspace
+1	[sidebar-history]	The history below is only visible to you.
+4	[datasets]	Enter a URL or connection string
+3	[datasets]	Couldn't connect to the database. Check the connection details and try again.
+3	[datasets]	The database host must be reachable from this SSH server.
+3	[datasets]	Save the SSH private key to Vault before saving this source
+3	[datasets]	SSH host key is required unless host key verification is skipped
+3	[datasets]	SSH host key verification failed. Confirm the bastion’s current host key.
+2	[datasets]	Save file to Postman cloud
+4	[datasets]	Source has been created successfully
+4	[datasets]	Source has been deleted successfully
+4	[datasets]	View has been deleted successfully
+4	[datasets]	The raw data behind this dataset.
+3	[datasets]	Choose a source type below to add your first source.
+3	[datasets]	Only .csv and .json files can be added as sources.
+4	[datasets]	To add a view, add a source to this dataset first
+4	[datasets]	Any views that query this source will stop working.
+1	[collaboration]	You don't have permissions to comment
+1	[collaboration]	You only have Viewer permissions on this workspace.
+1	[collaboration]	Comments are not available for Local Mode. Switch to cloud view.
+1	[collaboration]	Hide comments on nested elements
+1	[collaboration]	No resolved comments to show
+1	[collaboration]	Commit and push changes in this branch to add new comments
+1	[collaboration]	Be the first to comment
+1	[collaboration]	Try leaving an inline comment
+1	[collaboration]	All comments have been resolved. Adjust your filters to show resolved comments.
+2	[collaboration]	Use @mention to notify people
+1	[collaboration]	You don't have permission to edit this comment
+1	[collaboration]	You don't have permission to delete this comment
+1	[collaboration]	You don't have permission to resolve this comment
+1	[collaboration]	You don't have permission to reopen this comment
+1	[collaboration]	Your comment will be deleted. You can't undo this action.
+1	[collaboration]	An error occurred while updating the comment.
+1	[collaboration]	An error occurred while deleting the comment.
+1	[collaboration]	Your unsaved changes will be saved with this comment.
+1	[collaboration]	You need to be online to comment
+1	[collaboration]	You need to be online to update a comment.
+1	[collaboration]	You need to be online to delete a comment.
+1	[collaboration]	You need to be online to resolve
+1	[collaboration]	An error occurred while resolving the thread.
+1	[collaboration]	You need to be online to reopen
+1	[collaboration]	An error occurred while reopening the thread.
+1	[collaboration]	People outside your team will be invited as a Collaborator.
+1	[collaboration]	This role will be set on the collection.
+1	[collaboration]	Invite Partners to your team
+1	[collaboration]	Set up a Partner workspace and invite partners to share collection.
+2	[collaboration]	You can only invite and collaborate with people in teams
+1	[collaboration]	Heads up! Reach more recipients
+1	[collaboration]	Connect Slack, to alert your community/team when you post updates on Postman.
+1	[collaboration]	Failed to unpin the update
+1	[collaboration]	Failed to pin the update
+1	[collaboration]	Maximum number of pinned updates reached for this workspace
+1	[collaboration]	You don't have permission to pin this update.
+1	[collaboration]	You don't have permission to edit this update.
+1	[collaboration]	You don't have permission to delete this update.
+1	[collaboration]	You don't have permission to add a comment.
+2	[collaboration]	You don't have permission to add a reaction.
+1	[collaboration]	You don't have permission to remove this reaction.
+1	[collaboration]	Request a forked copy of this collection
+1	[collaboration]	You'll need <1>editor</1> permission to fork the collection.
+1	[collaboration]	A short note on why you want access
+1	[collaboration]	Once approved, the collection will be forked and you'll get edit access.
+1	[collaboration]	You'll be notified once your request is approved by Workspace Admin.
+1	[mqtt-core]	Can't change version while connected
+1	[mqtt-core]	Switch to Postman Desktop Agent to connect with an MQTT broker.
+1	[mqtt-core]	Pass metadata for each sent message.
+1	[mqtt-core]	Topic name cannot be blank
+1	[mqtt-core]	Guarantees that the payload gets delivered exactly once with a four-part handshake.
+1	[mqtt-core]	Verifies server certificate when connecting to a broker over a secure connection.
+1	[mqtt-core]	Broker starts with a fresh connection without retaining any previous session data.
+1	[mqtt-core]	Keep alive interval in seconds.
+1	[mqtt-core]	Client automatically reconnects on abrupt disconnection.
+1	[mqtt-core]	Maximum packet size in bytes that the client will accept.
+1	[mqtt-core]	Not subscribed to any topics
+1	[mqtt-core]	Visualizations are created with messages received by subscribing to topics
+1	[mqtt-core]	An error occurred while disconnecting from broker
+3	[agent-automations]	Set up automations that run on a schedule or when events happen.
+3	[agent-automations]	Something went wrong while fetching automations. Please try again later.
+3	[agent-automations]	Review API/schema changes on every PR and post findings as a comment.
+3	[agent-automations]	Scan for deprecated APIs weekly and post a scorecard to Slack.
+3	[agent-automations]	Something went wrong while fetching the automation. Go back and try again.
+3	[agent-automations]	Failed to create automation. Please try again.
+3	[agent-automations]	e.g. Review API design on PRs
+3	[agent-automations]	We couldn't connect to GitHub. Please try again.
+3	[agent-automations]	Your GitHub connection expired. Reconnect to keep using this automation.
+3	[agent-automations]	Your Slack connection expired. Reconnect to keep delivering notifications.
+3	[agent-automations]	We couldn't connect to Slack. Please try again.
+3	[agent-automations]	Failed to save automation. Please try again.
+3	[agent-automations]	Failed to update automation status. Please try again.
+3	[agent-automations]	You can view this automation but cannot edit it.
+2	[agent-automations]	As an admin, you can only delete or toggle this automation.
+3	[agent-automations]	Failed to delete automation. Please try again.
+3	[agent-automations]	At least one delivery target is required
+3	[agent-automations]	Failed to retry run. Please try again.
+3	[agent-automations]	Something went wrong while fetching run history. Please try again later.
+3	[agent-automations]	Failed to trigger run. Please try again.
+3	[cloud-agent-tasks]	Start a conversation with Postman Cloud Agent
+3	[cloud-agent-tasks]	Pick or start a conversation from the sidebar.
+3	[cloud-agent-tasks]	Trigger agents & get updates anywhere
+3	[cloud-agent-tasks]	Checkout repos, commit code, open PRs
+3	[cloud-agent-tasks]	Connect your GitHub account so the cloud agent can read your repositories.
+3	[cloud-agent-tasks]	Failed to start the GitHub connection. Please try again.
+3	[cloud-agent-tasks]	Failed to start the Slack connection. Please try again.
+3	[cloud-agent-tasks]	Open pull request (opens in browser)
+3	[cloud-agent-tasks]	View the proposed changes in Workspace view
+3	[cloud-agent-tasks,workspaces]	This permanently removes the pending changes. This action cannot be undone.
+3	[cloud-agent-tasks]	Describe a task for the cloud agent…
+3	[cloud-agent-tasks]	Choose the workspace this task runs in
+3	[cloud-agent-tasks]	This task failed, but no additional details were provided.
+4	[workbench-mock-details,workbench-mock-create]	Mocks for this collection currently support only HTTP requests
+2	[workbench-mock-details]	Please enter a delay value between 0 and 180000 ms.
+2	[workbench-mock-details]	No mock server calls yet
+2	[workbench-mock-details]	To call the mock server, follow these steps:
+2	[workbench-mock-details]	Only team members can view mock call log details.
+2	[workbench-mock-details]	You don't have permission to view call log details.
+2	[workbench-mock-details]	This mock server has been deactivated. The underlying collection was deleted.
+2	[workbench-mock-details]	This mock server has been deactivated. The underlying environment was deleted.
+2	[workbench-mock-details]	Learn how to set up and use a mock with example responses
+2	[workbench-mock-details]	You've reached your monthly call limit for mock servers.
+2	[workbench-mock-details]	Contact a team member with billing role to increase your limit.
+2	[workbench-mock-details]	There was an unexpected error loading your mock server call log.
+2	[workbench-mock-details]	This documentation can't be accessed because the associated collection has been deleted.
+2	[workbench-mock-details]	This documentation can't be accessed because the associated collection is not accessible.
+2	[workbench-mock-details]	This mock server has been deleted.
+2	[workbench-mock-details]	This mock server has been moved to a different workspace.
+3	[workbench-mock-details,trash]	Just a faulty wire. Refresh or try later.
+2	[workbench-mock-details]	It might have been deleted or moved to a different workspace.
+2	[workbench-mock-details]	You cannot edit this mock server because it is inactive.
+2	[workbench-mock-details]	The associated collection has been deleted
+2	[workbench-mock-details]	The associated collection is inaccessible
+2	[workbench-mock-details]	The collection is present in a workspace you don’t have access to.
+2	[workbench-mock-details]	The associated environment has been deleted
+2	[workbench-mock-details]	The associated environment is inaccessible
+2	[workbench-mock-details]	The environment is present in a workspace you don’t have access to.
+4	[workbench-mock-details,description-editor]	This user profile is private.
+1	[workbench-mock-details]	No Simulation uses this mock
+1	[workspaces-table]	You don't have permission to delete any of the selected workspaces
+1	[workspaces-table]	You don't have permission to move any of the selected workspaces
+1	[workspaces-table]	There was a problem loading workspaces.
+2	[workspaces-table,view-all-workspaces]	You have no archived workspaces
+2	[workspaces-table,view-all-workspaces]	Archive workspaces to reduce clutter. You can restore them anytime.
+1	[workspaces-table]	This workspace will be permanently deleted. This action cannot be undone.
+1	[workspaces-table]	Once moved, members of the original teams will lose access.
+1	[workspaces-table]	Failed to archive some workspaces
+1	[workspaces-table]	Failed to delete some workspaces
+1	[workspaces-table]	Failed to restore some workspaces
+2	[view-all-workspaces,workspaces]	A directory of your workspaces.
+1	[view-all-workspaces]	is requesting to share this workspace with everyone in your organization
+1	[view-all-workspaces]	<0>Tidy up?</0> <1>Archive</1> <2>inactive workspaces.</2>
+1	[view-all-workspaces]	Failed to load pending requests
+1	[view-all-workspaces]	Something went wrong while loading the pending requests. Please try again.
+1	[self-managed-clusters]	Invalid page. Private API runners feature is not enabled.
+1	[self-managed-clusters]	Upgrade your plan to manage runners
+1	[self-managed-clusters]	Enable runner settings for your team
+1	[self-managed-clusters]	You don't have any runners yet.
+1	[self-managed-clusters]	Get started by creating your first runner.
+1	[self-managed-clusters]	No runners match your filters
+1	[self-managed-clusters]	Try adjusting your search or filter criteria to see more results.
+1	[self-managed-clusters]	The runner key has been refreshed successfully.
+1	[self-managed-clusters]	An error occurred while refreshing the key.
+1	[self-managed-clusters]	An error occurred while fetching runners.
+1	[self-managed-clusters]	Deleting this runner will stop all monitors that use it.
+1	[self-managed-clusters]	An error occurred while deleting the runner.
+1	[self-managed-clusters]	e.g., Executes monitor runs for beta APIs
+1	[self-managed-clusters]	New runner has been created. Please copy the API key.
+1	[self-managed-clusters]	Runner has been updated successfully
+1	[self-managed-clusters]	An error occurred while updating the runner.
+1	[self-managed-clusters]	An error occurred while creating the runner.
+1	[self-managed-clusters]	API key copied to clipboard
+1	[self-managed-clusters]	Follow these steps to install your runner
+1	[self-managed-clusters]	2. Run this command in your terminal
+1	[self-managed-clusters]	Add a runner to configure and monitor your APIs
+2	[home]	Join teams from your organization
+2	[home]	We’ll notify you when your request is approved.
+2	[home]	There was an unexpected error sending your request. Please try again.
+2	[home]	You don't have permission to access team workspaces.
+2	[home]	Your recently visited workspaces will appear here.
+2	[home]	Get Auto-Flex for fast and flexible collaboration
+2	[home]	<0>Tidy up?</0> <1><0>Start archiving</0></1> <2>inactive workspaces.</2>
+2	[home]	I’m open to a short follow-up call to share more details
+2	[home]	Thanks! Your widget request has been submitted.
+2	[home]	Something went wrong while forking this collection, please try again
+2	[home]	Couldn't fork collection due to some error.
+2	[home]	Create a Run in Postman button
+1	[invite-flow-modals]	Enter emails to send invites
+1	[invite-flow-modals]	Please enter emails to invite
+1	[invite-flow-modals]	Make sure the emails you've entered are valid.
+1	[invite-flow-modals]	Not listed above? Invite user by email
+1	[invite-flow-modals]	You do not have permission to send invites
+1	[invite-flow-modals]	Flow Editor role can only be assigned with Developer role.
+1	[invite-flow-modals]	Your team can’t fit everyone
+1	[invite-flow-modals]	Add a note to help the team's Admin review your request (optional)
+1	[invite-flow-modals]	2. Answer this question from the team Admin.
+1	[invite-flow-modals]	We've sent a verification email to:
+1	[invite-flow-modals]	Check your email for an invite
+1	[invite-flow-modals]	Your invite was sent to:
+1	[invite-flow-modals]	Please check your inbox for the email to join the team.
+1	[invite-flow-modals]	You’ve got early access to Auto-Flex
+1	[invite-flow-modals]	You can keep track of additional team members in <1><0>Manage Team</0></1>
+1	[invite-flow-modals]	Agree to Auto-Flex's <1><0>terms and conditions</0></1>
+1	[invite-flow-modals]	Please agree to terms and conditions for Auto-Flex
+1	[sso-settings]	Automatically add new users using this authentication method to my team.
+1	[sso-settings]	Upgrade your plan to manage automatic user additions to the team.
+1	[sso-settings]	Please enter a valid URI
+1	[sso-settings]	The authentication certificate issued by your identity provider.
+1	[sso-settings]	When checked, you must add the certificate to your IdP.
+1	[sso-settings]	A shortcut URL to initiate Single Sign On.
+1	[sso-settings]	Public key certificate used to digitally encrypt the SAML assertion.
+1	[sso-settings]	Sign SAML requests and include signing certificate
+1	[sso-settings]	Generate new encryption and signing certificates
+1	[sso-settings]	Generate new SAML signing and encryption certificates
+1	[sso-settings]	The certificates in use are expiring tomorrow. Renewal is required.
+1	[sso-settings]	The certificates in use require renewal.
+1	[sso-settings]	An error occurred while regenerating certificates. Please try again or contact support.
+1	[documentation-workbench]	This collection is published at:
+1	[documentation-workbench]	This feature is currently unavailable in your region.
+1	[documentation-workbench]	This request doesn't return any response headers.
+1	[documentation-workbench]	Couldn't update description. Please try again.
+1	[documentation-workbench]	Switch to the new Postman Editor?
+1	[documentation-workbench]	Don't show this warning again
+1	[documentation-workbench]	This is the classic Markdown editor that supports Git flavoured Markdown formatting.
+1	[documentation-workbench]	Something went wrong while updating version
+1	[documentation-workbench]	Request to publish withdrawn successfully.
+1	[documentation-workbench]	This request has been removed from the Community Managers' queue.
+1	[documentation-workbench]	Failed to withdraw publish request. Please try again.
+1	[documentation-workbench]	New Workspace (to be modified)
+2	[version-control-core]	The fork will be created in a workspace from the selected team.
+2	[version-control-core]	Forking to this workspace stops linked requests from following updates.
+2	[version-control-core]	You don't have permission to export
+2	[version-control-core]	There are no other teams
+2	[workbench-mock-create]	Error while fetching collection/environment information
+2	[workbench-mock-create]	Error in pipeline for creating mock
+2	[workbench-mock-create]	Error in saving mock url as a collection variable
+2	[workbench-mock-create]	Something went wrong while creating this mock server. Please try again.
+3	[workbench-mock-create,workbench-mock-edit]	Error occurred while fetching workspace environments
+2	[workbench-mock-create]	Error occurred while fetching extensible collections
+2	[workbench-mock-create]	Error occurred while fetching workspace collections
+2	[workbench-mock-create]	Enter a name for this mock server
+2	[workbench-mock-create]	Choose what response is served by your mock server.
+2	[workbench-mock-create]	You can enter multiple header keys.
+2	[workbench-mock-create]	Enter header keys to enable header matching.
+2	[workbench-mock-create]	Collections linked to an API
+2	[workbench-mock-create]	Select a collection you want to mock.
+4	[workbench-mock-create,workbench-mock-request]	Please try viewing other collections in this workspace.
+1	[version-control]	Please sign in to continue forking
+2	[version-control,api-network]	You don’t have permission to fork into this team’s workspaces.
+1	[version-control]	<span>Learn more about </span> <Flex><Text><Link>forks</Link></Text><IconActionOpenWebStroke /></Flex>
+1	[version-control]	You don't have permission to view this content.
+1	[version-control]	An error occurred. Please try again later.
+1	[version-control]	They aren't visible because they're in workspaces you don't have access to.
+1	[version-control]	No more pages to load
+1	[version-control]	You do not have permissions required to perform this action.
+1	[version-control]	To make changes to this collection, fork it to your workspace.
+1	[version-control]	Pulling changes in the background...
+1	[version-control]	There are changes to pull.
+1	[version-control]	Merge conflicts found. Resolve them to pull changes.
+4	[workbench-mock-create-local]	Give the mock a name to continue.
+4	[workbench-mock-create-local]	You can run your mock on Postman servers by pushing to cloud.
+2	[workbench-mock-create-local]	We'll generate mock responses from the selected API specification.
+4	[workbench-mock-create-local]	No specs in this workspace yet.
+2	[workbench-mock-create-local]	We'll generate mock responses from the selected collection's saved examples.
+3	[workbench-mock-create-local]	Auto-update this mock when the collection changes
+3	[workbench-mock-create-local]	Auto-update this mock when the API spec changes
+3	[workbench-mock-create-local]	Auto-update this mock when the collection changes (after pushing to cloud)
+3	[workbench-mock-create-local]	Auto-update this mock when the API spec changes (after pushing to cloud)
+2	[workbench-mock-create-local]	When the collection changes, this mock is regenerated automatically.
+2	[workbench-mock-create-local]	When the API spec changes, this mock is regenerated automatically.
+3	[workbench-mock-create-local]	Drop a Postman Collection or Specification, or <browse>browse</browse>
+4	[workbench-mock-create-local]	Mock external APIs present in your codebase
+4	[workbench-mock-create-local]	Create a digital twin of the endpoints your service exposes.
+4	[workbench-mock-create-local]	Mock an external API my service depends on
+4	[workbench-mock-create-local]	Describe the API and Postman AI will create the mock for you.
+2	[workbench-mock-create-local]	Make this Mock Server public
+3	[workbench-mock-create-local]	Couldn't recognize this file as a collection or spec.
+4	[workbench-mock-create-local]	Enter a port from 1 to 65535.
+4	[workbench-mock-create-local]	Couldn't load that spec from this workspace. Try again in a moment.
+2	[api-network-core]	Make this workspace more discoverable for consumers within your organization
+1	[api-network-core]	All published versions of this API are added
+1	[api-network-core]	This collection is available on the internal API Network.
+1	[api-network-core]	Added to the Private API Network
+1	[api-network-core]	Add to Private API Network request is pending
+1	[api-network-core]	Add to network request pending
+1	[api-network-core]	Cancelled request to add to network.
+1	[api-network-core]	Something went wrong while canceling the request. Try again.
+1	[api-network-core]	You do not have permission to view pending requests.
+1	[global-core]	You need to be in a workspace to perform this action.
+1	[global-core]	You can't make changes to a published version of an API.
+1	[global-core]	Get online to perform this action
+1	[global-core]	Sharing is not currently available in filesystem mode
+1	[global-core]	You do not have required permissions to perform this action.
+1	[global-core]	<0><0>To use environment variables here, you can </0><1><0><0>select an environment</0></0></1><2> as active.</2></0>
+1	[global-core]	Export your data from  Settings > Data to create a backup
+1	[global-core]	Ensure you have a working internet connection
+1	[global-core]	Quit the app (be sure to stay signed in)
+1	[global-core]	Sign out without saving my changes
+1	[global-core]	We are opening the link in the desktop app…
+1	[global-core]	<0>Prefer using Postman in your browser? <1><0><0>Always open in browser</0></0></1></0>
+1	[global-core]	Or download the Postman app:
+1	[global-core]	Open in desktop app instead?
+1	[global-core]	You can change this anytime in settings.
+1	[global-core]	Open this workspace in desktop app instead?
+2	[description-editor]	PNG, JPG, SVG, and GIFs are supported.
+2	[description-editor]	Only Youtube and Vimeo links are supported.
+2	[description-editor]	There is an unsupported text style: bold. Please remove or correct it.
+2	[description-editor]	There is an unsupported text style: italic. Please remove or correct it.
+2	[description-editor]	There is an unsupported text style: underline. Please remove or correct it.
+2	[description-editor]	There is an unsupported text style: strikethrough. Please remove or correct it.
+2	[description-editor]	There is an unsupported text style: code. Please remove or correct it.
+2	[description-editor]	Instant Markdown styling is supported. Try **bold**,  *italic*, or `inline code`
+2	[workbench-mock-request]	<0></0> <1> Set up the mock server</1>
+2	[workbench-mock-request]	2. <0>Set up the mock server</0>
+2	[workbench-mock-request]	Please enter a mock server name.
+2	[workbench-mock-request]	Make this mock server private
+2	[workbench-mock-request]	Save the mock server URL as an environment variable
+2	[workbench-mock-request]	Note: This will create a new environment containing the URL.
+2	[workbench-mock-request]	Mock server, collection and environment created
+2	[workbench-mock-request]	Mock server and collection created
+2	[workbench-mock-request]	To call the mock server:
+2	[workbench-mock-request]	<0>Add an <1>x-api-key</1> header to your requests.<3><0>Generate Postman API key</0></3></0>
+1	[integrations-hub]	Your team has no connected integrations. Find an integration to connect below.
+4	[integrations-hub]	Failed to remove from workspace. Please try again.
+4	[integrations-hub]	Failed to disconnect personal notifications. Please try again.
+4	[integrations-hub]	Something went wrong while deleting your integration. Please try again.
+1	[integrations-hub]	Only the integration creator can edit its configuration.
+4	[integrations-hub]	Failed to load this integration's connections
+4	[integrations-hub]	The data could not be loaded.
+2	[team-profile-settings]	Default photo can't be deleted
+1	[team-profile-settings]	Add a tagline to help users recognize you across Postman.
+1	[team-profile-settings]	Example: organize your customer data with our APIs!
+1	[team-profile-settings]	Your team name as you'd like it to be displayed on Postman.
+1	[team-profile-settings]	Your organization name as you'd like it to be displayed on Postman.
+1	[team-profile-settings]	Please upload an image of size 16x16 or 32x32.
+1	[team-profile-settings]	This image size is not supported. Try again.
+1	[team-profile-settings]	Make my team’s profile public
+1	[team-profile-settings]	Make my organization’s profile public
+1	[team-profile-settings]	Could not fetch all data.
+2	[team-profile-settings]	Unable to update cover photo.
+1	[team-profile-settings]	Unable to update profile photo.
+1	[team-profile-settings]	The domain name must be 3 to 64 characters long.
+2	[team-profile-settings]	Photo can't be recovered once it is deleted.
+3	[api-mock-core]	Send requests to the mock server to see them here
+4	[api-mock-core]	Start mock server to see logs here
+3	[api-mock-core]	Anything your handler writes with pm.state shows up here.
+5	[api-mock-core]	 from pm.state. This cannot be undone.
+5	[api-mock-core]	This will permanently delete all keys in 
+4	[api-mock-core]	This will permanently delete all pm.state keys and can’t be undone.
+3	[files-sidebar]	You don't have permission to disconnect from workspace
+3	[files-sidebar]	Open folder is out of sync with workspace
+4	[files-sidebar]	Unable to connect to workspace
+4	[files-sidebar]	Unable to disconnect from workspace
+4	[files-sidebar]	Disconnect from workspace to open a different folder
+3	[files-sidebar]	Disconnect from the workspace to open a different folder.
+4	[files-sidebar]	Save or discard unsaved changes before opening a different folder.
+3	[files-sidebar]	Set up your local folder for this workspace
+3	[files-sidebar]	Your teammate connected this workspace to a repository:
+3	[files-sidebar]	Connect this folder to a workspace to perform the unavailable actions.
+4	[files-sidebar]	Initialize as a git repository
+1	[jira-cloud]	Not seeing your site listed?
+1	[jira-cloud]	Type to search for a project
+1	[jira-cloud]	Add any additional details that relate to the issue that you found.
+1	[jira-cloud]	Type to search for an issue
+1	[jira-cloud]	Add any additional details that relate to the issue.
+1	[jira-cloud]	Adds the current response data and meta to the issue description
+1	[jira-cloud]	Unable to create Jira issue: the label can't contain spaces.
+1	[jira-cloud]	Some required fields are not supported
+1	[jira-cloud]	We need you to sign in to Jira again.
+1	[jira-cloud]	This lets us load all the fields needed to create your issue.
+1	[jira-cloud]	Please sign in again. Your token has been expired.
+1	[jira-cloud]	Sign in to Jira Cloud to see issues
+1	[jira-cloud]	Track and fix failures in Jira
+1	[jira-cloud]	This may be a known issue
+1	[team-secret-scanner]	We were unable to fetch regular expressions. Please try again.
+1	[team-secret-scanner]	You do not have permissions to view Token Scanner Alerts
+1	[team-secret-scanner]	Proprietary and third-party secrets that are scanned by default.
+1	[team-secret-scanner]	Keep your internal tokens safe and secure
+1	[team-secret-scanner]	Add alerts to keep your internal tokens safe.
+1	[team-secret-scanner]	Review dry run results before adding pattern to secret scanner.
+1	[team-secret-scanner]	Dry run needs to be completed before adding pattern to secret scanner.
+1	[team-secret-scanner]	Dry run failed. Please try creating the pattern again.
+1	[team-secret-scanner]	You currently don’t have permissions to view scan reports.
+1	[team-secret-scanner]	Only members with Admin or Super Admin role can view this.
+1	[team-secret-scanner]	Unresolved secrets based on elements visibility
+1	[team-secret-scanner]	Unresolved secrets based on secret type
+1	[team-secret-scanner]	Published documentation with unresolved secrets
+1	[team-secret-scanner]	Manage collections with published documentation via <Link><Text>Manage Public Elements</Text></Link>
+1	[team-secret-scanner]	Showing only 600 records. Some results may not be visible.
+2	[search-results]	We are having trouble searching right now.
+2	[search-results]	Unable to search as you are offline
+2	[search-results]	You need to be online to carry out a search
+2	[search-results]	Try searching with a shorter query
+2	[search-results]	Add a search query or filter by tags to see results.
+2	[search-results]	Need help with a product feature?
+2	[search-results]	Search in Postman Learning Center
+1	[create-new-team]	There was an error while we were creating your team
+1	[create-new-team]	Before we create a team for you
+1	[create-new-team]	Do you want to move your workspaces to the team?
+1	[create-new-team]	No, keep my workspaces separate from the team
+1	[create-new-team]	Yes, move my workspaces to the team
+1	[create-new-team]	You will have complete ownership and access to the workspaces.
+2	[create-new-team]	Woohoo! Your team is being created...
+1	[create-new-team]	What will your team work on?
+1	[create-new-team]	Select an option to help us tailor your experience
+2	[create-new-team,team-onboarding]	There was a problem uploading your image. Please try again.
+2	[create-new-team,team-onboarding]	Drag and drop an image
+2	[create-new-team,team-onboarding]	Image is too large. Please use an image under 2 MB.
+1	[create-new-team]	You must select an option.
+2	[create-new-team,team-onboarding]	You enabled team discovery for your team
+2	[create-new-team,team-onboarding]	You disabled team discovery for your team
+1	[create-new-team]	Allow people from your organization see your team and request to join.
+2	[create-new-team,team-onboarding]	You don't have a valid work domain
+2	[create-new-team,team-onboarding]	We've sent the verification email
+2	[create-new-team,team-onboarding]	To enable team discovery, please verify your account and try again.
+2	[collaboration-errors]	This user already has the requested role.
+2	[collaboration-errors]	You already have access to this resource.
+2	[collaboration-errors]	This user already has access to this resource.
+2	[collaboration-errors]	Improper Email IDs provided while sending invites.
+2	[collaboration-errors]	You cannot have more than 100 pending invites
+2	[collaboration-errors]	This request is no longer valid.
+2	[collaboration-errors]	You have already submitted this request.
+3	[collaboration-errors,personal-workspace-rfa-page]	Users not belonging to the team cannot request access
+1	[access-proxies-settings]	Optional — what this proxy is for
+1	[access-proxies-settings]	CA cert and private key
+1	[access-proxies-settings]	Copy these now — shown once
+1	[access-proxies-settings]	Paste your CA certificate (PEM)
+1	[access-proxies-settings]	Paste your CA private key (PEM)
+1	[access-proxies-settings]	Must be an https:// URL.
+1	[access-proxies-settings]	Copy the values below now. They will not be shown again.
+1	[access-proxies-settings]	Substitute the env values above. Replace YOUR_VAULT_ADDR/YOUR_VAULT_TOKEN with your secret store endpoint.
+1	[trash]	Collections you delete will show up here.
+1	[trash]	You'll be able to manage the trash once you're online.
+1	[trash]	You cannot undo this action.
+1	[trash]	Select a workspace for the collection
+1	[trash]	You can take this action once you're back online
+1	[squad-components]	Team manager approval is required to join or collaborate with this team
+1	[squad-components]	You only have access to the specific resources you've been invited to.
+1	[squad-components]	Could not load member details
+1	[squad-components]	You don't have permission to view this squad's details
+1	[squad-components]	You cannot leave this team because you were added through a group.
+1	[squad-components]	Failed to leave the team. Please try again.
+1	[squad-components]	Are you sure you want to leave this team?
+1	[squad-components]	Failed to remove. Please try again.
+1	[squad-components]	There are no teams in your organization yet.
+1	[squad-components]	There are no members in this team yet.
+1	[squad-components]	Failed to update role. Please try again.
+1	[squad-components]	You already have a pending request to join this team
+1	[team-onboarding]	Name your team and choose a URL.
+1	[team-onboarding]	You'll use this URL to access Postman.
+2	[team-onboarding,team-profile]	An error occurred while trying to move your collections
+1	[team-onboarding]	An error occurred while updating your team profile
+1	[team-onboarding]	They can request to join this team.
+1	[team-onboarding]	Something went wrong with applying your team discovery settings
+1	[team-onboarding]	You can change the details later in team settings.
+1	[team-onboarding]	We couldn't generate a link. Please try again.
+1	[team-onboarding]	Upgrade to a premium plan & enjoy unlimited collaboration.
+1	[team-onboarding]	Invite people to your team
+1	[team-onboarding]	Or, share an invite link
+1	[team-onboarding]	Failed to generate the invite link. Please try again.
+2	[team-onboarding,team-profile]	Your collections will be moved in a few moments.
+2	[workbench-environment]	Current values can’t persist as sync is disabled by admin.
+2	[workbench-environment]	Current values can’t be reset as initial value is disabled.
+1	[workbench-environment]	Something went wrong while saving the environment.
+1	[workbench-environment]	This environment is already active.
+2	[workbench-environment]	Get online to perform this action.
+1	[workbench-environment]	Syncing initial value of all variables is disabled
+1	[workbench-environment]	Syncing the values of secret variables is disabled
+1	[workbench-environment]	This environment has been modified since you last opened the tab.
+1	[workbench-environment]	Global variables has been modified since you last opened the tab.
+1	[find-and-replace]	Choose entities to find in
+1	[find-and-replace]	Try another search, or modify the entities to find in.
+1	[find-and-replace]	Replacing content in globals will save any unsaved changes in that global.
+1	[cookies-modal]	Learn more about <1><0>cookies</0></1> and how to capture them with <3><0>Interceptor.</0></3>
+1	[cookies-modal]	Connect interceptor to start syncing cookies.
+1	[cookies-modal]	Make sure your browser is open and you've installed the <1><0>Interceptor extension.</0></1>
+1	[cookies-modal]	Make sure you've installed the <1><0>Interceptor extension.</0></1>
+1	[cookies-modal]	Enable proxy to start syncing cookies.
+1	[cookies-modal]	Domain needs to be added to start syncing cookies.
+1	[cookies-modal]	Add a domain to the Allowlist
+2	[unified-api-network]	Review and revoke API access granted to members across your namespaces.
+2	[unified-api-network]	We couldn't load access grants. Please try again.
+2	[unified-api-network]	No active access grants. Approved access requests will appear here.
+2	[unified-api-network]	No grants match your search.
+2	[unified-api-network]	We couldn't revoke access. Please try again.
+2	[unified-api-network]	We couldn't load this page. Please try again.
+2	[unified-api-network]	Something went wrong while loading Passport Access. Please try again.
+1	[unified-api-network]	Search for workspaces and add to this namespace.
+2	[unified-api-network]	Only show workspaces I can add
+2	[unified-api-network]	Search and add your workspaces
+2	[unified-api-network]	You need editor access to add this workspace
+2	[unified-api-network]	These workspaces will be added to the namespace.
+1	[unified-api-network]	A request will be raised to add these workspaces to the namespace.
+2	[unified-api-network]	Add a comment for the namespace manager
+2	[unified-api-network]	Filter requests by review scope
+2	[unified-api-network]	Requests for namespaces you manage appear here.
+2	[unified-api-network]	Requests you make will appear here.
+2	[unified-api-network]	This workspace has no collections, environments, specifications, flows, or SDKs yet.
+3	[unified-api-network]	Unable to load namespaces right now.
+2	[unified-api-network]	Add a reason for this request
+3	[unified-api-network]	There was an error with the access request.
+3	[unified-api-network]	There was an error removing the workspace from the namespace.
+3	[unified-api-network]	There was an error deleting the namespace.
+2	[unified-api-network]	Couldn't create vault reference. Please try again.
+2	[unified-api-network]	A namespace is a top-level container for your workspaces and collections.
+2	[unified-api-network]	Choose an emoji for this namespace
+2	[unified-api-network]	A short description of what this namespace is for.
+2	[unified-api-network]	What lives in this namespace?
+3	[unified-api-network]	Title must include at least one letter or number.
+3	[unified-api-network]	A namespace with this name already exists.
+2	[unified-api-network]	No users or groups found
+2	[unified-api-network]	Managers can edit the namespace, manage workspaces, and approve access requests.
+2	[unified-api-network]	Members can see workspaces and request access to specific resources.
+2	[unified-api-network]	Pre-approved access (users / groups)
+2	[unified-api-network]	These users and groups are automatically granted access — no request needed.
+3	[unified-api-network]	There was an error creating the namespace.
+2	[unified-api-network]	Request to create a namespace
+2	[unified-api-network]	Why do you need a new namespace?
+2	[unified-api-network]	Describe why you need a new namespace (up to 500 characters).
+2	[unified-api-network]	There was an error submitting your request.
+1	[load-profile]	Initial base load end timestamp
+1	[load-profile]	The time over which maximum load is maintained.
+1	[load-profile]	The time at which the spike has peaked at the maximum load.
+1	[llm-core]	Test LLMs with AI requests
+1	[llm-core]	Try out your prompts with LLMs from <0>OpenAI, Google, Anthropic</0> and more.
+1	[llm-core]	Create a new AI request by clicking on ‘New’ in the sidebar.
+1	[llm-core]	Select an LLM model to work with.
+1	[llm-core]	Authorize and store your credentials in Vault.
+1	[llm-core]	Pass the user prompt and optionally, the system prompt and hit ‘Send’.
+1	[llm-core]	Switch to Postman Desktop Agent to make an LLM request.
+1	[llm-core]	Invalid Authentication. <button>Pass the correct auth credentials</button>
+1	[llm-core]	Country, region, or territory not supported
+1	[llm-core]	You exceeded your current quota, please check your plan and billing details
+1	[llm-core]	The server had an error while processing your request
+1	[llm-core]	The engine is currently overloaded, please try again later
+1	[llm-core]	Select a model to send an AI request.
+1	[llm-core]	No tools match the current search and filter.
+1	[llm-core]	Run the local tool instead of the MCP call
+1	[llm-core]	No local tools match this MCP tool name.
+1	[api-network]	You'll be able to fork the collection once you're online.
+1	[api-network]	Some error occurred while trying to fork the collection!
+1	[api-network]	Your join request has been sent to the team admin.
+1	[api-network]	Your request for access has been sent to the workspace admin.
+1	[api-network]	Request Access is not enabled for this resource.
+1	[api-network]	Failed to send the request.
+1	[api-network]	This collection seems to have been deleted or is no longer public
+1	[api-network]	Unable to fetch user workspaces
+1	[api-network]	We could not fetch information about the user workspaces. Please try again.
+1	[api-network]	Identifies the fork from the original collection.
+1	[agent-context]	Not connected · Sources configured by teammates
+1	[agent-context]	Connect Postman to your agent context graph
+1	[agent-context]	Postman Workspaces, Collections, and Environments
+1	[agent-context]	Authorization failed. Please try again.
+1	[agent-context]	Authorization timed out. Please check your popup blocker settings and try again.
+1	[agent-context]	Connect GitHub to your agent context graph
+1	[agent-context]	Services, endpoints & dependency graph
+1	[agent-context]	Bring your code & dependencies into the Context Graph
+1	[agent-context]	Sign in to GitHub and grant access - recommended
+1	[agent-context]	Failed to start indexing. Please try again.
+1	[agent-context]	No GitHub organizations were found for this account.
+1	[agent-context]	No repositories were found for this organization.
+1	[agent-context]	Failed to load repositories. Please try again.
+1	[agent-context]	Choose repositories from GitHub to index into the Context Graph.
+1	[agent-context]	No repositories match your search.
+1	[agent-context]	Paste a token with repo read scope
+1	[agent-context]	Add a personal access token
+1	[agent-context]	Add New Relic to your agent context graph
+1	[agent-context]	Base source enabled by default
+1	[agent-context]	Base source - the foundation of your graph
+1	[agent-context]	Connected sources - enrich your graph
+1	[agent-context]	Start - index Postman data
+1	[agent-context]	We couldn't start Postman indexing. Please try again.
+1	[agent-context]	Your Postman workspace indexing has started.
+1	[agent-context]	Next, connect GitHub and New Relic to enrich your graph.
+1	[agent-context]	Connect Jira to your agent context graph
+1	[agent-context]	Teams, owners & maturity phases
+1	[agent-context]	Connect Kubernetes to your agent context graph
+1	[agent-context]	Graph empty - ingest Postman to start
+1	[agent-context]	Please try again after reconnecting your data source.
+1	[agent-context]	We couldn't load the dependency graph.
+1	[agent-context]	Graph ready - explore your context graph
+1	[agent-context]	Click a type to show or hide it
+1	[agent-context]	Ask a question about the context graph
+1	[agent-context]	Ask the agent about your services, dependencies, owners...
+1	[agent-context]	We couldn't send your graph query. Please try again.
+1	[agent-context]	Your graph query was sent to Agent Tasks.
+1	[agent-context]	Surfaced from your graph. Index more sources to unlock deeper ones.
+1	[agent-context]	12 APIs have no assigned owner or contributor across your workspaces.
+1	[agent-context]	4 services are relied on by many others with no documented alternative.
+1	[service-accounts]	Unable to load service accounts
+1	[service-accounts]	Manage service accounts for API integrations and automation workflows.
+1	[service-accounts]	Create Your First Service Account
+1	[service-accounts]	Service accounts are non-human identities for automated processes, CI/CD pipelines, and integrations.
+1	[service-accounts]	Failed to create service account
+1	[service-accounts]	Failed to delete service account
+1	[service-accounts]	Failed to disable service account
+1	[service-accounts]	Failed to enable service account
+1	[service-accounts]	Failed to update service account
+1	[service-accounts]	Failed to update team role
+1	[service-accounts]	Service account added to team
+1	[service-accounts]	Failed to add service account to squad
+1	[service-accounts]	Service account removed from team
+1	[service-accounts]	Failed to remove service account from team
+1	[service-accounts]	Failed to update squad role
+1	[service-accounts]	Service account added to workspace
+1	[service-accounts]	Failed to add service account to workspace
+1	[service-accounts]	Failed to update workspace role
+1	[service-accounts]	Service account removed from workspace
+1	[service-accounts]	Failed to remove service account from workspace
+1	[service-accounts]	Unable to load service account
+1	[service-accounts]	API key generation has been disabled by your admin
+1	[service-accounts]	Full key is only visible when created or regenerated
+2	[service-accounts]	Give this key a name to identify it later.
+1	[service-accounts]	Copy your new API key
+1	[service-accounts]	Failed to generate API key
+1	[service-accounts]	Failed to rename API key
+1	[service-accounts]	Failed to regenerate API key
+1	[service-accounts]	Failed to delete API key
+1	[service-accounts]	Failed to enable API key
+1	[service-accounts]	Failed to disable API key
+1	[service-accounts]	Failed to update API key settings
+1	[service-accounts]	Failed to load API key settings
+2	[service-accounts]	SCIM API keys aren't available on your plan.
+1	[service-accounts]	Failed to create SCIM API key
+1	[service-accounts]	Some details are invalid. Please check and try again.
+1	[service-accounts]	SCIM is disabled for your organization. Enable SCIM provisioning first.
+1	[service-accounts]	Configure at least one SSO authentication method before creating a SCIM key.
+1	[service-accounts]	You don't have permission to create a SCIM API key.
+1	[local-mode-diagnostics]	The .postman directory is missing.
+1	[local-mode-diagnostics]	The resources.yaml file is missing in the .postman directory.
+1	[local-mode-diagnostics]	Invalid resources.yaml: file must contain a YAML object.
+1	[local-mode-diagnostics]	Invalid resources.yaml: missing or invalid workspace.id field.
+1	[local-mode-diagnostics]	Invalid resources.yaml: workspace.id must not be empty.
+1	[local-mode-diagnostics]	Invalid workflows.yaml: file must contain a YAML object.
+1	[local-mode-diagnostics]	Updated workspace ID in resources.yaml
+1	[local-mode-diagnostics]	Failed to update workspace ID in resources.yaml
+1	[secret-notification]	Please provide a justification for ignoring this detected secret.
+1	[secret-notification]	Please select a justification reason before proceeding.
+1	[secret-notification]	Are you sure you want to cancel? Your justification will be lost.
+1	[secret-notification]	Only proceed if you have a valid work reason.
+1	[secret-notification]	This request is permanently logged and visible to your admins.
+1	[secret-notification]	Unlock vault to secure your secrets
+2	[secret-notification]	Save blocked due to detected secrets
+2	[import-modal]	An error occurred while searching.
+2	[import-modal]	Couldn't add the following dependencies.
+2	[import-modal]	Couldn't create the following forks.
+2	[import-modal]	No dependencies available to update.
+2	[import-modal]	No dependencies available to install.
+2	[import-modal]	You don't have permission to manage resources in this workspace.
+2	[import-modal]	You can only manage resources in Local Mode.
+1	[package-library-core]	All team members have access to packages in the library.
+1	[package-library-core]	Click here to add description
+1	[package-library-core]	Couldn’t load packages usage details
+1	[package-library-core]	No users have added packages at the moment.
+1	[package-library-core]	You can view all packages and their last retrieval here, if any.
+1	[package-library-core]	Name cannot be changed after package creation
+1	[package-library-core]	Add script to an existing package
+1	[package-library-core]	Are you sure you want to permanently delete this package?
+1	[workspaces]	A directory of your team's workspaces.
+1	[team-installed-app]	Error in fetching configured integrations per slack
+1	[team-installed-app]	We were unable to create the connected account
+1	[team-installed-app]	Unable to create connected account
+1	[team-installed-app]	Set up installed apps for your team
+1	[team-installed-app]	Only one instance of this app can be added.
+1	[team-installed-app]	Only team admins can add apps.
+1	[team-installed-app]	Add more apps for your team
+1	[team-installed-app]	There are no integrations using this app
+1	[team-installed-app]	There may be other integrations that you don't have access to.
+1	[team-installed-app]	Could not fetch installed app details.
+1	[team-installed-app]	Unable to load installed app details
+1	[team-installed-app]	No integrations are using this app
+1	[team-installed-app]	An error occurred while deleting Connected Account. Try again after some time.
+1	[team-installed-app]	Add more apps for your organization
+1	[sidebar-environment]	You don’t have any environments.
+1	[sidebar-environment]	There was a error while setting the active environment
+1	[sidebar-environment]	Environment is not a fork
+1	[workspace-tidy]	Restoring returns workspaces to view. Monitors must be manually started.
+1	[workspace-tidy]	Everything in the selected workspaces will be permanently deleted.
+1	[team-partnership]	Something went wrong while removing the partner. Please try again.
+1	[team-partnership]	Partners with editor access will be charged in the next billing cycle.
+1	[team-partnership]	This organization requires users to sign in via SSO.
+2	[team-partnership]	No external partners? No problem!
+1	[team-partnership]	No partners found for the selected filters.
+1	[team-partnership]	Allow team members to accept partner invites and collaborate with other organizations.
+1	[team-partnership]	Success! Your permission have been updated.
+1	[team-partnership]	Oops! There was an error updating your permissions. Please try again.
+1	[team-partnership]	Upgrade your plan to update these settings
+1	[team-partnership]	Organizations that invited your team members to be partners
+1	[team-partnership]	View which team members have been invited as partners by other organizations.
+1	[team-partnership]	Nothing to see here… yet
+1	[team-partnership]	Only Team admins and Developers can view partnerships.
+1	[team-partnership]	All partners are shown in the Partnerships page.
+2	[integrations]	Unable to fetch connected accounts, please try again later.
+2	[integrations]	Couldn't delete the account, try again.
+2	[integrations]	No connected accounts support for the service you are looking for.
+2	[integrations]	Please provide a valid API key.
+2	[integrations]	Only team admin can perform this action
+2	[integrations]	Please provide a valid token.
+2	[integrations]	We could not reach your servers to validate the token.
+2	[integrations]	Something went wrong while updating the auth.
+2	[integrations]	You seem to be offline
+1	[integrations]	Disconnecting will permanently delete the team's stored security posture and related findings.
+1	[integrations]	This cannot be undone. Reconnecting will start a fresh security scan.
+2	[team-custom-domains]	Could not fetch all permissions for custom domains.
+2	[team-custom-domains]	Only Team Admins can add custom domains
+2	[team-custom-domains]	Upgrade plan to add more custom domains
+2	[team-custom-domains]	Add your team's first domain
+2	[team-custom-domains]	Only Team Admins can add custom domains.
+2	[team-custom-domains]	Unable to load custom domain
+2	[team-custom-domains]	Could not fetch custom domains.
+2	[team-custom-domains]	Could not fetch custom domain details.
+2	[team-custom-domains]	Unable to load custom domain details
+2	[team-custom-domains]	Enter the URL of the domain you want to add.
+2	[team-custom-domains]	The TXT and CNAME records have been added.
+2	[kafka-core]	Stop sending and switch mode?
+2	[kafka-core]	Stop streaming and switch mode?
+1	[kafka-core]	The schema panel is coming soon.
+1	[kafka-core]	Producer / consumer client settings is coming soon.
+2	[runner-core]	Data file saved to workspace
+2	[runner-core]	Failed to save data file to workspace. Please try again.
+2	[runner-core]	Your workspace storage limit has been reached.
+2	[runner-core]	Could not detect file content, please select a file again to upload
+2	[runner-core]	Failed to save settings. Please try again.
+2	[runner-core]	Failed to create dataset. Please try again.
+1	[team-rfa-page]	Only team members can access this resource
+1	[team-rfa-page]	Request to be a member of the team to get access.
+1	[team-rfa-page]	Request to join this team as a collaborator to get access.
+1	[team-rfa-page]	Join the team as a collaborator to request access to this resource.
+1	[team-rfa-page]	Verify your email to submit the request
+1	[team-rfa-page]	We've sent a verification email to 
+2	[team-rfa-page,team-join-otp]	Your request to join this team is in review
+1	[team-rfa-page]	We'll notify you once Team Admins respond.
+1	[team-rfa-page]	Check your email to access this resource
+1	[team-rfa-page]	Check your inbox for the latest invite.
+3	[sidebar-panel-groups]	You don't have permission to do this.
+3	[sidebar-panel-groups]	A section with this name already exists.
+3	[sidebar-panel-groups]	Couldn't reorder sections. Try again.
+3	[sidebar-panel-groups]	Your current custom sections will be reset
+3	[sidebar-panel-groups]	Couldn't reorganize the sidebar. Try again.
+1	[team-profile]	You'll use this URL to access Postman
+1	[team-profile]	Could not read the file
+1	[team-profile]	Do you want to add an existing API project?
+1	[team-profile]	How do you want to add your project?
+1	[team-profile]	Get started with existing collections
+1	[files-modal]	Workspace Linked to This Folder
+1	[files-modal]	You can request access to collaborate on this workspace.
+4	[files-modal,file-viewer]	The following files already exist in the destination folder:
+1	[workbench-mock-edit]	There was an unexpected error loading mock server. Please try again.
+1	[workbench-mock-edit]	No new changes to save for this mock server
+1	[workbench-mock-edit]	Enter mock name and header keys to update mock server.
+1	[workbench-mock-edit]	Enter a name and valid fixed network delay to update mock server.
+1	[workbench-mock-edit]	Enter a name for this mock server.
+1	[workbench-mock-edit]	Enter a valid fixed network delay.
+1	[workbench-mock-edit]	Enter header keys for response matching.
+1	[terminal]	Terminal failed to initialize. Please reload the application.
+1	[terminal]	Install the Postman CLI? [Tab]
+1	[terminal]	Desktop Agent reconnected, but this terminal session could not be restored.
+1	[user-groups]	Could not fetch data of all user groups.
+1	[user-groups]	Upgrade your plan to use groups
+1	[user-groups]	You do not have permission to create groups.
+1	[user-groups]	You do not have permission to add members to the group
+1	[user-groups]	Unable to add members to this group
+1	[user-groups]	Members you add will be assigned all roles from this group.
+1	[user-groups]	Search by name or email address
+1	[user-groups]	Select roles you want to assign to the members of this group.
+1	[user-groups]	Only Admins and Super Admins can edit roles on groups.
+1	[user-groups]	Groups with managers can only be assigned the developer role.
+1	[user-groups]	You do not have permissions to assign this user role.
+2	[client-secret-scanner]	Default policies by workspace type
+2	[client-secret-scanner]	New workspaces will automatically inherit these policies based on their type.
+2	[client-secret-scanner]	Apply default policies to all workspaces
+2	[client-secret-scanner]	Failed to reset workspaces to default policy. Please try again
+2	[client-secret-scanner]	Failed to save default policy. Please try again
+2	[client-secret-scanner]	Workspace's secret protection policy updated
+2	[client-secret-scanner]	Failed to update workspace policy. Please try again
+2	[client-secret-scanner]	Failed to update team policy. Please try again
+2	[client-secret-scanner]	Check your spelling, try a different search term, or adjust your filters.
+2	[client-secret-scanner]	Allow storing secrets in Postman Cloud
+2	[client-secret-scanner]	Move the detected secrets to Postman Local Vault
+2	[client-secret-scanner]	Move the detected secrets to Postman Shared Vault
+1	[workspace-core]	Invite people before sharing this link
+1	[workspace-core]	Please fill out this field.
+1	[workspace-core]	Couldn't enable public profile due to some error.
+1	[workspace-core]	You can now perform actions in public workspaces.
+1	[workspace-core]	Your username can be used to sign in and helps identify you.
+2	[local-secret-protection]	Failed to remove the detected secrets. Please try again.
+2	[local-secret-protection]	Failed to override the detected secrets. Please try again.
+2	[local-secret-protection]	Something went wrong while securing the secret. Please try again.
+2	[local-secret-protection]	The secret has been secured successfully in your Shared Vault
+2	[local-secret-protection]	The secret has been secured successfully in your Local Vault
+2	[local-secret-protection]	Something went wrong while securing all the secrets. Please try again.
+2	[local-secret-protection]	All the secrets have been secured successfully in your Shared Vault
+2	[local-secret-protection]	All the secrets have been secured successfully in your Local Vault
+2	[local-secret-protection]	Some secrets could not be secured
+1	[local-secret-protection]	Shared secrets are stored in the workspace vault and accessible to teammates.
+1	[partner-workspace-rfa-page]	Request to access this partner workspace
+1	[partner-workspace-rfa-page]	Pick a team to access this workspace with
+1	[partner-workspace-rfa-page]	I'm an external partner collaborating with this organization.
+1	[partner-workspace-rfa-page]	I am part of the organization that owns this workspace
+1	[partner-workspace-rfa-page]	Your team admin has blocked partnerships for your team.
+1	[partner-workspace-rfa-page]	Add a note to workspace admin
+1	[partner-workspace-rfa-page]	Switch teams from the account menu to continue.
+1	[partner-workspace-rfa-page]	Switching to your selected team...
+1	[team-private-api-network]	Upgrade to start using the Private API Network
+2	[team-private-api-network]	Hey, what's this? It’s the Private API Network!
+1	[team-private-api-network]	You do not have permission to view this Private API Network setting
+1	[team-private-api-network]	You don’t have permission to view these settings
+1	[team-private-api-network]	Approval process is no longer optional. Assign folder managers to delegate work.
+1	[team-private-api-network]	Something went wrong while fetching Private network permissions
+1	[team-private-api-network]	Something went wrong while fetching Private network access restriction status
+1	[team-private-api-network]	Once enabled, this cannot be changed.
+1	[team-private-api-network]	Something went wrong while updating Private network access restriction
+1	[onboarding-stepthrough]	Welcome! Let's get started 🚀
+1	[onboarding-stepthrough]	3 steps · 3-5 minutes
+1	[onboarding-stepthrough]	Start by sending a request
+1	[onboarding-stepthrough]	Test your API’s behavior by creating and sending a request.
+1	[onboarding-stepthrough]	Save your request to easily access it again
+1	[onboarding-stepthrough]	Power up your request with Postbot
+1	[onboarding-stepthrough]	Ask Postbot to validate your response, debug issues, add documentation, and more.
+1	[inactive-workspaces]	Archive inactive workspaces to reduce clutter. Restore them anytime.
+1	[workspace-onboarding]	Start with a collection template
+1	[workspace-onboarding]	Welcome to your personal workspace 👋
+1	[workspace-onboarding]	Use this space to build, test, and deploy APIs with your team.
+1	[workspace-onboarding]	How would you like to start?
+1	[workspace-onboarding]	Use AI to create an API
+1	[workspace-onboarding]	Personalized recommendations that help you make the most of Postman.
+1	[workspace-onboarding]	Could not find any collection template to use
+1	[keyvalue-type-support]	Cannot be used when format is set
+1	[keyvalue-type-support]	Min length must be greater than 0
+1	[keyvalue-type-support]	Max length must be greater than 0
+1	[keyvalue-type-support]	Min length must be less than Max length
+2	[keyvalue-type-support]	Min value must be less than Max value
+1	[secrets-field]	Use the value via a variable from one of the
+1	[secrets-field]	to prevent others from accessing it.
+1	[secrets-field]	Select a scope to store this secret. Click outside again to cancel.
+1	[secrets-field]	Variable name cannot be empty.
+1	[secrets-field]	Access your secrets from multiple devices and platforms using cloud vault.
+1	[sidebar-mock-listing]	There was an unexpected error loading mock servers. Please try again.
+1	[sidebar-mock-listing]	You don't have any mock servers.
+1	[sidebar-mock-listing]	No mocks found in repository
+1	[translations-iam]	Links generated to invite people to your organization.
+1	[translations-iam]	Links generated to invite people to your team.
+2	[team-shared-vault]	The page you are looking for is not available.
+3	[team-shared-vault]	Failed to update Shared Vault setting. Please try again later.
+3	[team-shared-vault]	Shared Vault turned on for your team
+3	[team-shared-vault]	Shared Vault turned off for your team
+3	[team-shared-vault]	Successfully updated Shared Vault setting
+3	[team-shared-vault]	Failed to update workspace setting. Please try again.
+3	[team-shared-vault]	Try adjusting your filters or search to find workspaces.
+3	[team-shared-vault]	We couldn't load Shared Vault settings for your workspaces. Please try again.
+3	[team-shared-vault]	For security reasons, Shared Vault is not supported in public workspaces.
+1	[partner-workspace-run-in-postman]	When a partner clicks Run in Postman
+1	[partner-workspace-run-in-postman]	Choose what partners should access after opening the Run in Postman link.
+1	[partner-workspace-run-in-postman]	Add partner to this workspace
+1	[partner-workspace-run-in-postman]	Create a custom sandbox workspace for each partner
+1	[partner-workspace-run-in-postman]	Provision a tailored workspace from resources in this master workspace.
+1	[partner-workspace-run-in-postman]	Something went wrong while creating the Run in Postman link. Try again.
+2	[multi-entity-sidebar]	Failed to load this section.
+2	[multi-entity-sidebar]	We faced an issue retrieving the items in this section.
+2	[multi-entity-sidebar]	No items found in this section
+1	[workspace-diff]	Open a draft workspace from the cloud to review its changes here.
+1	[workspace-diff]	The draft and parent workspaces are in sync.
+1	[workspace-diff]	This file couldn't be read, so its changes can't be shown.
+1	[workspace-diff]	Diff will load when the file is scrolled into view.
+1	[workspace-diff]	There was an error computing the diff
+1	[workspace-diff]	Failed to load draft workspace
+1	[workspace-diff]	Failed to compute merge diff
+1	[create-new-team-setup]	Invite people to join your team
+2	[create-new-team-setup]	Invites will be sent as soon as you create your team.
+1	[collection-templates]	What templates would you like to see?
+1	[collection-templates]	Your inputs will help us create more relevant templates for you.
+1	[collection-templates]	e.g. load testing and issue tracking API
+1	[collection-templates]	You've crossed the character limit. Try removing some text.
+1	[collection-templates]	Thank you for your suggestions.
+1	[collection-templates]	We love your enthusiasm but...
+1	[onboarding-components]	Import cURL into a collection
+1	[onboarding-components]	Select or create a new collection
+1	[agent-canvas]	Open a workspace to view this in a tab
+2	[agent-canvas,agent-show-html]	This HTML preview is unavailable.
+2	[agent-canvas,agent-show-html]	This HTML preview is no longer available.
+1	[squad-profile]	We couldn't load the team profile. Please try again.
+1	[squad-profile]	Create or Move existing workspaces to this team to get started.
+1	[squad-profile]	Join or Invite teammates to this team to get started.
+2	[personal-workspace-rfa-page,team-join-otp]	You don't have access to this resource
+2	[personal-workspace-rfa-page,team-join-otp]	Request the owner to share it with you.
+1	[personal-workspace-rfa-page]	Your request to access this resource is in review
+1	[personal-workspace-rfa-page]	We'll notify you once the owner responds.
+1	[personal-workspace-rfa-page]	A short note on why you want access...
+1	[user-settings]	Teams you can join from your organization
+1	[user-settings]	You aren't part of any teams yet.
+1	[api-catalog-scorecards]	Delete access requires API Catalog Manager role
+1	[otp]	We couldn't send a verification code right now. Please try again.
+1	[otp]	©2025 Postman, Inc. All rights reserved.
+1	[otp]	You've reached the resend limit for this verification request.
+1	[otp]	Your verification session expired. Send a new code to continue.
+1	[otp]	Verification code must contain six digits.
+1	[workspace-rfa-page]	A short note that will help workspace admins approve your request...
+1	[workspace-rfa-page]	Looks like you don't have access
+1	[workspace-rfa-page]	Looks like you still don't have access
+1	[workspace-rfa-page]	Your request to access this workspace is in a pending state.
+1	[workspace-rfa-page]	You are signed in as
+1	[workspace-rfa-page]	You'll be notified of the workspace admin's response.
+1	[file-viewer]	Enter the folder path you want to browse:
+1	[file-viewer]	/Users (macOS) or C:\ (Windows)
+1	[byok]	Secure your data with BYOK Encryption
+1	[byok]	We could not load your BYOK settings. Please try again later.
+1	[sdk-gen]	Failed to delete SDKs. Please try again.
+1	[move-collection]	Move to new team workspace
+1	[team-join-otp]	Hang tight while we get you set up.
+1	[team-join-otp]	We'll notify you once the team admin responds.
+1	[team-join-otp]	We couldn't complete your request right now. Please try again later.
+1	[mcp-servers]	No operations found in this specification.
+1	[mcp-servers]	This collection has no requests.
+1	[mcp-servers]	Failed to load operations. Please try again.
+1	[mcp-servers]	Failed to load collection. Please try again.
+1	[files-history-sidebar]	Your git directory is clean
+1	[files-history-sidebar]	Commit all unstaged files and reload list
+1	[api-client-core]	Some changes to the Token configurations
+1	[move-ws-entity]	Pinned environments will also be moved
+1	[sidebar-collection]	Sign in to create a Collection
+1	[api-mock-core]	Try adjusting the filters above
+1	[api-mock-core]	Click start to run mock server
+1	[datasets]	Drop or click to upload .csv or .json
+1	[datasets]	Drop or click to upload .csv
+1	[workbench-mock-create-local]	A service or feature you want to mock…
+1	[workbench-mock-create-local]	Keep this mock auto-generated from the collection
+1	[workbench-mock-create-local]	Keep this mock auto-generated from the API spec
+1	[workbench-mock-create-local]	Keep this mock auto-generated from the collection once it's pushed to cloud
+1	[workbench-mock-create-local]	Couldn't recognise this file as a collection or spec.
+1	[kafka-core]	Records with the same key land on the same partition.
+1	[kafka-core]	Leave empty to use the producer's default partitioner.
+1	[kafka-core]	No topics found for this cluster.
+1	[kafka-core]	Pick a topic to enable the produce form.
+1	[kafka-core]	Hit Start to begin streaming
+1	[kafka-core]	Select a message to inspect
+3	[local-filesystem]	Link a collection or API spec to auto-generate this mock.
+3	[local-filesystem]	Regenerated automatically when the source changes.
+1	[webhook-workbench]	Write tests for received events in Javascript.
+1	[webhook-workbench]	Write tests for static or forwarded response in Javascript.
+2	[webhook-workbench]	This script is run against each event received.
+2	[webhook-workbench]	This script is run against the static or forwarded response.
+3	[integrations-hub]	Your team has no connected integrations.
+3	[integrations-hub]	GitHub Organizations that Postman has been given access to.
+3	[integrations-hub]	Failed to remove the gateway connection. Please try again.
+3	[integrations-hub]	Only the integration creator can edit this configuration.
+2	[workbench-mock-create-local]	Manage stateful data in mocks using <code>pm.state</code>.
+2	[workbench-mock-create-local]	Responses are generated from the selected API spec.
+2	[workbench-mock-create-local]	Responses are generated from the collection's saved examples.
+4	[workbench-mock-create-local]	Regenerated automatically when the collection/API spec changes.
+1	[workbench-mock-create-local]	Publish as a cloud Mock Server, reachable at the URL below.
+1	[workbench-mock-create-local]	Redeploy the live mock on every change. Otherwise, deploy updates manually.
+3	[api-mock-core]	This mock can be accessed by anyone.
+1	[workspace-overview]	You are about to pin a document.
+1	[workspace-overview]	You are about to unpin a document.
+1	[workspace-overview]	This will remove the document from the workspace overview.
+1	[workspace-overview]	Do you want to approve this document pin change?
+1	[workspace-overview]	documentId is required to manage a document pin
+1	[workspace-overview]	shouldPin must be an explicit boolean (true to pin, false to unpin)
+1	[workspace-overview]	Could not parse the document pin tool arguments
+2	[workspace-sidebar-core]	Test and query your data sources with a data request.
+2	[workspace-sidebar-core]	Deploy a mock as a live service.
+2	[workspace-sidebar-core]	Create a code-powered virtual service.
+2	[monitors-core]	<0></0> Support for Collections with <1>GraphQL</1> and <2>gRPC</2> requests is in beta.
+2	[monitors-core]	The contents of this file could not be read.
+2	[monitors-core]	Data sources uploaded to Postman Cloud.
+2	[monitors-core]	Couldn’t upload the data sources. Please try again.
+2	[monitors-core]	No datasets in this workspace yet.
+2	[monitors-core]	Run one iteration for each row in the view.
+2	[monitors-core]	Upgrade to use datasets and data files
+2	[vault]	Who can access this secret
+2	[vault]	Choose which other workspaces in this team can use this secret.
+2	[vault]	Every current and future workspace in this team can use this secret.
+2	[vault]	Select which workspaces in this team can use this secret.
+2	[vault]	Vault Enterprise / HCP namespace. Leave blank for open-source Vault.
+2	[vault]	Your identity provider's issuer URL. Postman discovers its endpoints via /.well-known/openid-configuration.
+2	[vault]	The public client ID registered with your identity provider for Postman.
+2	[vault]	Path where Vault's JWT/OIDC auth method is enabled (default: jwt).
+2	[vault]	Optional extra OIDC scopes, space-separated. 'openid' is always requested.
+2	[vault]	Redirecting you to your identity provider…
+2	[vault]	You can close this window and return to Postman.
+2	[local-filesystem]	Open a new request with the x-mock-scenario header
+2	[local-filesystem]	Ask AI to setup capture plugin
+2	[local-filesystem]	Run app tests with Postman
+2	[local-filesystem]	Integrate your test suite with the Application Inventory.
+1	[settings]	Postman will start building knowledge shortly.
+1	[settings]	Memory is not enabled for your team.
+1	[settings]	Failed to start memory refresh. Please try again.
+1	[settings]	Prompt must not be empty. Clear the field to remove it.
+1	[settings]	Only team admins can manage memory settings.
+1	[team-settings]	Allow auto-join for all domains
+1	[team-settings]	Allow auto-join for your domain
+1	[team-settings]	Enable auto-join for all domains?
+1	[team-settings]	Turn off auto-join for all domains?
+1	[team-settings]	Auto-join enabled for all domains
+1	[team-settings]	Anyone from your verified domains can now join without an invitation.
+1	[team-settings]	Auto-join turned off for all domains
+1	[team-settings]	Anyone from your verified domains will now require an invitation to join.
+1	[team-settings]	Looks like that was our fault. Try again.
+1	[workbench-core]	Sign in to resolve this secret
+1	[workbench-core]	This secret resolves only in the Postman desktop app
+1	[workbench-core]	Sign in on this device
+2	[performance-testing-ui]	Upgrade to use datasets as iteration data
+1	[cloud-agent-tasks]	File attachments aren't available right now. Please try again later.
+1	[cloud-agent-tasks]	This file is no longer available. Please re-add it.
+1	[cloud-agent-tasks]	Couldn't confirm this file was attached. Please re-add it and try again.
+1	[cloud-agent-tasks]	Paste your .env or type a secret name
+1	[cloud-agent-tasks]	Paste a .env file or type a secret name
+1	[cloud-agent-tasks]	This requires being part of a Postman team.
+1	[cloud-agent-tasks]	Only team admins can manage team secrets.
+1	[cloud-agent-tasks]	You don't have access to this feature.
+1	[cloud-agent-tasks]	Secrets can't be stored right now. Try again shortly.
+1	[cloud-agent-tasks]	Name must be 255 characters or fewer.
+1	[cloud-agent-tasks]	Some secrets couldn't be saved. Fix the highlighted rows and try again.
+1	[unified-api-network]	Approve APIs and map vault references
+1	[unified-api-network]	No secrets to map. These APIs don't use any.
+1	[unified-api-network]	No APIs in this namespace yet
+1	[unified-api-network]	Add APIs to this namespace
+1	[unified-api-network]	Add a note and <strong>send the request</strong> to the Namespace Manager.
+1	[unified-api-network]	The APIs appear here, and members can <strong>request credentials</strong> to use them.
+2	[integrations-hub]	API Catalog - Integrated Services
+2	[integrations-hub]	Connect your API Catalog Integrated Services to GitHub repositories.
+2	[integrations-hub]	Something went wrong while loading integrated services. Please try again.
+2	[integrations-hub]	You don't have permission to connect this app. Contact a team admin.
+2	[integrations-hub]	You don't have permission to remove this app from this workspace.
+2	[integrations-hub]	You don't have permission to connect this gateway. Contact a team admin.
+2	[integrations-hub]	Log in to see connection info
+2	[integrations-hub]	This channel has been archived
+3	[integrations-hub]	Couldn’t load channels. Please try again.
+2	[integrations-hub]	Edits a request or a collection
+2	[integrations-hub]	Failed to connect the channel integration.
+2	[integrations-hub]	Failed to update the channel integration.
+2	[integrations-hub]	Failures only (and first consequent successful run)
+2	[integrations-hub]	Failed to connect the monitor integration.
+2	[integrations-hub]	Failed to update the monitor integration.
+1	[webhook-workbench]	Write tests for received events in JavaScript.
+1	[webhook-workbench]	Write tests for static or forwarded response in JavaScript.
+1	[description-editor]	Image preview could not be loaded. Select the image to retry.
+1	[description-editor]	Enter a valid HTTP(S) or relative image URL
+1	[description-editor]	Add alternative text or mark the image as decorative
+1	[user-onboarding]	Take me to my Workspace
+2	[datasets]	Path to a local file
+2	[datasets]	Pick a source to explore its schema.
+2	[datasets]	You can still add it as a source, with all operations supported.
+2	[datasets]	Install Postman Desktop Agent to run this query
+2	[datasets]	Postman Desktop Agent is starting up
+2	[datasets]	The Postman Desktop Agent is still initializing. Retry in a moment.
+2	[datasets]	This query mixes cloud and local data sources
+2	[files-sidebar]	Command to run in your terminal
+2	[files-sidebar]	Enter a remote repository URL to run this command
+2	[files-sidebar]	Couldn't run the command in the terminal
+2	[workbench-mock-create-local,workbench-mock-create]	Select or create a collection
+1	[workbench-mock-create-local]	Nothing here yet. Create a collection to get started.
+1	[workbench-mock-create-local]	Nothing here yet. Create a spec to get started.
+1	[workbench-mock-create-local]	Nothing here yet. Create a mock to get started.
+1	[workbench-mock-create-local]	Drop a Collection or Spec, or <browse>browse</browse>
+1	[workbench-mock-create-local]	Enter a name for the deployed mock server
+1	[workbench-mock-create-local]	Private mocks can be accessed using a valid <code>x-api-key</code> header.
+2	[workbench-mock-create-local,workbench-mock-create]	Auto deploy when mock changes
+1	[workbench-mock-create-local]	Redeploy mock server when mock changes.
+1	[workbench-mock-create-local]	This API spec version is not supported yet.
+1	[workbench-mock-create-local]	Select a code mock to continue.
+1	[workbench-mock-create]	This mock is already deployed.
+1	[workbench-mock-create]	Push this mock to cloud to deploy mock server.
+1	[workbench-mock-create]	Automatically redeploy mock server when mock changes.
+2	[api-mock-core]	Send requests to the mock server to see their logs
+2	[api-mock-core]	Use <pmState>pm.state</pmState> to persist data in mocks. <docsLink>Learn about states.</docsLink>
+2	[api-mock-core]	, including all its logs and data, and can’t be undone.
+2	[files-modal]	Folder linked to another workspace
+2	[files-modal]	This folder is linked to a workspace you don't have access to.
+2	[files-modal]	We couldn't check which workspace this folder belongs to.
+2	[files-modal]	You don't have permission to change this workspace's connected folder
+2	[files-modal]	The current folder will be disconnected for everyone in the other workspace.
+1	[runner-core]	Available only in the Postman desktop app.
+1	[sidebar-panel-groups]	Group items of any type together and drag to reorder them.
+2	[use-collection]	You need to be online to use this collection
+2	[use-collection]	Work on a copy of this collection.
+2	[use-collection]	Use collection in your local file system.
+2	[use-collection]	Forking isn't available in local mode.
+2	[use-collection]	You don't have permission to fork this collection.
+1	[use-collection]	Auto - pull changes from source collection
+1	[use-collection]	Watch source collection to get notified updates.
+2	[use-collection]	Get notified when the source collection changes.
+2	[use-collection]	Something went wrong while forking the collection. Please try again.
+2	[use-collection]	This collection already lives in this workspace.
+2	[use-collection]	Dependencies are only available in the Postman desktop app
+2	[use-collection]	Something went wrong while adding the collection. Please try again.
+1	[monitors-core]	You do not have permission to create collections in this workspace
+1	[monitors-core]	You do not have permission to create environments in this workspace
+1	[local-filesystem]	Fix validation errors before pushing. Click to view issues.
+1	[local-filesystem]	Cannot verify workspace lint status.
+1	[performance-testing-ui]	Setup lifecycle collection outcome is unknown.
+1	[performance-testing-ui]	Runs after the test with carried-over environment mutations.
+1	[performance-testing-ui]	Collections could not be loaded. Try again before selecting a lifecycle collection.
+1	[performance-testing-ui]	Lifecycle collections are not available for new performance tests.
+1	[performance-testing-ui]	Select an environment to run a setup collection.
+1	[performance-testing-ui]	The lifecycle collection configuration is invalid.
+1	[performance-testing-ui]	Lifecycle collections are available only for cloud performance tests.
+1	[performance-testing-ui]	Waiting for the setup collection to finish.
+1	[performance-testing-ui]	Waiting for the teardown collection to finish.
+1	[performance-testing-ui]	One or more assertions failed.
+1	[performance-testing-ui]	A script failed during collection execution.
+1	[performance-testing-ui]	One or more requests failed.
+1	[performance-testing-ui]	The collection did not finish before the time limit.
+1	[performance-testing-ui]	An environment is required to run this lifecycle collection.
+1	[performance-testing-ui]	The lifecycle collection resources could not be loaded.
+1	[performance-testing-ui]	The lifecycle collection runtime could not start.
+1	[performance-testing-ui]	The lifecycle collection exceeded its execution resource limit.
+1	[performance-testing-ui]	The lifecycle result exceeded the allowed size.
+1	[performance-testing-ui]	The collection could not complete because of a system error.
+1	[integrations-hub]	Type to search for a group chat
+1	[integrations-hub]	Couldn’t load group chats. Please try again.
+1	[datasets]	Generate and append synthetic rows
+1	[datasets]	This source cannot be extended because its original data is read-only
+1	[datasets]	Columns resolved from a five-row preview
+1	[datasets]	Save file to the Postman Cloud Store
+1	[datasets]	Uploaded to Postman Cloud Store. Available across devices, users, and cloud runs.
+1	[files-sidebar]	The folder selected is no longer in sync with this workspace.
+1	[files-sidebar]	This workspace is connected to
+1	[files-sidebar]	Complete the Initialize step first
+1	[api-mock-core]	Delete all logs and pm.state keys
+1	[files-modal]	This workspace is linked to
+1	[files-modal]	This workspace is not linked to a Git repository.
+1	[files-modal]	The current folder will be disconnected for everyone in this workspace.
+1	[files-modal]	You don't have permission to disconnect this workspace.
+1	[specifications-sidebar]	Cannot be restored once deleted
+1	[multi-entity-sidebar]	Unable to delete the selected items
+1	[use-collection]	Pull changes from the source collection automatically
+1	[team-shared-vault]	Allow vault secrets in scripts
+1	[team-shared-vault]	Allow scripts to access vault secrets during request execution.
+1	[team-shared-vault]	Share secrets across all workspaces
+1	[team-shared-vault]	Failed to save vault settings. Please try again.
+1	[team-shared-vault]	Could not load vault settings. Save is disabled until this is resolved.
+1	[team-shared-vault]	Only team admins can update vault settings.

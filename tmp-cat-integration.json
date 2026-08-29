@@ -1,0 +1,3810 @@
+[
+  {
+    "text": "Couldn't approve request",
+    "count": 30,
+    "ns": [
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Team resources",
+    "count": 20,
+    "ns": [
+      "team-settings",
+      "feature-upgrade-blank-state"
+    ]
+  },
+  {
+    "text": "Request acknowledged",
+    "count": 20,
+    "ns": [
+      "workspace-sidebar-core",
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Unable to approve request",
+    "count": 18,
+    "ns": [
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Whoops! It looks like you cannot approve this request.",
+    "count": 18,
+    "ns": [
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Couldn't update setting",
+    "count": 15,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "An error occurred while fetching settings",
+    "count": 15,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Only team admins can manage resources in the team.",
+    "count": 15,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "This request couldn't be completed because the element was deleted.",
+    "count": 14,
+    "ns": [
+      "workspace-sidebar-core",
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Unable to create request",
+    "count": 13,
+    "ns": [
+      "workspace-overview",
+      "collaboration",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Disconnect All",
+    "count": 12,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Couldn't send request",
+    "count": 10,
+    "ns": [
+      "workspace-create",
+      "user-onboarding",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Unable to send request",
+    "count": 10,
+    "ns": [
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Couldn't respond to request",
+    "count": 10,
+    "ns": [
+      "workspace-sidebar-core",
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Unable to respond to request",
+    "count": 10,
+    "ns": [
+      "workspace-sidebar-core",
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Looks like someone has already approved this request.",
+    "count": 10,
+    "ns": [
+      "workspace-sidebar-core",
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Looks like someone has already rejected this request.",
+    "count": 10,
+    "ns": [
+      "workspace-sidebar-core",
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Please contact a Team Admin to convert this Guest to a Developer.",
+    "count": 10,
+    "ns": [
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Mock Servers",
+    "count": 9,
+    "ns": [
+      "team-settings",
+      "sidebar-panel-groups"
+    ]
+  },
+  {
+    "text": "Live Sessions",
+    "count": 9,
+    "ns": [
+      "settings",
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Changes saved",
+    "count": 9,
+    "ns": [
+      "team-settings",
+      "workbench-mock-details",
+      "workbench-mock-edit"
+    ]
+  },
+  {
+    "text": "Select a workspace",
+    "count": 9,
+    "ns": [
+      "api-client-core",
+      "api-network",
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Add from file",
+    "count": 8,
+    "ns": [
+      "workspace-sidebar-core",
+      "app-header",
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Delete integration",
+    "count": 8,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Select people and groups",
+    "count": 8,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "New members will join your team once they accept your invite.",
+    "count": 8,
+    "ns": [
+      "workspace-sidebar-core",
+      "app-header",
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "I've Verified My Email",
+    "count": 7,
+    "ns": [
+      "team-settings",
+      "user-onboarding",
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Name, email, or group name",
+    "count": 7,
+    "ns": [
+      "api-client-core",
+      "app-header",
+      "invite-flow-components"
+    ]
+  },
+  {
+    "text": "Only CSV and TXT files can be uploaded",
+    "count": 7,
+    "ns": [
+      "workspace-sidebar-core",
+      "app-header",
+      "invite-flow-components"
+    ]
+  },
+  {
+    "text": "Select a TXT or CSV file to add people",
+    "count": 7,
+    "ns": [
+      "workspace-sidebar-core",
+      "app-header",
+      "invite-flow-components"
+    ]
+  },
+  {
+    "text": "There was an error uploading your file. Please try again",
+    "count": 7,
+    "ns": [
+      "workspace-sidebar-core",
+      "app-header",
+      "invite-flow-components"
+    ]
+  },
+  {
+    "text": "Save Changes",
+    "count": 6,
+    "ns": [
+      "team-settings",
+      "package-library-core"
+    ]
+  },
+  {
+    "text": "View Settings",
+    "count": 6,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Request failed",
+    "count": 6,
+    "ns": [
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Filter by type",
+    "count": 6,
+    "ns": [
+      "team-settings",
+      "import-modal"
+    ]
+  },
+  {
+    "text": "You need access",
+    "count": 6,
+    "ns": [
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Request expired",
+    "count": 6,
+    "ns": [
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Private Channel",
+    "count": 6,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "External packages",
+    "count": 6,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Channel unavailable",
+    "count": 6,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Couldn't deny request",
+    "count": 6,
+    "ns": [
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Couldn't find the requester",
+    "count": 6,
+    "ns": [
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "You already have this access",
+    "count": 6,
+    "ns": [
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "You don't have permission to approve",
+    "count": 6,
+    "ns": [
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Need more control over team resources?",
+    "count": 6,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "This request has already been processed.",
+    "count": 6,
+    "ns": [
+      "workspace-overview",
+      "team-settings"
+    ]
+  },
+  {
+    "text": "The request you are trying to approve has failed.",
+    "count": 6,
+    "ns": [
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "You need to be an Editor to manage roles on this element.",
+    "count": 6,
+    "ns": [
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "They may have left your team or deleted their Postman account.",
+    "count": 6,
+    "ns": [
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Create a new request if you'd like a different level of access",
+    "count": 6,
+    "ns": [
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "This request couldn't be completed because the entity was deleted.",
+    "count": 6,
+    "ns": [
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "This request couldn't be completed because the element was deleted or moved.",
+    "count": 6,
+    "ns": [
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Access requests expire after 30 days. You can still grant access by sharing the element with them.",
+    "count": 6,
+    "ns": [
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Unlock advanced settings for workspaces, collections, and more with Postman <1>Enterprise</1> plan.",
+    "count": 6,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Denial Failed",
+    "count": 5,
+    "ns": [
+      "team-settings",
+      "dashboard-widgets"
+    ]
+  },
+  {
+    "text": "Request denied.",
+    "count": 5,
+    "ns": [
+      "team-settings",
+      "unified-api-network"
+    ]
+  },
+  {
+    "text": "Approval Failed",
+    "count": 5,
+    "ns": [
+      "team-settings",
+      "dashboard-widgets"
+    ]
+  },
+  {
+    "text": "Request approved.",
+    "count": 5,
+    "ns": [
+      "team-settings",
+      "unified-api-network"
+    ]
+  },
+  {
+    "text": "Connected accounts",
+    "count": 5,
+    "ns": [
+      "settings",
+      "integrations"
+    ]
+  },
+  {
+    "text": "Loading integrations…",
+    "count": 5,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "No integrations found",
+    "count": 5,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Integration not found",
+    "count": 5,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Couldn't remove access",
+    "count": 5,
+    "ns": [
+      "workspace-overview",
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Specific people or groups",
+    "count": 5,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Couldn’t load integrations",
+    "count": 5,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Upgrade to invite people to the team",
+    "count": 5,
+    "ns": [
+      "team-settings",
+      "home"
+    ]
+  },
+  {
+    "text": "Discover, install, and manage integrations.",
+    "count": 5,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Something went wrong while generating the link.",
+    "count": 5,
+    "ns": [
+      "app-header",
+      "invite-flow-modals",
+      "onboarding-components"
+    ]
+  },
+  {
+    "text": "You don't have permission to perform this action.",
+    "count": 5,
+    "ns": [
+      "team-settings",
+      "squad-settings",
+      "websocket-core"
+    ]
+  },
+  {
+    "text": "We couldn’t find an integration for this address.",
+    "count": 5,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Unable to save changes at the moment. Please try again.",
+    "count": 5,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Something went wrong while loading integrations. Please try again.",
+    "count": 5,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Slack Channel",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Enter tag name",
+    "count": 4,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Connect Project",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Slack Workspace",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Add integration",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Edit integration",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Private workspace",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Connect a channel",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "About the Publisher",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Delete integration?",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Back to Integrations",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Upgrade to Enterprise",
+    "count": 4,
+    "ns": [
+      "team-settings",
+      "private-network-org"
+    ]
+  },
+  {
+    "text": "Upgrade to enterprise",
+    "count": 4,
+    "ns": [
+      "team-settings",
+      "team-private-api-network"
+    ]
+  },
+  {
+    "text": "Remove from workspace",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Monitor Notifications",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Personal Notifications",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Search for integrations",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Workspace Notifications",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Request already fulfilled",
+    "count": 4,
+    "ns": [
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Log in to see channel info",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Create and View Jira Issues",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Type to search for a channel",
+    "count": 4,
+    "ns": [
+      "agent-automations",
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "The data could not be loaded.",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Integration deleted successfully.",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Removed from workspace successfully.",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "You are not a member of this workspace",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Only the integration creator can delete it.",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Failed to load this integration's connections",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Personal notifications disconnected successfully.",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Failed to remove from workspace. Please try again.",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Failed to disconnect personal notifications. Please try again.",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Something went wrong while deleting your integration. Please try again.",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Deleting this integration will cease any actions it performs immediately. Are you sure you wish to continue?",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Create Jira issues or link existing ones from a collection, response, or monitor, and track their status without leaving Postman.",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Get personal notifications about important events, like when teammates mention you in comments or when tokens or keys are exposed.",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Get updates any time your teammates add or change a request, collection, or environment, or when someone posts a workspace update.",
+    "count": 4,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Deny request",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Delete token",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Collapse all",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Postman User",
+    "count": 3,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Postman Team",
+    "count": 3,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Save Question",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Instance Name",
+    "count": 3,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Enter a reason",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Custom message",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Team discovery",
+    "count": 3,
+    "ns": [
+      "create-new-team",
+      "team-onboarding",
+      "team-profile"
+    ]
+  },
+  {
+    "text": "Disconnect Wiz",
+    "count": 3,
+    "ns": [
+      "integrations",
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Invite by email",
+    "count": 3,
+    "ns": [
+      "app-header",
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Approve instead",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Disconnect Wiz?",
+    "count": 3,
+    "ns": [
+      "integrations",
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "GitHub Username",
+    "count": 3,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Connect Gateway",
+    "count": 3,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Copy invite link",
+    "count": 3,
+    "ns": [
+      "app-header",
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Select a reason:",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Allowed packages",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Enter your token",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Enable Auto-Join",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Set up your team",
+    "count": 3,
+    "ns": [
+      "create-new-team",
+      "team-onboarding",
+      "team-profile"
+    ]
+  },
+  {
+    "text": "Accept & activate",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Permission denied",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Use more packages",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Share with guests",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Export vault data",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Remove connection",
+    "count": 3,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Allow all packages",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Enter package name",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Vault export is on",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Screening question",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Upload a team logo",
+    "count": 3,
+    "ns": [
+      "create-new-team",
+      "team-onboarding",
+      "team-profile"
+    ]
+  },
+  {
+    "text": "Vault export is off",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Create public mocks",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Manage mock servers",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Start live sessions",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Manage sandbox team",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Organization access",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "GitHub Organization",
+    "count": 3,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Discovered Services",
+    "count": 3,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Integrated Services",
+    "count": 3,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Workspace Management",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Private npm packages",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "e.g. @postman, @acme",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Sandbox team members",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Feature not available",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Scope cannot be empty",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "No team members found",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Use external packages",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Private package scopes",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Allow encrypted export",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Turn on team discovery",
+    "count": 3,
+    "ns": [
+      "create-new-team",
+      "team-onboarding",
+      "team-profile"
+    ]
+  },
+  {
+    "text": "Allow selected packages",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Unable to save question",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Team discovery settings",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Block collection exports",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Allow unencrypted export",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Ask a screening question",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Resend verification email",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Connected GitHub Accounts",
+    "count": 3,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Except partners and guests.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Sharing with Guests enabled",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Make this team discoverable",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Please provide team details",
+    "count": 3,
+    "ns": [
+      "create-new-team",
+      "team-onboarding",
+      "team-profile"
+    ]
+  },
+  {
+    "text": "Activate Sandbox environment",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Sharing with Guests disabled",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "I don’t recognize this person",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "External packages not allowed",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Collection exports are blocked",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Collection exports are allowed",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "This request has been resolved.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Reason for denying this request",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Failed to update export settings",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Add members to the sandbox team.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Team-Connected Integrations Only",
+    "count": 3,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Upgrade to add people to the team",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Why are you denying this request?",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Search for team members to add...",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Upgrade to manage allowed packages",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Allow users to start live sessions",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "e.g. npm:lodash@*, jsr:@opensrc/*@*",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Make this organization discoverable",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "They’re not part of our organization",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Creating public mock servers enabled",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Please try again or contact support.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Creating public mock servers disabled",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Manage mocks within your organization",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Failed to update team access settings",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Your team can export their vault data.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Usage and feature limitations may apply",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "e.g. Why do you want to join this team?",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Please don’t close or refresh this tab.",
+    "count": 3,
+    "ns": [
+      "invite-flow-modals",
+      "create-new-team"
+    ]
+  },
+  {
+    "text": "There’s no budget for additional members",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Your team can't export their vault data.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Your team has no connected integrations.",
+    "count": 3,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Gateway connection removed successfully.",
+    "count": 3,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Company systems handle workspace creation",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Editors can share collections with guests",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Packages that can be used in the scripts.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Configure access to private npm packages.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Couldn’t load channels. Please try again.",
+    "count": 3,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Editors and viewers can export collections",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Define whether vault data can be exported.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Postman may delete Sandbox data at any time",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Only team admins can modify export settings",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Your team access settings have been updated",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Manage mock servers within your organization",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Require approval for publishing public mocks",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Define whether live sessions can be started.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Allow people to automatically join this team",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Please limit your question to 500 characters",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Editors and viewers cannot export collections",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Allow Editors to share collections with Guests",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Manage live sessions within your organization.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Add members from your team to the sandbox team.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Couldn't load the external package configurations.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "They belong to a different team in our organization",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Contact your admin to add more packages to this list.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Users not belonging to the team cannot request access",
+    "count": 3,
+    "ns": [
+      "collaboration-errors",
+      "personal-workspace-rfa-page"
+    ]
+  },
+  {
+    "text": "Allow people to automatically join from resource links",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Manage sharing of collections within your organization.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Define publishing and visibility rules for mock servers.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Verify your email address to manage team access settings",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "We'll notify you once the reviewer approves your request.",
+    "count": 3,
+    "ns": [
+      "app-header",
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Failed to activate Sandbox environment. Please try again.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Only the integration creator can edit this configuration.",
+    "count": 3,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "External package settings are not available for your team.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Failed to remove the gateway connection. Please try again.",
+    "count": 3,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Package name must start with a registry (e.g. npm: or jsr:)",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "GitHub Organizations that Postman has been given access to.",
+    "count": 3,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Sandbox is provided for testing and evaluation purposes only",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Give granular controls to team members, making it easier to ",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Manage how people from your organization can join this team.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Contact your admin to enable external packages for your team.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Team members can share collections with people outside the team.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Failed to load settings for external packages. Please try again.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Your team members will now have a smoother onboarding experience",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Something went wrong when saving your question. Please try again.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Team members can't share collections with people outside the team.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Failed to update settings for external packages. Please try again.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "An error occurred while updating export settings. Please try again.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Enable public Mock Servers to require approval for publishing mocks.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "No members in the sandbox team yet. Add members from your team above.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "This way your coworkers can discover and automatically join your team.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Help your team feel at home by uploading a custom logo. Max size: 2 MB",
+    "count": 3,
+    "ns": [
+      "create-new-team",
+      "team-onboarding",
+      "team-profile"
+    ]
+  },
+  {
+    "text": "Use packages from external registries like npm and JSR in your scripts.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Define whether external packages can be used in scripts, and which ones.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Only selected people and groups can create workspaces directly in Postman.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "When enabled, editors and viewers are prevented from exporting collections.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Enter valid package name and version (e.g. npm:lodash@1.1.0 or npm:lodash@*)",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Shown to organization members when they try to create a workspace in Postman.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "This setting is managed by your organization, and can't be changed for your team.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Pending team members must answer this question when requesting to join your team.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Explain why workspace creation is disabled and where users can request a workspace...",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Can edit all shared workspaces and manage members, roles, billing, and team settings.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "No available slots in the sandbox team. Please free up a slot before adding new members.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Sandbox is provided \"as-is\", with no service level commitments, Indemnities, or warranties",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Allow team members to use packages from external registries like npm and JSR in their scripts.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Customer shall only use test or dummy data in Sandbox; production data and personal data must not be submitted",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Can view shared workspaces but can’t make changes or manage team settings. Personal workspaces are unaffected.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Manage your team's vault settings, control access, and keep sensitive information secure across your workspaces.",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Postman will stop discovering and importing services from this gateway instance. You can connect it again at any time.",
+    "count": 3,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Allow specific packages from external registries by upgrading to the enterprise plan. <1>Learn about Postman enterprise plans.</1>",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "By activating, you acknowledge and agree that the following usage requirements apply to your organization's use of the Sandbox environment as part of the Documentation referenced in your Agreement with Postman:",
+    "count": 3,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Connected by",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "In real time",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Authorized as",
+    "count": 2,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "when someone…",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Please refresh",
+    "count": 2,
+    "ns": [
+      "team-profile-settings",
+      "user-groups"
+    ]
+  },
+  {
+    "text": "Shared channel",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Edit status tag",
+    "count": 2,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Upload an image",
+    "count": 2,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Connect Service",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Connection info",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Day of the week",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Select timezone",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Connect Monitor",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "View all options",
+    "count": 2,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "Chat unavailable",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Select a channel",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Select a monitor",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Enter status name",
+    "count": 2,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Connect Workspace",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Postman workspace",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Search by tag name",
+    "count": 2,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Creating your team",
+    "count": 2,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Postman GitHub App",
+    "count": 2,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "Edit authentication",
+    "count": 2,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "Browse integrations",
+    "count": 2,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "Send notifications…",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Every completed run",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Delete authentication",
+    "count": 2,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "Delete Authentication",
+    "count": 2,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "Request already exists",
+    "count": 2,
+    "ns": [
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Delete authentication?",
+    "count": 2,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "You seem to be offline",
+    "count": 2,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "You already have access",
+    "count": 2,
+    "ns": [
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Back up your collection",
+    "count": 2,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "Send notifications for…",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Edit channel integration",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Posts a workspace update",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Edit monitor integration",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Enter \"delete\" to confirm",
+    "count": 2,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "No accounts connected yet",
+    "count": 2,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "Manage third-party accounts",
+    "count": 2,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "Channel connection updated.",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Monitor connection updated.",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Bravo! You’ve created a team",
+    "count": 2,
+    "ns": [
+      "invite-flow-modals",
+      "create-new-team"
+    ]
+  },
+  {
+    "text": "Unable to fetch integrations",
+    "count": 2,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "No integrated services found",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Periodically, in digest form",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Unable to update cover photo.",
+    "count": 2,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Loading connected accounts...",
+    "count": 2,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "Please provide a valid token.",
+    "count": 2,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "Log in to see connection info",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Default photo can't be deleted",
+    "count": 2,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "This channel has been archived",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Please provide a valid API key.",
+    "count": 2,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "Edits a request or a collection",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Channel connected successfully.",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Monitor connected successfully.",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "This request is no longer valid.",
+    "count": 2,
+    "ns": [
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Send notifications when someone…",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Tags cannot exceed 64 characters.",
+    "count": 2,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "API Catalog - Integrated Services",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Couldn’t load integrated services",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Tags must be at least 2 characters.",
+    "count": 2,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Failed to load tags. Please try again.",
+    "count": 2,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Track lifecycle stages of collections.",
+    "count": 2,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Failed to create tag. Please try again.",
+    "count": 2,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Failed to update tag. Please try again.",
+    "count": 2,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Failed to delete tag. Please try again.",
+    "count": 2,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Couldn't delete the account, try again.",
+    "count": 2,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "Only team admin can perform this action",
+    "count": 2,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "You have already submitted this request.",
+    "count": 2,
+    "ns": [
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "This user already has the requested role.",
+    "count": 2,
+    "ns": [
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "You already have access to this resource.",
+    "count": 2,
+    "ns": [
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Failed to update the channel integration.",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Failed to update the monitor integration.",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Creates or merges a workspace pull request",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Adds a request, collection, or environment",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Failed to connect the channel integration.",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Failed to connect the monitor integration.",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Tag management isn't enabled for your team.",
+    "count": 2,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Photo can't be recovered once it is deleted.",
+    "count": 2,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Tag management isn't supported for your team.",
+    "count": 2,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "You cannot have more than 100 pending invites",
+    "count": 2,
+    "ns": [
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Something went wrong while updating the auth.",
+    "count": 2,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "Deletes a request, collection, or environment",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Select an emoji before saving this status tag.",
+    "count": 2,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "This user already has access to this resource.",
+    "count": 2,
+    "ns": [
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Select an emoji before creating this status tag.",
+    "count": 2,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Your collections will be moved in a few moments.",
+    "count": 2,
+    "ns": [
+      "team-onboarding",
+      "team-profile"
+    ]
+  },
+  {
+    "text": "All members can create, no one can edit or delete",
+    "count": 2,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "A tag with this name already exists for your team.",
+    "count": 2,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Improper Email IDs provided while sending invites.",
+    "count": 2,
+    "ns": [
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Failures only (and first consequent successful run)",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "We could not reach your servers to validate the token.",
+    "count": 2,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "An error occurred while trying to move your collections",
+    "count": 2,
+    "ns": [
+      "team-onboarding",
+      "team-profile"
+    ]
+  },
+  {
+    "text": "Organize and discover elements across your organization.",
+    "count": 2,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "All members can create, specific people can edit or delete",
+    "count": 2,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Unable to fetch connected accounts, please try again later.",
+    "count": 2,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "Once you connect your accounts to an API, they will appear here.",
+    "count": 2,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "You don't have permission to remove this app from this workspace.",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "No connected accounts support for the service you are looking for.",
+    "count": 2,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "Connect your API Catalog Integrated Services to GitHub repositories.",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "You don't have permission to connect this app. Contact a team admin.",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Anyone can create tags. Tags cannot be edited or deleted once created.",
+    "count": 2,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "You don't have permission to connect this gateway. Contact a team admin.",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Something went wrong while loading integrated services. Please try again.",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "No paid slots available. We've notified Partner Managers to add more slots.",
+    "count": 2,
+    "ns": [
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Anyone can create tags. Only selected people or groups can edit or delete them.",
+    "count": 2,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "You cannot invite this user as a team member because they are already a partner.",
+    "count": 2,
+    "ns": [
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Only members with the API Catalog Manager role can access Service discovery page",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "You cannot invite this user as a partner because they are already part of your team.",
+    "count": 2,
+    "ns": [
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Team discovery lets people from your organization see your team and request to join.",
+    "count": 2,
+    "ns": [
+      "team-onboarding",
+      "team-profile"
+    ]
+  },
+  {
+    "text": "All APIs using this account will need to be re-authenticated to continue contributing.",
+    "count": 2,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "This user has already been invited as a partner. Remove the partner invite and try again.",
+    "count": 2,
+    "ns": [
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "This user has already been invited as a team member. Remove the team member invite and try again.",
+    "count": 2,
+    "ns": [
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "We couldn't load your team's members right now, so these settings can't be edited. Refresh to try again.",
+    "count": 2,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Your existing personal workspaces will be moved to this team. You can invite team members once you are ready to collaborate.",
+    "count": 2,
+    "ns": [
+      "invite-flow-modals",
+      "create-new-team"
+    ]
+  },
+  {
+    "text": "Tags must begin and end with a Unicode letter or number. Characters allowed in between: Unicode letters, numbers, spaces, and _ @ . / : -",
+    "count": 2,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Disconnecting will permanently delete the team's stored security posture and related findings. This cannot be undone. Reconnecting will start a fresh security scan.",
+    "count": 2,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Create and manage tags to organize elements across your organization. Use status tags to track lifecycle stages of collections, and standard tags to group and surface related elements.",
+    "count": 2,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Select Roles",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Team profile",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Upload again",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Get Auto-flex",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Add paid slots",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Purchase Slots",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Update Profile",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Public profile",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Invite Pending",
+    "count": 1,
+    "ns": [
+      "invite-flow-components"
+    ]
+  },
+  {
+    "text": "Invited to team",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Profile details",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Change Team URL",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "All Integrations",
+    "count": 1,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Edit cover photo",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Favicon updated.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Pending Approval",
+    "count": 1,
+    "ns": [
+      "invite-flow-components"
+    ]
+  },
+  {
+    "text": "Edit team profile",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Organization name",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Import JSON files",
+    "count": 1,
+    "ns": [
+      "team-profile"
+    ]
+  },
+  {
+    "text": "Import from local",
+    "count": 1,
+    "ns": [
+      "team-profile"
+    ]
+  },
+  {
+    "text": "Auto-join enabled",
+    "count": 1,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "That did not work",
+    "count": 1,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Conversation type",
+    "count": 1,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Team’s cover photo",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Upload cover photo",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Edit profile photo",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Delete cover photo",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Select collections",
+    "count": 1,
+    "ns": [
+      "team-profile"
+    ]
+  },
+  {
+    "text": "Team join settings",
+    "count": 1,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Sign in to connect",
+    "count": 1,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Organization domain",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Cover photo updated",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Move from workspace",
+    "count": 1,
+    "ns": [
+      "team-profile"
+    ]
+  },
+  {
+    "text": "Search integrations",
+    "count": 1,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Connect Integration",
+    "count": 1,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Organization profile",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Upload profile photo",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Delete profile photo",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Name cannot be empty",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Cover photo deleted.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Auto-join turned off",
+    "count": 1,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Invite people to team",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Type your answer here",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Enter name or email...",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Profile photo updated.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Domain cannot be empty",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Profile photo deleted.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Resource link settings",
+    "count": 1,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Profile and cover photo",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Could not read the file",
+    "count": 1,
+    "ns": [
+      "team-profile"
+    ]
+  },
+  {
+    "text": "New team workspace name",
+    "count": 1,
+    "ns": [
+      "team-profile"
+    ]
+  },
+  {
+    "text": "Microsoft Teams account",
+    "count": 1,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Your invite was sent to:",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Edit Your Public Profile",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Delete your cover photo?",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Could not fetch all data.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Unable to update favicon.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Type to search for a team",
+    "count": 1,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Delete your profile photo?",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Team Connected Integrations",
+    "count": 1,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Enter emails to send invites",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Your team can’t fit everyone",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Tagline exceeded max length.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Invite people to organization",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Please enter emails to invite",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Get early access to Auto-Flex",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Make my team’s profile public",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Customize your public profile",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Check your email for an invite",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Bravo! You’ve created your team",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Unable to update profile photo.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Allow auto-join for all domains",
+    "count": 1,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Allow auto-join for your domain",
+    "count": 1,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Type to search for a group chat",
+    "count": 1,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Enable auto-join for all domains?",
+    "count": 1,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Auto-join enabled for all domains",
+    "count": 1,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "We've sent a verification email to:",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Turn off auto-join for all domains?",
+    "count": 1,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "You’ve got early access to Auto-Flex",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "How do you want to add your project?",
+    "count": 1,
+    "ns": [
+      "team-profile"
+    ]
+  },
+  {
+    "text": "Auto-join turned off for all domains",
+    "count": 1,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Make my organization’s profile public",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "You'll use this URL to access Postman",
+    "count": 1,
+    "ns": [
+      "team-profile"
+    ]
+  },
+  {
+    "text": "Get started with existing collections",
+    "count": 1,
+    "ns": [
+      "team-profile"
+    ]
+  },
+  {
+    "text": "Not listed above? Invite user by email",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Looks like that was our fault. Try again.",
+    "count": 1,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "You do not have permission to send invites",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Do you want to add an existing API project?",
+    "count": 1,
+    "ns": [
+      "team-profile"
+    ]
+  },
+  {
+    "text": "2. Answer this question from the team Admin.",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "This image size is not supported. Try again.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Couldn’t load group chats. Please try again.",
+    "count": 1,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Make sure the emails you've entered are valid.",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Please upload an image of size 16x16 or 32x32.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "The domain name must be 3 to 64 characters long.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Please agree to terms and conditions for Auto-Flex",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Example: organize your customer data with our APIs!",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Please check your inbox for the email to join the team.",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Agree to Auto-Flex's <1><0>terms and conditions</0></1>",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Only the integration creator can edit its configuration.",
+    "count": 1,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Add a tagline to help users recognize you across Postman.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Flow Editor role can only be assigned with Developer role.",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Your team name as you'd like it to be displayed on Postman.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Add a note to help the team's Admin review your request (optional)",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Your organization name as you'd like it to be displayed on Postman.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "A unique team domain used to sign in and access your team dashboard.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "2. Add a note to help the team's Admin review your request (optional)",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "This cannot be undone. Reconnecting will start a fresh security scan.",
+    "count": 1,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "Anyone from your verified domains can now join without an invitation.",
+    "count": 1,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "No member slots available. Ask a team admin to add more, then try again.",
+    "count": 1,
+    "ns": [
+      "collaboration-errors"
+    ]
+  },
+  {
+    "text": "Almost there, just two quick things to do before we can send your request",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Anyone from your verified domains will now require an invitation to join.",
+    "count": 1,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Must be a standard or shared channel. Private channels are not supported.",
+    "count": 1,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "You can keep track of additional team members in <1><0>Manage Team</0></1>",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Your team has no connected integrations. Find an integration to connect below.",
+    "count": 1,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "Before we can send your request, please answer this question from the team admin",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Customize your team’s profile to make it easy for your future team members to find.",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Upload an ICO file to be used as a favicon for your team’s published documentation.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "This app will no longer run in this workspace. You can connect it again at any time.",
+    "count": 1,
+    "ns": [
+      "integrations-hub"
+    ]
+  },
+  {
+    "text": "A unique organization domain used to sign in and access your organization dashboard.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Once the team admin approves your request, you’ll be added to the team automatically.",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Anyone from your verified domain can automatically join this team through team discovery.",
+    "count": 1,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "1. Verify your account. There should be a verification email waiting for you in your inbox.",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Upload an ICO file to be used as a favicon for your organization’s published documentation.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "This will allow others to discover your team on Postman and learn more about your team’s work.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Disconnecting will permanently delete the team's stored security posture and related findings.",
+    "count": 1,
+    "ns": [
+      "integrations"
+    ]
+  },
+  {
+    "text": "Select items to import or move before you can continue. You can also select \"Not yet\" instead.",
+    "count": 1,
+    "ns": [
+      "team-profile"
+    ]
+  },
+  {
+    "text": "For security reasons, we need to verify your email address before we can submit your join request.",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Domain cannot contain uppercase letters. Only lowercase letters, numbers, and hyphens are allowed.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Only alphanumeric characters and hyphens are allowed in the domain, it must begin and end with a letter.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "This will allow others to discover your organization on Postman and learn more about your organization’s work.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Select the image you wish to upload. Images should not be more than 2MB in size. Only .jpg, .jpeg, .png files are accepted.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Make your public profile amazing by adding an about section, links to your websites, highlighting your best APIs or collections, and more.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Your Team Admins will be able to invite additional team members. You’ll only be charged for additional members on your team at the end of every cycle.",
+    "count": 1,
+    "ns": [
+      "invite-flow-modals"
+    ]
+  },
+  {
+    "text": "Anyone from any of your verified domains can automatically join this team through team discovery. You can also allow auto-join for each domain individually.",
+    "count": 1,
+    "ns": [
+      "team-settings"
+    ]
+  },
+  {
+    "text": "Changing your team URL will break any existing links to your pages.Your team members will have to log in again to use the dashboard.Are you sure you wish to continue?",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Add an extra element to your team's profile by adding a cover photo. Please ensure that the photo is at least 384 px wide with a height of 96 px. Images can be .jpg, .jpeg or .png and less than 2MB.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  },
+  {
+    "text": "Add an extra element to your organization's profile by adding a cover photo. Please ensure that the photo is at least 384 px wide with a height of 96 px. Images can be .jpg, .jpeg or .png and less than 2MB.",
+    "count": 1,
+    "ns": [
+      "team-profile-settings"
+    ]
+  }
+]

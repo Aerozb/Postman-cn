@@ -1,0 +1,461 @@
+0	49	View more actions
+1	25	Request Access
+2	24	You need an account to continue exploring Postman.
+3	21	No results found
+4	20	Copy to clipboard
+5	19	Invite people
+6	17	No users found
+7	15	Access denied due to security policies
+8	14	Copied to clipboard
+9	13	Manage roles
+10	13	No environment
+11	12	Link copied to clipboard
+12	11	No environments found
+13	10	Test Results
+14	10	Please check your internet connection and try again.
+15	9	Open In New Tab
+16	9	Request submitted
+17	9	Run using Postman CLI
+18	9	You can take this action once you’re back online.
+19	9	Your data may not be up to date until you’re back online.
+20	9	You need to be signed-in to a team to perform this action
+21	8	Scheduled run
+22	8	Monitor paused
+23	8	Preparing run.
+24	8	Loading state…
+25	8	Delete session
+26	8	Monitor created
+27	8	Monitor resumed
+28	8	Create mock server
+29	8	Unable to create monitor
+30	8	Learn more about uptime monitors
+31	8	Trigger monitor run using Postman CLI
+32	8	Please enter a value from 1ms to 600000 ms
+33	8	Please enter a value from 1ms to 900000 ms
+34	8	Run is in progress. This may take a few minutes.
+35	8	In February, this will run on the 28th (or 29th in leap years).
+36	7	Activity feed
+37	7	Add to Jira Cloud
+38	7	Install Postman CLI
+39	7	This will permanently delete 
+40	7	It might have been moved or deleted.
+41	6	No workspace
+42	6	Mock servers
+43	6	Contact sales
+44	6	Create monitor
+45	6	Create Monitor
+46	6	Create an account
+47	6	Clear session state
+48	5	Requested by
+49	5	All sessions
+50	5	Private mock
+51	5	Filter keys…
+52	5	No state keys
+53	5	No keys match
+54	5	Share with team
+55	5	Default session
+56	5	Reset state key
+57	5	Withdraw request
+58	5	No matching logs
+59	5	Select a collection
+60	5	Mock server deleted
+61	5	Failed to load logs
+62	5	Local server running
+63	5	Failed to read state
+64	5	Waiting for requests…
+65	5	Shared state is empty
+66	5	Your session is empty
+67	5	This session is empty
+68	5	Session state cleared
+69	5	Failed to clear state
+70	5	 and can’t be undone.
+71	5	1. Install Postman CLI
+72	5	Large values truncated
+73	5	Request sent for approval
+74	5	Unable to delete the mock
+75	5	Failed to reset state key
+76	5	Unable to load mock servers
+77	5	Send a request to start your session
+78	5	No mock server uses this environment.
+79	5	Only team members can access this link.
+80	5	Couldn't refresh — showing the last read.
+81	5	This will permanently delete all keys in 
+82	5	Only workspace members can access this link.
+83	5	Unable to invite right now. Try again later?
+84	5	Send a request to this session to add state.
+85	5	No one can access this unless you invite them.
+86	5	You can take this action once you are back online
+87	5	State from callers without a session shows up here.
+88	5	There are no mock servers created for this collection.
+89	5	Only people with access to this workspace can access this link.
+90	5	Private mock: callers are verified. Open caller identity details.
+91	5	Public mock: callers aren't verified. Open caller identity details.
+92	5	There was an unexpected error while loading mock servers. Please try again.
+93	5	This mock is Isolated, so your first request gets its own session (shown as "Yours").
+94	4	(loading...)
+95	4	Open Web App
+96	4	Monitor name
+97	4	Edit monitor
+98	4	At this time
+99	4	Edit request
+100	4	Minute timer
+101	4	Every Monday
+102	4	Every Friday
+103	4	Every Sunday
+104	4	Run in CI/CD
+105	4	Share Monitor
+106	4	No collection
+107	4	Clear Filters
+108	4	Every 2 hours
+109	4	Every 3 hours
+110	4	Every 4 hours
+111	4	Every 6 hours
+112	4	Every Tuesday
+113	4	Hide run logs
+114	4	Show run logs
+115	4	State cleared
+116	4	Monitor edited
+117	4	No tests found
+118	4	Console Output
+119	4	Go to next run
+120	4	No results yet
+121	4	Collection tag
+122	4	Select runners
+123	4	Update Monitor
+124	4	Delete monitor
+125	4	Monitor report
+126	4	Update request
+127	4	Review request
+128	4	Every 1 minute
+129	4	Every 12 hours
+130	4	Every Thursday
+131	4	Every Saturday
+132	4	Monitor deleted
+133	4	Search for user
+134	4	Copy Monitor ID
+135	4	No tests passed
+136	4	Monitor updated
+137	4	Delete schedule
+138	4	Request updated
+139	4	Publish updates
+140	4	Last published:
+141	4	Every 5 minutes
+142	4	Every Wednesday
+143	4	Monitor details
+144	4	Dataset created
+145	4	Monitor deleted.
+146	4	Create a Monitor
+147	4	No tests skipped
+148	4	Review Run Order
+149	4	Follow redirects
+150	4	Requester's note
+151	4	Every 10 minutes
+152	4	Every 15 minutes
+153	4	Every 20 minutes
+154	4	Every 30 minutes
+155	4	Copy CLI command
+156	4	Desktop app only
+157	4	No activity found
+158	4	No tests were run
+159	4	Published monitor
+160	4	Reason for denial
+161	4	No tests failed :D
+162	4	Go to previous run
+163	4	Create new monitor
+164	4	I'm just exploring
+165	4	Retry if run fails
+166	4	Request to publish
+167	4	Clear session data
+168	4	Individual requests
+169	4	It's something else
+170	4	Set request timeout
+171	4	Reload Activity Logs
+172	4	Filter activity logs
+173	4	This run has aborted
+174	4	No runners available
+175	4	Message for approval
+176	4	No tests for this run
+177	4	Invalid email address
+178	4	Enable SSL validation
+179	4	Edit published report
+180	4	Please try again later
+181	4	Unable to edit monitor
+182	4	Manually select region
+183	4	Monitor publish report
+184	4	Publish request denied
+185	4	Publish monitor report
+186	4	Show request endpoints
+187	4	Review publish request
+188	4	Assertions coming soon
+189	4	2. Trigger Monitor Run
+190	4	Unable to load monitors
+191	4	Response Time: <1>--</1>
+192	4	Unable to fetch monitors
+193	4	Unable to update monitor
+194	4	No Collections available
+195	4	Monitor region selection
+196	4	Publish approval pending
+197	4	Publish request approved
+198	4	And your report is live!
+199	4	Create an uptime monitor
+200	4	Error in creating monitor
+201	4	Set delay before requests
+202	4	Please enter monitor name
+203	4	Publish request withdrawn
+204	4	You have view-only access
+205	4	Publish request in review
+206	4	Try adjusting the filters
+207	4	Request with missing files
+208	4	Monitor report unpublished
+209	4	This monitor hasn't run yet
+210	4	You have no monitors set up
+211	4	Automatically select region
+212	4	Add another recipient email
+213	4	Requests with missing files
+214	4	Couldn't run due to an error
+215	4	Unable to load activity feed
+216	4	File size cannot exceed 1 MB
+217	4	This email is already present
+218	4	There's a key feature missing
+219	4	e.g. Orders API health report
+220	4	Every weekday (Monday-Friday)
+221	4	Could not render this request
+222	4	No logs available for this run
+223	4	Know when your service is down
+224	4	This user's profile is private.
+225	4	This user’s profile is private.
+226	4	Monitor creation limit reached.
+227	4	CLI command copied successfully
+228	4	Monitor paused (user inactivity)
+229	4	Failed tests detected. Retrying.
+230	4	No monitor uses this environment
+231	4	Select a tag for this collection
+232	4	Failed to publish monitor report
+233	4	Automate runs using Postman CLI.
+234	4	(This might affect your billing.)
+235	4	Adjust your filters and try again.
+236	4	Change your filters and try again.
+237	4	Error occurred while fetching tags
+238	4	Failed to unpublish monitor report
+239	4	Request update to published report
+240	4	Start mock server to see logs here
+241	4	Please enter a value greater than 0
+242	4	Error occurred while fetching regions
+243	4	A team admin will review the request.
+244	4	Monitor report published successfully
+245	4	Published report updated successfully
+246	4	Unable to load data as you’re offline.
+247	4	Monitor paused (frequent run failures)
+248	4	Clear filters to view your monitor run
+249	4	Error in pipeline for creating monitor
+250	4	Please select a collection to monitor.
+251	4	A publish request is already in review
+252	4	Error occurred while fetching user plan
+253	4	Uptime monitors are no longer available
+254	4	Error occurred while fetching collection
+255	4	Monitor resumed as part of system action.
+256	4	Please refresh to see the latest results.
+257	4	Unable to load user details at the moment
+258	4	Choose a collection tag for this monitor.
+259	4	Published — a change request is in review
+260	4	Retrying run. This may take a few minutes.
+261	4	The Monitor feature is not what I expected
+262	4	Provide a reason for denying this request.
+263	4	Copy and run this command in your terminal
+264	4	This monitor is in your personal workspace.
+265	4	Monitor deleted (change in team membership)
+266	4	The associated collection has been deleted.
+267	4	You can add up to 5 notification recipients
+268	4	Includes request URLs in the public report.
+269	4	Only a team admin can unpublish this report.
+270	4	The associated environment has been deleted.
+271	4	Explain why this report should be published.
+272	4	Monitor paused (not present in any workspace)
+273	4	A team admin will review the updated request.
+274	4	This monitor will run on its regular schedule.
+275	4	No requests found in the associated collection
+276	4	Poor or complex experience when using monitors
+277	4	Help us understand how we can improve monitors
+278	4	Monitor paused by Postman support representative
+279	4	Request delay value should be greater than 0 ms.
+280	4	Only JSON and CSV files are accepted. Max 1 MB. 
+281	4	Can't perform disabled actions as you are offline
+282	4	Looks like this monitor doesn't have any activity
+283	4	There are no monitors created for this collection
+284	4	Request timeout value should be greater than 0 ms.
+285	4	Assertion support is coming soon for this protocol
+286	4	You don't have permission to view this information.
+287	4	e.g. Daily monitor results for production endpoints
+288	4	Click on a run on the graph above to see its details
+289	4	This monitor will no longer make its scheduled runs.
+290	4	Upgrade your plan to select a region with static IP.
+291	4	You don't have permission to perform disabled actions
+292	4	Invalid aggregate function in monitor performance view
+293	4	Replacement monitor created (change in team membership)
+294	4	The end! You've seen all the activity for this monitor.
+295	4	Receive email notifications for run failures and errors
+296	4	Monitor ID will be generated after creating the monitor
+297	4	A monitor run cannot exceed 10 minutes; i.e., 600000 ms.
+298	4	A monitor run cannot exceed 15 minutes; i.e., 900000 ms.
+299	4	Error occurred while fetching collections and environments
+300	4	Invalid file format. Only JSON and CSV files are accepted.
+301	4	The monitor could not be loaded. Please try after some time.
+302	4	You are on the Free plan. Upgrade your plan to use this feature.
+303	4	You need editor access to publish or unpublish the monitor report
+304	4	Monitor paused (associated collection removed from the workspace)
+305	4	To perform this action, request additional access to this monitor.
+306	4	Monitor paused (collection or environment was unshared or deleted)
+307	4	Monitor paused (associated environment removed from the workspace)
+308	4	You can select one or more regions to monitor your requests from. 
+309	4	Note: Your team requires admin approval to publish monitor reports.
+310	4	Uptime monitors are currently available only on the Postman Web app.
+311	4	Add a short summary to provide context in shared links and previews.
+312	4	This monitor type has been discontinued. Use regular monitors instead.
+313	4	Appears at the top of the report, in browser tabs, and in shared links.
+314	4	Update or withdraw your existing request before submitting another one.
+315	4	<0>Stop notifications after</0><1><0></0></1><2>consecutive failures</2>
+316	4	Something went wrong while creating this monitor. You can try again later.
+317	4	The activity feed keeps you updated with the happenings around this monitor
+318	4	Add requests by selecting the collection > three dots icon (…) > Add request
+319	4	Failed monitor runs will only be retried if the previous run was successful.
+320	4	Assertions are not yet supported for this protocol — support is coming soon.
+321	4	People with link can see run status, request details and response time trends.
+322	4	In months with fewer than 31 days, this will run on the last day of the month.
+323	4	The associated collection or environment is not accessible or has been deleted.
+324	4	Data file can be used to test multiple variations of the behaviour of your API.
+325	4	You are on the free plan. Upgrade to manually select specific monitoring regions.
+326	4	You can select one or more deployment environments to monitor your requests from. 
+327	4	The variable values in this environment will be used in all your monitoring calls. 
+328	4	A team admin will review your request. You'll be notified when the report is published.
+329	4	This request is using local files. Upload them to prevent errors during the monitor run.
+330	4	You cannot run monitors until access is restored. Contact your team admin for assistance.
+331	4	A monitor lets you run a collection periodically to check for its performance and response.
+332	4	These requests are using local files. Upload them to prevent errors during the monitor run.
+333	4	No tests were skipped in this run. <1>Add tests</1> to your requests if you haven't already.
+334	4	Can't perform disabled actions as the associated collection is moved to a different workspace
+335	4	You cannot access monitor details until access is restored. Contact your team admin for assistance.
+336	4	Local runs aren't available in the browser. Use the Postman desktop app, or deploy as a Mock Server.
+337	4	The request details pane failed to render this row. Try selecting another row, or click X to dismiss.
+338	4	Monitor uptime for a URL across regions and setup timely alerts without having to create a collection.
+339	4	Good job! None of the tests failed in this run. <1>Add tests</1> to your requests if you haven't already.
+340	4	Deleted requests or folders were found in the custom run order causing an error before running any request.
+341	4	None of the tests passed in this run. <1>Add tests</1> to your requests and <3>debug them</3> when they fail.
+342	4	You can't publish monitor reports from this workspace. To publish, create the monitor in an internal team workspace.
+343	4	This report shows monitor run status, request details, and response time trends. It will be shared as a public page.
+344	4	Choose how this monitor will be triggered. Schedule for automatic recurring runs, or Postman CLI for on-demand execution.
+345	4	When it does, the results will appear here. You can either wait for it to run as per its schedule or trigger a run manually.
+346	4	If selected, make sure this IP address is added to the allowlist. All monitoring calls from this region will come from this address.
+347	4	Frequent runs give you a finer view of performance but also cost more monitoring calls which might be limited by your Postman account
+348	4	Choose a collection tag for this monitor. If the collection is not linked to an API, a monitor can only be created on the current tag.
+349	4	<0>You can also trigger a monitor run by clicking the Run button after creating the monitor. Check your </0><1><0>usage limits</0></1>
+350	4	Sessions are turned off for this mock, so all traffic shares one state. Enable sessions in the mock's settings to scope logs and state per caller.
+351	4	This is an older run. Test results and run logs are not available. You can request this information by reaching out to <1><0><0>Postman Support</0></0></1>
+352	3	No state yet
+353	3	Loading logs…
+354	3	Create new collection
+355	3	This mock can be accessed by anyone.
+356	3	Send requests to the mock server to see them here
+357	3	Upgrade to the Enterprise plan to access Runners for private API
+358	2	Selected view
+359	2	No views yet.
+360	2	No states yet
+361	2	Iteration data
+362	2	Save as dataset
+363	2	Open in new tab
+364	2	Session deleted
+365	2	Scroll to bottom
+366	2	Selected datafile
+367	2	Iteration strategy
+368	2	Preview unavailable
+369	2	Upload a datafile...
+370	2	Delete logs and state
+371	2	Create new environment
+372	2	Failed to delete runner
+373	2	Failed to create runner
+374	2	Upload to Postman Cloud
+375	2	Failed to delete session
+376	2	Couldn't create the dataset
+377	2	No datasets in this workspace yet.
+378	2	Upgrade to use datasets and data files
+379	2	Data sources uploaded to Postman Cloud.
+380	2	Run one iteration for each row in the view.
+381	2	The contents of this file could not be read.
+382	2	Send requests to the mock server to see their logs
+383	2	Couldn’t upload the data sources. Please try again.
+384	2	, including all its logs and data, and can’t be undone.
+385	2	Run a set number of iterations. If the rows run out, stop the run.
+386	2	This file couldn't be read. Make sure it's a valid CSV or JSON file.
+387	2	Save this file as a dataset to filter, sort, and clean rows with SQL.
+388	2	<0></0> Support for Collections with <1>GraphQL</1> and <2>gRPC</2> requests is in beta.
+389	2	Anyone can call it and callers aren't identified. Change this in the mock's configuration.
+390	2	Run your collection once per row of a data file, or use a dataset for filtered, reusable data.
+391	2	How many times the collection runs, and how the extra iterations get their data when the view’s rows run out.
+392	2	Run a set number of iterations. If the rows run out, continue from the first row for the remaining iterations.
+393	2	Run a set number of iterations. If the rows run out, continue using the last row for the remaining iterations.
+394	2	Datasets and data files let you drive your monitors with test data. Both are available on paid plans. Upgrade your plan to get started.
+395	2	This collection uses multiple protocols. Update your self-hosted runner to version 1.47.0 or later, or run this monitor on a Postman cloud region instead.
+396	2	With the Default strategy, the number of iterations will always match the number of rows in the view. Please select another strategy to modify this behavior.
+397	1	Generate Key
+398	1	Give feedback
+399	1	Runner Created
+400	1	Install Runner
+401	1	Copy Runner ID
+402	1	Contact support
+403	1	Created by: All
+404	1	Manually Select
+405	1	Copy Runner Key
+406	1	Reset Runner Key
+407	1	Filter by header
+408	1	Enter runner name
+409	1	Updated Runner Key
+410	1	Private API Runners
+411	1	Created by your team
+412	1	Filter by runner name
+413	1	Failed to refresh key
+414	1	Next: install runner →
+415	1	Logs and state deleted
+416	1	Failed to fetch runners
+417	1	Runner name is required
+418	1	Failed to update runner
+419	1	Failed to fetch runners.
+420	1	Runner details breadcrumb
+421	1	Delete runner permanently?
+422	1	Runner deleted successfully
+423	1	Runner created successfully
+424	1	Runner updated successfully
+425	1	API key copied to clipboard
+426	1	No runners match your filters
+427	1	Click start to run mock server
+428	1	You don't have any runners yet.
+429	1	Try adjusting the filters above
+430	1	e.g., Internal API Runner Beta 1
+431	1	Runner key refreshed successfully
+432	1	Upgrade your plan to manage runners
+433	1	Enable runner settings for your team
+434	1	Runner has been updated successfully
+435	1	2. Run this command in your terminal
+436	1	An error occurred while fetching runners.
+437	1	e.g., Executes monitor runs for beta APIs
+438	1	Follow these steps to install your runner
+439	1	Get started by creating your first runner.
+440	1	An error occurred while refreshing the key.
+441	1	An error occurred while deleting the runner.
+442	1	An error occurred while updating the runner.
+443	1	An error occurred while creating the runner.
+444	1	The runner key has been refreshed successfully.
+445	1	Add a runner to configure and monitor your APIs
+446	1	To set up new runners, contact your team admin. 
+447	1	New runner has been created. Please copy the API key.
+448	1	Deleting this runner will stop all monitors that use it.
+449	1	Invalid page. Private API runners feature is not enabled.
+450	1	Try adjusting your search or filter criteria to see more results.
+451	1	You do not have permission to create collections in this workspace
+452	1	You do not have permission to create environments in this workspace
+453	1	This workspace may be private or deleted. You don't have access to its details.
+454	1	Runners execute Monitors inside your network so you can test private or firewall-restricted APIs.
+455	1	You can select Postman runners in desired region or select runners within your own network to run monitors.
+456	1	Sessions are off, so all traffic shares one state. Enable them in settings to scope logs and state per caller.
+457	1	Lost the key? You can reset it, but this will disable any existing runners until they're updated with the new key.
+458	1	Copy and store this key securely as it won't be accessible after closing this window. The key can be reset later if needed.
+459	1	Unable to fetch runners. Please check your network connectivity. If the problem persists, please reach out to Postman support.
+460	1	Resetting runner key will invalidate the current runner key and generate a new one. You may need to re-configure already installed runners.
