@@ -109,12 +109,10 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
 
 TUI 不会自动添加 `--thorough`，因此日常选择高级审计时使用的是默认受控档。当前只有以下 8 个审计名支持显式 `--thorough`：`new-request`、`navigation`、`deep-areas`、`entry-modals`、`phased`、`targeted`、`targeted-surfaces`、`all-targets`。不要给 `lightweight`、`import` 或 `new-collection` 传这个参数。
 
-- `new-request` 默认仍遍历当前请求类型的全部标签页，但降低悬停、右键和滚动探测次数，并默认跳过响应历史；它没有总审计时限参数。`--thorough` 会提高交互上限并检查响应历史。
-- 其余 7 个高级审计同时限制 DOM/AX 节点、候选、动作次数和总时间。默认/高强度总时限分别为：`navigation` 180/900 秒，`deep-areas` 90/600 秒，`entry-modals` 60/300 秒，`phased`、`targeted-surfaces`、`all-targets` 均为 90/600 秒，`targeted` 为 90/300 秒。
-- `entry-modals` 单独使用 `--budget-ms` 调整时限；其余带总时限的脚本使用 `--audit-budget-ms`。`phased --thorough` 不等于遍历所有已打开请求标签，确需逐标签审计还要显式加 `--all-tabs`。
+- 除 `new-request` 外，支持高强度档的脚本都有总时间预算：`entry-modals` 用 `--budget-ms`，其余用 `--audit-budget-ms`。`phased --thorough` 不等于遍历所有已打开请求标签，确需逐标签审计还要显式加 `--all-tabs`。
 - 达到时间或扫描上限时，脚本会写入部分报告并返回退出码 `2`；这表示结果可供排查，但不能当成完整覆盖。
 
-入口审计名、内部中文脚本名和各档位的完整对应表见 `scripts/README.md`。
+**入口审计名、内部中文脚本名、各档位的具体秒数上限，以 `scripts/README.md` 的对应表为准**——那是唯一副本，别在本文件里再抄一份数字，否则改了一处就会不一致。
 
 ---
 
@@ -128,7 +126,7 @@ TUI 不会自动添加 `--thorough`，因此日常选择高级审计时使用的
 
 # 2. 从候选里筛出"该翻的"，翻译成 _generated/trans-*.json
 #    格式：{ "English source": "中文译文", ... }
-#    大批量时可派并行子代理各翻一段（见第 7 节的跳过规则）
+#    大批量时可派并行子代理各翻一段（该跳过什么见本节末尾和规则 9）
 
 # 只检查可合并数量，不修改词典
 .\postman-zh.bat merge --check
@@ -195,7 +193,7 @@ createElement(Button, {type:"primary"}, "Restart and Install Update")
 
 2. **`data-placeholder` 必须在 `ATTRS` 列表里**。评论框等富文本编辑器用它渲染占位符，漏了评论面板占位符就不翻译。
 
-3. **更新守卫是开关，不是墙**：`-DisableUpdates` **不要**改 `isUpdateEnabled`（会让"设置>更新"页报"出现了一些问题"连接错误）。当前实现在 `main.js` 顶部装一个运行时守卫，并用版本无关锚点把 `downloadUpdate`、`restartAppToUpdate` 改写成**条件**分支；更新页仍应正常显示"已是最新版本"。找不到可确认的源码锚点时应报错，而不是假装成功。
+3. **更新守卫是开关，不是墙**：入口的 `-KeepUpdates` 表示「保留官方自动更新、不装守卫」，它在 `统一入口.ps1` 里取反后传给 `安装汉化.ps1` 的 `-DisableUpdates`（默认即拦截）。装守卫时**不要**改 `isUpdateEnabled`（会让"设置>更新"页报"出现了一些问题"连接错误）。当前实现在 `main.js` 顶部装一个运行时守卫，并用版本无关锚点把 `downloadUpdate`、`restartAppToUpdate` 改写成**条件**分支；更新页仍应正常显示"已是最新版本"。找不到可确认的源码锚点时应报错，而不是假装成功。
 
    守卫每次更新调用都读 `%APPDATA%\Postman\postman-zh-updates.json`（缓存约 1 秒），**文件不存在即视为关闭**，所以默认行为和以前一样是拦截。允许时走 Postman 原始实现（覆盖前已 `bind` 保存）。三个入口写同一个文件：Postman「设置 > 更新」页里注入的开关（经守卫注册的 `postman-zh:updates:get/set` IPC）、`postman-zh.bat updates on|off`、TUI 菜单第 10 项。
 
@@ -209,7 +207,9 @@ createElement(Button, {type:"primary"}, "Restart and Install Update")
 
 5. **词典重复键**：`EXACT` 是 JS 对象字面量，重复键后者覆盖前者。`合并译文.js` 把机器批量词条插到**头部**，所以文件靠后的人工词条自动优先。
 
-6. **收集/扫描边界**：运行时翻译器已覆盖文本节点、全部翻译属性、shadow DOM、`document.title`、原生菜单、auth webview、同源 iframe。它仍不能直接进入任意跨域 iframe，也不能翻译 canvas 绘制文本；`audit all-targets` 可以通过 CDP 单独审计可附加的跨域/OOPIF 目标，但这不等于运行时翻译器能向其中注入译文。字符串长度上限 600 字符（曾是 200，导致超长悬浮提示两条管线都收集不到，已修）。
+6. **收集/扫描边界**：运行时翻译器已覆盖文本节点、全部翻译属性、shadow DOM、`document.title`、原生菜单、auth webview、同源 iframe。它仍不能直接进入任意跨域 iframe，也不能翻译 canvas 绘制文本；`audit all-targets` 可以通过 CDP 单独审计可附加的跨域/OOPIF 目标，但这不等于运行时翻译器能向其中注入译文。
+
+   两条管线的字符串长度上限**不一样**，排查"某条超长文案两边都收集不到"时要分别看：静态扫描是 600 字符（`scripts/data/提取界面文案.js` 里的 `text.length > 600`，另有"不超过 90 个词"的限制），运行时收集器是 1200 字符（`payload/zh-localize.js` 的 `shouldRecordMiss`，另有最多攒 2000 条的上限）。两者都曾经是 200，导致超长悬浮提示两条管线都收集不到，已分别放宽。
 
 7. **审计脚本的交互**：设置对话框要用 CDP **真实键盘事件**（齿轮点击后 `ArrowDown`+`Enter`），合成 click 对某些菜单无效。
 
@@ -288,10 +288,12 @@ createElement(Button, {type:"primary"}, "Restart and Install Update")
 单文件，运行时 IIFE。主要数据结构：
 - `EXACT` — 完整文案精确匹配（最常用）。`{ "English": "中文" }`
 - `PHRASES` — 可组合的子串替换片段
-- `RULES` — 带变量（数字/时间/名称）的正则规则，`[/正则/, "替换" 或 函数]`
+- `RULES` — 带变量（数字/时间/名称）的正则规则，`[/正则/, "替换" 或 函数]`；数组顺序即优先级，首个命中即返回
 - `EDITABLE_EXACT` — 输入框真实 value（如 `New Environment`）
 - `ATTRS` — 需要翻译的元素属性名列表（含 `data-placeholder`）
-- 运行时收集器 `recordMiss` + `getMisses()`（对外挂在 `window.__POSTMAN_ZH_LOCALIZER__`）
+- `I18N_TERMS` + `i18nTerm()` — 供生成规则递归翻译实体名/类型名用（见规则 15）
+
+对外只挂这五个方法在 `window.__POSTMAN_ZH_LOCALIZER__` 上：`run`、`translate`、`walk`、`getMisses`、`clearMisses`。其中 **`translate` 是最重要的测试钩子**——所有沙箱脚本和 `_generated/regress-i18n.js` 都靠它在 Node 里离线跑整条翻译链路，不用重装。收集器的写入端 `recordMiss` 是内部函数，不对外暴露。
 
 补词条决策：固定完整句 → `EXACT`；可复用片段 → `PHRASES`；含变量 → `RULES`；输入框默认值 → 同时看 `EDITABLE_EXACT`；原生菜单 → 改 `scripts/internal/安装汉化.ps1` 里的菜单包装器词典。
 
@@ -324,4 +326,12 @@ Get-ChildItem .\scripts -Recurse -File -Filter *.ps1 | ForEach-Object { [scriptb
 git diff --check
 ```
 
-不要提交任何 `app.asar` / `app.asar.original` / `app.asar.unpacked.zh` / 截图 / `_generated` 产物 / 用户数据。
+改过词典（尤其动过 `RULES` 或 `PHRASES`）时，`verify` 通过还不够，再跑一遍全量翻译回归：
+
+```powershell
+node ..\_generated\regress-i18n.js diff    # 指标：新增半截 = 0
+```
+
+它拿官方 i18n 清单当语料，把改动前后的 `translate()` 输出逐条对比，列出「原来有中文、现在丢了」和「原来干净、现在变半截」的条目。`verify` 只检查安装完整性，抓不到这类译文质量回退。改动前记得先 `regress-i18n.js save` 存基线。
+
+不要提交任何 `app.asar` / `app.asar.original` / `app.asar.unpacked.zh` / 截图 / `_generated` 产物 / 根目录 `tmp-*` 一次性脚本 / 用户数据。`publish` 会自动 `git commit` 并推送，所以**发布前先确认 `git status` 干净**——曾经有一次它把根目录 53 个 `tmp-*` 排查产物一起提交了。
