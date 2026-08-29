@@ -20,3 +20,7 @@ _generated/
 nav-surfaces*.json
 __pycache__/
 *.pyc
+
+# 一次性排查脚本/中间产物（本地生成，不入库）
+tmp-*
+_missing-list.txt
