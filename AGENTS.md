@@ -20,7 +20,7 @@
 ```
 Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（勿动其官方文件）
   Postman.exe  Update.exe
-  app-12.25.5\                        ← 当前版本；resources\app.asar 是补丁目标
+  app-12.25.7\                        ← 当前版本；resources\app.asar 是补丁目标
     resources\app.asar.original       ← 首次安装时自动备份的英文原版
   packages\                           ← 官方安装包 + RELEASES
   postman-zh-workspace\               ← 所有非官方内容都在这里
@@ -203,7 +203,7 @@ createElement(Button, {type:"primary"}, "Restart and Install Update")
 
    **开关是滑动开关，单击即切换**：页面开关做成 `role=switch` 的滑动样式（轨道 + 圆钮 + 右侧「已开启/已关闭」文字），单击直接写偏好、无需二次确认。曾经为防误触加过"点两次确认开启"，但用户觉得不方便，已改回单击（2026-08-25）。防自动化误点改为只靠按钮上的 `data-postman-zh-audit-skip="true"` 标记——**新写审计脚本必须跳过带这个属性的元素**，别再靠合成点击去点它。渲染状态只改 `data-enabled`/`aria-checked` 和 label 文字，`refreshUpdateToggle`（900ms 轮询）和初始 `updates:get` 会照常把外部（命令行）改动同步回按钮。
 
-   **注入锚点不能只认一个**：更新页在不同状态下渲染的是完全不同的组件。`findUpdateToggleSlot()` 按三级兜底找位置——`.settings-autoupdate`（旧版“已是最新”里 Postman 自带的自动下载开关）、`.settings-update-changelog-container`（“有可用更新”的发布说明视图），都没有时再靠 `[class*="update-"][class*="__button"]`（`update-not-available__button`、`update-idle__button` 这类语义类名）确认当前在更新页，插到 `.settings-tab-contents` 里状态块之后。12.25.5 的“已是最新”状态前两个锚点**都不存在**，只有第三级能兜住；换 Postman 版本后要重新确认这三级还有效。
+   **注入锚点不能只认一个**：更新页在不同状态下渲染的是完全不同的组件。`findUpdateToggleSlot()` 按三级兜底找位置——`.settings-autoupdate`（旧版“已是最新”里 Postman 自带的自动下载开关）、`.settings-update-changelog-container`（“有可用更新”的发布说明视图），都没有时再靠 `[class*="update-"][class*="__button"]`（`update-not-available__button`、`update-idle__button` 这类语义类名）确认当前在更新页，插到 `.settings-tab-contents` 里状态块之后。12.25.5/12.25.7 的“已是最新”状态前两个锚点**都不存在**，只有第三级能兜住；换 Postman 版本后要重新确认这三级还有效。
 
 4. **菜单汉化用全局 `Menu.buildFromTemplate` 包装器**（prepend 到 `main.js`），不依赖压缩后的变量名锚点，跨版本稳定。若要加原生菜单词条，改这个包装器里的词典，且**只能用 `\u` 转义**中文，避免打包后 `main.js` 编码问题。
 
