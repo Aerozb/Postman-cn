@@ -35,8 +35,9 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
         runtime\                      ← 运行时收集和页面探测
         data\                         ← 静态扫描和译文合并
         maintenance\                 ← 发布脚本
-      .agents\skills\                ← 本项目专属 skill（`.agents/skills/` 是 Codex 的约定位置；
-                                        Claude Code 读 `.claude/skills/`，看不到这里的 skill）
+      .agents\skills\                ← skill 正文（`.agents/skills/` 是 Codex 的约定位置）
+      .claude\skills\                ← 同名薄指针，只为让 Claude Code 也能发现该 skill；
+                                        正文不复制，改 description 时两处要同步
       docs\  汉化教程.md  维护指南.md
       AGENTS.md  CLAUDE.md  README.md
       postman-zh.bat                  ← 普通用户唯一入口（双击）
