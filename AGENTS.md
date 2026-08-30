@@ -35,7 +35,8 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
         runtime\                      ← 运行时收集和页面探测
         data\                         ← 静态扫描和译文合并
         maintenance\                 ← 发布脚本
-      .agents\skills\                ← 本项目专属 Codex skill
+      .agents\skills\                ← 本项目专属 skill（`.agents/skills/` 是 Codex 的约定位置；
+                                        Claude Code 读 `.claude/skills/`，看不到这里的 skill）
       docs\  汉化教程.md  维护指南.md
       AGENTS.md  CLAUDE.md  README.md
       postman-zh.bat                  ← 普通用户唯一入口（双击）
@@ -335,3 +336,15 @@ node ..\_generated\regress-i18n.js diff    # 指标：新增半截 = 0
 它拿官方 i18n 清单当语料，把改动前后的 `translate()` 输出逐条对比，列出「原来有中文、现在丢了」和「原来干净、现在变半截」的条目。`verify` 只检查安装完整性，抓不到这类译文质量回退。改动前记得先 `regress-i18n.js save` 存基线。
 
 不要提交任何 `app.asar` / `app.asar.original` / `app.asar.unpacked.zh` / 截图 / `_generated` 产物 / 根目录 `tmp-*` 一次性脚本 / 用户数据。`publish` 会自动 `git commit` 并推送，所以**发布前先确认 `git status` 干净**——曾经有一次它把根目录 53 个 `tmp-*` 排查产物一起提交了。
+
+---
+
+## 10. 提交与发布约定
+
+- **分支**：直接提交到 `main`（本仓库没有保护分支和 PR 流程，维护者单人推送）。需要评审时才开分支发 PR。
+- **提交信息**：首行用中文概括做了什么，不带类型前缀；正文说明「为什么」和踩到的坑，便于以后回溯。AI 协作产生的提交在结尾加 `Co-Authored-By:` 尾注。
+- **`publish` 会自作主张提交**：`scripts/maintenance/发布中文版.ps1` 在推送阶段发现有改动就自动 `git commit -m "Postman 中文汉化工具链 <版本>"` 并 `git push`，不会问你。所以**跑 `publish` 前务必先看 `git status`**，别让无关文件被捎带进去。
+- **Release**：标签形式 `v<版本号>`（如 `v12.25.7`），资产是 `app.asar` 和 `Postman-cn-<版本>-win64.zip`，由 `gh` 上传。
+  - 版本号没变、要覆盖已存在的 Release：加 `-ReplaceRelease`（会先删除旧 Release 及其资产）。
+  - 后台/自动化运行时加 `-Yes` 跳过交互确认——否则脚本停在确认提示上，没有 TTY 会按「否」处理并静默退出（退出码仍是 0，容易误判成成功）。
+- **发布后核对**：用 `gh release view v<版本> --json assets` 确认资产大小和时间戳，别只看脚本输出。
