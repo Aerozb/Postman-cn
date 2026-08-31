@@ -42,7 +42,7 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
       AGENTS.md  CLAUDE.md  README.md
       postman-zh.bat                  ← 普通用户唯一入口（双击）
     _generated\                       ← 审计、扫描和翻译临时产物（可再生，可被随时删除）
-    _release\                         ← `publish` 生成的正式发布包
+    _release\                         ← `publish` 生成的正式发布包（跑过 publish 才出现）
 ```
 
 **重要**：`_generated` 必须与 `Postman-cn` **同级**，所有扫描产物默认写在那里，且入口会拒绝把报告写到项目外。它里面全是可再生产物，词典本体在 `payload/zh-localize.js`，不受影响。若装了清理工具，建议把 `Desktop\Postman` 加白名单。
@@ -184,9 +184,9 @@ createElement(Button, {type:"primary"}, "Restart and Install Update")
 
 11. **合并后必须用 `rg` 验证持久化，不能只信合并数量**：`合并译文.js` 与早期校验脚本对含撇号或特殊字符的键可能处理不一致。合并后应直接执行 `rg -F "中文译文片段" payload/zh-localize.js`，确认词条确实写入权威 payload。不要用 `node -e` 内联脚本检查含特殊字符的词条。
 
-12. **CDP 调试端口每次重启都会变，必须每次重读端口文件（2026-07-22，反复踩坑）**：Postman 用 `--remote-debugging-port=0` 启动，`0`=系统随机分配端口，**每次重启（进程真正退出再拉起）都换一个新端口**，写进 `%APPDATA%\Postman\DevToolsActivePort` 文件第一行。Postman 不重启则端口不变。**任何要连 CDP 的脚本，都必须在连接前重新读端口文件当前内容取端口，绝不能用上一次记住的旧端口**——这是"重装后验证一直连不上/`ECONNREFUSED`"的根源。注意端口文件第 2 行是 `/devtools/browser/...` 路径，只取第 1 行数字。连通性用 `http://127.0.0.1:<port>/json/version` 探活，再 `/json/list` 找 `desktop.postman.com` 主页面（不是 `about:blank` 等 helper frame）。
+12. **CDP 调试端口每次重启都会变，必须每次重读端口文件（2026-07-22，反复踩坑）**：Postman 用 `--remote-debugging-port=0` 启动，`0`=系统随机分配端口，**每次重启（进程真正退出再拉起）都换一个新端口**，写进 `%APPDATA%\Postman\DevToolsActivePort` 文件第一行。Postman 不重启则端口不变。**任何要连 CDP 的脚本，都必须在连接前重新读端口文件当前内容取端口，绝不能用上一次记住的旧端口**——这是"重装后验证一直连不上/`ECONNREFUSED`"的根源。注意端口文件第 2 行是 `/devtools/browser/...` 路径，只取第 1 行数字。拿到端口后用 `http://127.0.0.1:<port>/json/list` 取目标，找 `desktop.postman.com` 主页面（不是 `about:blank` 等 helper frame）。
 
-13. **杀 Postman 要用 PowerShell 循环杀到清零，`taskkill` 杀不干净（2026-07-22）**：Postman 有守护/子进程会互相拉起，`taskkill /F /IM Postman.exe` 单次执行后常残留 5 个进程（PID 还在变）。可靠做法：PowerShell 里 `while (Get-Process Postman -EA SilentlyContinue) { Stop-Process -Name Postman -Force -EA SilentlyContinue; Start-Sleep 1 }` 循环杀到 `Get-Process` 返回空为止（通常 2 轮压制住）。重装前务必确认进程清零，否则 `app.asar` 被占用锁定、写入失败。
+13. **杀 Postman 用 `.\postman-zh.bat stop`，别用 `taskkill`（2026-07-22）**：Postman 有守护/子进程会互相拉起，`taskkill /F /IM Postman.exe` 单次执行后常残留 5 个进程（PID 还在变）。`scripts/internal/关闭程序.ps1` 的做法是最多 20 轮、每轮 `Stop-Process` 后等 500ms，且要**连续 3 次**确认进程为零才算成功。重装前务必确认清零，否则 `app.asar` 被占用锁定、写入失败。
 
 14. **半截翻译闸门 `looksHalfTranslated`（2026-08-24 加入，改 PHRASES 前必读）**：`PHRASES` 是**子串**替换。一句话没进 `EXACT`、但句中某个词命中 `PHRASES` 时，会产出 `Validate 请求 correctness and test results` 这种中英混杂的半截文本——比纯英文更难看，且用户一眼就能发现。
 
@@ -205,16 +205,17 @@ createElement(Button, {type:"primary"}, "Restart and Install Update")
 ## 7. `payload/zh-localize.js` 词典结构
 
 单文件，运行时 IIFE。主要数据结构：
-- `EXACT` — 完整文案精确匹配（最常用）。`{ "English": "中文" }`
-- `PHRASES` — 可组合的子串替换片段
-- `RULES` — 带变量（数字/时间/名称）的正则规则，`[/正则/, "替换" 或 函数]`；数组顺序即优先级，首个命中即返回
+- `EXACT` — 完整文案精确匹配（最常用）。对象，`{ "English": "中文" }`
+- `PHRASES` — 数组，可组合的子串替换片段
+- `RULES` — 数组，带变量（数字/时间/名称）的正则规则，`[/正则/, "替换" 或 函数]`；数组顺序即优先级，首个命中即返回
 - `EDITABLE_EXACT` — 输入框真实 value（如 `New Environment`）
+- `MENU_ITEM_EXACT` — **页面内**菜单项（`[role='menuitem']` 里的文字）专用精确词典，只在该祖先存在时生效
 - `ATTRS` — 需要翻译的元素属性名列表（含 `data-placeholder`）
 - `I18N_TERMS` + `i18nTerm()` — 供生成规则递归翻译实体名/类型名用（见规则 15）
 
 对外只挂这五个方法在 `window.__POSTMAN_ZH_LOCALIZER__` 上：`run`、`translate`、`walk`、`getMisses`、`clearMisses`。其中 **`translate` 是最重要的测试钩子**——所有沙箱脚本和 `_generated/regress-i18n.js` 都靠它在 Node 里离线跑整条翻译链路，不用重装。收集器的写入端 `recordMiss` 是内部函数，不对外暴露。
 
-补词条决策：固定完整句 → `EXACT`；可复用片段 → `PHRASES`；含变量 → `RULES`；输入框默认值 → 同时看 `EDITABLE_EXACT`；原生菜单 → 改 `scripts/internal/安装汉化.ps1` 里的菜单包装器词典。
+补词条决策：固定完整句 → `EXACT`；可复用片段 → `PHRASES`；含变量 → `RULES`；输入框默认值 → 同时看 `EDITABLE_EXACT`；**页面内**右键/下拉菜单项 → `MENU_ITEM_EXACT`；**原生** Electron 菜单（应用顶栏、托盘）→ 改 `scripts/internal/安装汉化.ps1` 里的 `Menu.buildFromTemplate` 包装器词典。
 
 ---
 

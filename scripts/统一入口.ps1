@@ -221,7 +221,7 @@ Postman 中文汉化工具
 
 安装示例：
   .\postman-zh.bat install
-  .\postman-zh.bat install -PostmanDir C:\Path\To\app-12.25.5 -NoVerify
+  .\postman-zh.bat install -PostmanDir C:\Path\To\Postman\app-<版本> -NoVerify
   .\postman-zh.bat restore
 
 自动更新开关：

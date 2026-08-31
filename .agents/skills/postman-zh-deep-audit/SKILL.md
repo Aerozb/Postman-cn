@@ -22,7 +22,7 @@ description: 审计并修复本仓库的 Postman 中文汉化。用于检查实�
 
 1. 从截图、DOM、属性或审计报告中确认准确英文原文和具体界面路径。
 2. 先在 `payload/zh-localize.js` 搜索现有词条和可能的半翻译变体。
-3. 按 `AGENTS.md` 的词典规则修改 `EXACT`、`PHRASES`、`RULES` 或 `EDITABLE_EXACT`；登录授权页面才修改 `payload/zh-auth-webview-preload.js`。
+3. 按 `AGENTS.md` 第 7 节的词典规则修改 `EXACT`、`PHRASES`、`RULES`、`EDITABLE_EXACT` 或 `MENU_ITEM_EXACT`（页面内 `[role='menuitem']` 菜单项走这一个）；登录授权页面才修改 `payload/zh-auth-webview-preload.js`；原生 Electron 菜单改 `scripts/internal/安装汉化.ps1` 里的包装器词典。
 4. 对含弯撇号、非断行空格或先前部分替换的文本补齐真实 DOM 变体。
 5. 运行 `.\postman-zh.bat install`，确认安装器和验证器均成功。
 6. 重走用户报告的界面路径，再运行最贴近该页面的定向审计。

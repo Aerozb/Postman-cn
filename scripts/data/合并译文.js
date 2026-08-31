@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 "use strict";
 
-// 把 _generated/trans-part*.json 的译文合并进 payload/zh-localize.js 的 EXACT 词典。
+// 把 _generated/trans-*.json 的译文合并进 payload/zh-localize.js 的 EXACT 词典。
 // 插入位置为 "var EXACT = {" 之后：JS 对象字面量重复键时后者覆盖前者，
 // 因此已有的人工词条（在文件靠后位置）自动优先于机器批量词条。
 

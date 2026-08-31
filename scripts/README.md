@@ -27,6 +27,8 @@
 
 直接回车等同于选择 `1`。深度审计子菜单输入 `0` 返回主菜单，输入 `q` 退出整个 TUI。`probe` 和通用 `scan` 保留为维护者 CLI 命令，不放入普通用户菜单。
 
+`verify`、`collect`、`probe`、`scan`、全部审计，以及不加 `--disk` 的 `static-scan`，都要连 CDP，**Postman 必须在运行**，否则会报「没有找到 Postman 页面目标」。先 `start` 再跑。`install` 自己会重启 Postman，所以它内置的那次验证不受影响；`static-scan --disk` 读磁盘缓存，不需要 Postman 在运行。
+
 自动更新开关默认关闭（拦截官方升级，保护汉化）。它读写 `%APPDATA%\Postman\postman-zh-updates.json`，和 Postman「设置 > 更新」页里注入的开关是同一份状态；命令行改完约 1 秒内页面开关会自动回正。
 
 | 路径 | 用途 |
@@ -38,7 +40,6 @@
 | `runtime/` | 运行时漏翻收集和更新页探测。 |
 | `data/` | 静态文案扫描和译文合并。 |
 | `maintenance/` | GitHub 发布和打包。 |
-| `验证汉化.js` | 安装完成后的综合验证。 |
 
 ## 实现清单
 
@@ -90,10 +91,12 @@
 | `10` | 固定区域审计 | `targeted` | `audit/审计指定界面.js` | 默认 90 秒；`--thorough` 默认 300 秒。依赖预设坐标，运行前应保持预期窗口布局。 |
 | `11` | 全部调试目标 | `all-targets` | `audit/审计全部调试目标.js` | 默认 90 秒、最多选择 20 个目标；`--thorough` 默认 600 秒并扩大目标、DOM/AX 和交互上限。 |
 
-TUI 不传 `--thorough`。除 `new-request` 外，上表支持高强度档的脚本都有总时间预算：`entry-modals` 使用 `--budget-ms`，其余使用 `--audit-budget-ms`。平衡档不能通过数值参数突破自身上限；需要更高上限时先显式使用 `--thorough`。达到时间或扫描上限会保存部分报告并返回退出码 `2`，不能把部分报告当成完整覆盖。
+TUI 不传 `--thorough`。**支持 `--thorough` 的只有这 8 个：`new-request`、`navigation`、`deep-areas`、`entry-modals`、`phased`、`targeted`、`targeted-surfaces`、`all-targets`**；给 `lightweight`、`new-collection`、`import` 传是无效的。除 `new-request` 外，支持高强度档的脚本都有总时间预算：`entry-modals` 使用 `--budget-ms`，其余使用 `--audit-budget-ms`。平衡档不能通过数值参数突破自身上限；需要更高上限时先显式使用 `--thorough`。达到时间或扫描上限会保存部分报告并返回退出码 `2`，不能把部分报告当成完整覆盖。
 
 `import` 是唯一负责导入弹窗的审计：它从页面侧入口打开 Postman 应用内弹窗，只检查链接、原始文本和代码仓库等安全页签，并在成功、失败或异常结束前关闭自己打开的弹窗和菜单。其他审计必须跳过所有可能唤起 Windows 原生文件选择器的控件，例如文件、文件夹、上传、浏览、选择文件和打开文件夹；`targeted-surfaces` 不再自行点击导入入口。
 
 所有报告、截图和临时文件默认写入项目同级 `_generated`，入口会拒绝项目外路径，不写入根目录或 `scripts`。JSON 报告会经过安全模块脱敏。截图默认关闭；当前支持 `--screenshot` 的命令是 `probe`、`scan`，以及 `lightweight`、`new-request`、`new-collection`、`import`、`navigation`、`deep-areas`、`targeted` 审计。PNG 像素不会经过 JSON 脱敏，可能包含当前可见的工作区或请求内容，只应在本机安全环境中使用。默认输出只保留中文摘要；`collect`、`verify`、`static-scan`、`probe`、`scan` 和全部 11 个审计只有显式传入 `--details` 才显示脱敏后的详细诊断。
 
 添加新能力时，优先给 `统一入口.ps1` 增加子命令，并把实现放入对应分类目录。脚本文件名使用简明中文，不要在仓库根目录增加新的 `.bat` 或 `.ps1` 入口。
+
+本文件是审计档位、`--thorough` 名单和 `--screenshot` 名单的唯一 Markdown 副本，其他文档一律指过来。**唯一的例外是 `统一入口.ps1` 里 `Show-Help` 的正文**——那是用户直接跑 `help` 看到的文字，无法用链接代替，改这些名单时两处要一起改。
