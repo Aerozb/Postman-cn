@@ -645,21 +645,24 @@ async function main() {
       englishHits: Array.from(allEnglishHits.values()).sort((a, b) => b.count - a.count || a.text.localeCompare(b.text)),
       log
     };
-    writeAuditReport(`${outBase}.json`, output);
+    const written = writeAuditReport(`${outBase}.json`, output);
     if (SAVE_SCREENSHOT) {
       const shot = await cdp.send("Page.captureScreenshot", { format: "png", fromSurface: true });
       writeAuditScreenshot(`${outBase}.png`, shot.data);
     }
+    // 计数按脱敏后真正写进报告的数组重算，避免终端报出被身份噪声过滤剔掉的误报。
+    const writtenHits = Array.isArray(written.hits) ? written.hits : [];
+    const writtenEnglishHits = Array.isArray(written.englishHits) ? written.englishHits : [];
     const summary = {
       out: `${outBase}.json`,
       screenshot: SAVE_SCREENSHOT ? `${outBase}.png` : null,
       target: output.target,
       navigationOk: output.navigationOk,
       navigationFailure: output.navigationFailure,
-      hitCount: output.hitCount,
-      hits: output.hits,
-      englishHitCount: output.englishHitCount,
-      englishHits: output.englishHits.slice(0, 80).map((item) => item.text),
+      hitCount: writtenHits.length + writtenEnglishHits.length + (output.navigationOk ? 0 : 1),
+      hits: writtenHits,
+      englishHitCount: writtenEnglishHits.length,
+      englishHits: writtenEnglishHits.slice(0, 80).map((item) => item.text),
       steps: log.map((item) => ({
         step: item.step,
         clicked: item.result || item.clicked || null,

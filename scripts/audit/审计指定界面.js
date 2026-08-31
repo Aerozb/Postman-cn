@@ -524,14 +524,16 @@ async function main() {
     hits,
     log
   };
-    writeAuditReport(`${outBase}.json`, output);
+    const written = writeAuditReport(`${outBase}.json`, output);
+  // 计数取脱敏后真正写进报告的条目数，否则终端会报出被身份噪声过滤剔掉的误报。
+  const writtenHits = Array.isArray(written.hits) ? written.hits : [];
   const summary = {
     out: `${outBase}.json`,
     screenshot: SAVE_SCREENSHOT ? `${outBase}.png` : null,
     complete: output.complete,
     budget: output.budget,
-    hitCount: hits.length,
-    hits: hits.slice(0, 80)
+    hitCount: writtenHits.length,
+    hits: writtenHits.slice(0, 80)
   };
   console.log(`指定界面审计${summary.complete ? "完成" : "已保存部分结果"}：发现 ${summary.hitCount} 条待复核文本，报告已保存到 _generated/${path.basename(summary.out)}。`);
   if (SHOW_DETAILS) {

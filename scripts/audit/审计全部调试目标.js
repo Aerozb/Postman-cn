@@ -482,12 +482,14 @@ async function main() {
     },
     targets: results, findings
   };
-  writeAuditReport(out, report);
-  const summary = { out, complete, budget: budgetInfo, summary: report.summary };
+  const written = writeAuditReport(out, report);
+  // 计数取脱敏后真正写进报告的那份 summary，否则终端会报出被身份噪声过滤剔掉的误报。
+  const reported = written.summary || report.summary;
+  const summary = { out, complete, budget: budgetInfo, summary: reported };
   if (flag("--details")) process.stdout.write(JSON.stringify(sanitizeAuditReport(summary), null, 2) + "\n");
-  else process.stdout.write(`全部调试目标审计${complete ? "完成" : "已保存部分结果"}：审计 ${report.summary.audited} 个目标，发现 ${report.summary.findings} 条候选，报告已写入 _generated/${path.basename(out)}\n`);
+  else process.stdout.write(`全部调试目标审计${complete ? "完成" : "已保存部分结果"}：审计 ${reported.audited} 个目标，发现 ${reported.findings} 条候选，报告已写入 _generated/${path.basename(out)}\n`);
   if (!complete) process.exitCode = fatalError && !budget.exhaustedAt ? 1 : 2;
-  if (flag("--fail-on-errors") && report.summary.errors) process.exitCode = 2;
+  if (flag("--fail-on-errors") && reported.errors) process.exitCode = 2;
 }
 
 main().catch((error) => {

@@ -526,10 +526,12 @@ async function main() {
     summary: { snapshots: snapshots.length, actions: actions.length, successfulActions: actions.filter(a => a.ok).length, findings: findings.length, errors: errors.length },
     findings, actions, snapshots, errors
   };
-  writeAuditReport(out, report);
-  const summary = { out, complete, summary: report.summary, timeBudget: report.timeBudget, usage, top: findings.slice(0, 60).map(f => f.text) };
+  const written = writeAuditReport(out, report);
+  // 计数取脱敏后真正写进报告的那份 summary，否则终端会报出被身份噪声过滤剔掉的误报。
+  const reported = written.summary || report.summary;
+  const summary = { out, complete, summary: reported, timeBudget: report.timeBudget, usage, top: findings.slice(0, 60).map(f => f.text) };
   if (flag("--details")) console.log(JSON.stringify(sanitizeAuditReport(summary), null, 2));
-  else if (complete) console.log(`入口弹窗审计完成：执行 ${report.summary.actions} 次探测，发现 ${report.summary.findings} 条候选，报告已写入 _generated/${path.basename(out)}`);
+  else if (complete) console.log(`入口弹窗审计完成：执行 ${reported.actions} 次探测，发现 ${reported.findings} 条候选，报告已写入 _generated/${path.basename(out)}`);
   else console.log(`入口弹窗审计已达到时间或扫描上限，部分报告已写入 _generated/${path.basename(out)}`);
   if (!complete) process.exitCode = 2;
 }

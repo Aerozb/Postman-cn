@@ -901,7 +901,9 @@ async function main() {
         hits: finalState.hits
       }
     };
-  writeAuditReport(`${outBase}.json`, output);
+  const written = writeAuditReport(`${outBase}.json`, output);
+    // 计数取脱敏后真正写进报告的条目数，否则终端会报出被身份噪声过滤剔掉的误报。
+    const writtenHits = Array.isArray(written.hits) ? written.hits : [];
     const summary = {
       out: `${outBase}.json`,
       screenshot: SAVE_SCREENSHOT ? `${outBase}.png` : null,
@@ -911,8 +913,8 @@ async function main() {
       overlayClicked: output.overlayClicked,
       iterations,
       includeContent,
-      hitCount: output.hits.length,
-      hits: output.hits.slice(0, 30).map((item) => item.text)
+      hitCount: writtenHits.length,
+      hits: writtenHits.slice(0, 30).map((item) => item.text)
     };
     console.log(`可交互界面扫描完成：发现 ${summary.hitCount} 条待复核文本，报告已保存到 _generated/${path.basename(summary.out)}。`);
     if (SHOW_DETAILS) {

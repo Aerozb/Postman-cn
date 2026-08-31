@@ -256,9 +256,11 @@ async function main() {
   const budgetInfo = { limitMs: budget.limitMs, elapsedMs: Date.now() - budget.startedAt, exhausted: Boolean(budget.exhaustedAt), exhaustedAt: budget.exhaustedAt };
   const complete = !fatalError && !budget.exhaustedAt;
   const report = { generatedAt: new Date().toISOString(), complete, budget: budgetInfo, target: target ? { title: target.title, url: target.url } : null, options: { thorough: THOROUGH, phaseOnly, delay, hoverLimit, clickLimit, contextLimit, allTabs, maxTabs, tabDelay, maxScrolls, maxSnapshots, usage }, tabs: auditedTabs, summary: { snapshots: snapshots.length, tabs: auditedTabs.length, findings: findings.size, errors: errors.length }, findings: [...findings.values()].sort((a, b) => b.count - a.count), snapshots, errors };
-  writeAuditReport(out, report);
-  const summary = { out, complete, budget: budgetInfo, summary: report.summary, top: report.findings.slice(0, 30).map(x => x.text) };
-  if (flag("--details")) console.log(JSON.stringify(sanitizeAuditReport(summary), null, 2)); else console.log(`分阶段流程审计${complete ? "完成" : "已保存部分结果"}：生成 ${report.summary.snapshots} 个快照，发现 ${report.summary.findings} 条候选，报告已写入 _generated/${path.basename(out)}`);
+  const written = writeAuditReport(out, report);
+  // 计数取脱敏后真正写进报告的那份 summary，否则终端会报出被身份噪声过滤剔掉的误报。
+  const reported = written.summary || report.summary;
+  const summary = { out, complete, budget: budgetInfo, summary: reported, top: report.findings.slice(0, 30).map(x => x.text) };
+  if (flag("--details")) console.log(JSON.stringify(sanitizeAuditReport(summary), null, 2)); else console.log(`分阶段流程审计${complete ? "完成" : "已保存部分结果"}：生成 ${reported.snapshots} 个快照，发现 ${reported.findings} 条候选，报告已写入 _generated/${path.basename(out)}`);
   if (!complete) process.exitCode = fatalError && !budget.exhaustedAt ? 1 : 2;
 }
 function selfTest(){

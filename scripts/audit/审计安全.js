@@ -287,6 +287,14 @@ function safeTarget(target) {
 }
 
 function compactFinding(item, context) {
+  // 有些审计（如「新建集合」的 probe 命中）直接往 hits 里放字符串。以前这里
+  // 一律返回 null，于是那些命中被静默丢掉、报告里 hits 永远是空数组，而脚本
+  // 自己的 hitCount 仍然在数它们，两边对不上。统一归一成 { text } 再走噪声过滤。
+  if (typeof item === "string") {
+    const text = cleanText(item, 600);
+    if (!text) return null;
+    return isAuditNoiseFinding({ text }, context.identities) ? null : { text };
+  }
   if (!item || typeof item !== "object") return null;
   if (isAuditNoiseFinding(item, context.identities)) return null;
   const result = {};
@@ -338,6 +346,15 @@ function compactCollection(value, key, context) {
           result[field] = cleanText(item[field], 160);
         }
       }
+      // 步骤级 hitCount 也按脱敏后保留下来的 hits 重算，否则日志里会出现
+      // { hitCount: 1, hits: [] } 这种自相矛盾的记录。只在它原本就是 hits
+      // 长度的镜像时才动，复合计数留给脚本自己算。
+      if (
+        Array.isArray(result.hits) && Array.isArray(item.hits) &&
+        typeof result.hitCount === "number" && result.hitCount === item.hits.length
+      ) {
+        result.hitCount = result.hits.length;
+      }
       return result;
     });
   }
@@ -388,11 +405,27 @@ function sanitizeValue(value, key = "", context = { identities: new Set() }) {
   return result;
 }
 
+// 摘要里的计数必须和脱敏后真正写进报告的条目数一致。若沿用过滤前的原始计数，
+// 终端会说「发现 1 条待复核文本」而报告里的 hits 是空数组，维护者无法判断这条
+// 是真漏翻还是被身份噪声过滤剔掉的误报——团队名 slug（speeding-water-181381）
+// 就是这种情况，2026-08-30 实测踩到。
 function sanitizeAuditReport(report) {
   const context = { identities: collectIdentityHints(report) };
   const result = sanitizeValue(report, "", context) || {};
   if (Array.isArray(report && report.findings) && result.summary && typeof result.summary.findings === "number") {
     result.summary.findings = filterAuditFindings(report.findings, context.identities).length;
+  }
+  if (Array.isArray(result.hits) && Array.isArray(report && report.hits)) {
+    // 只在 hitCount 确实是 hits 长度的镜像时才重算。像「新建集合」那样把
+    // englishHits 和导航失败也计进去的复合计数不能被覆盖，它由脚本自己按
+    // 脱敏后的数组重算。
+    const rawLength = report.hits.length;
+    if (typeof result.hitCount === "number" && result.hitCount === rawLength) {
+      result.hitCount = result.hits.length;
+    }
+    if (result.summary && typeof result.summary.hitCount === "number" && result.summary.hitCount === rawLength) {
+      result.summary.hitCount = result.hits.length;
+    }
   }
   return result;
 }
@@ -427,9 +460,23 @@ function assertAuditOutputFile(filePath, expectedExtension, label) {
   return resolved;
 }
 
+// 返回写盘时那份**脱敏后**的报告，供调用方据此统计条数。
+// 摘要必须按这份结果计数：脱敏会剔除身份噪声（团队名 slug、头像 alt、测试 id 等），
+// 若按过滤前的数组算，就会出现"摘要说发现 1 条、报告里 hits 是空的"这种对不上的情况，
+// 维护者无从判断那条是真漏翻还是误报。见 AGENTS.md 规则 8。
 function writeAuditReport(filePath, report) {
   const resolved = assertAuditOutputFile(filePath, ".json", "审计报告");
-  fs.writeFileSync(resolved, JSON.stringify(sanitizeAuditReport(report), null, 2) + "\n", "utf8");
+  const sanitized = sanitizeAuditReport(report);
+  fs.writeFileSync(resolved, JSON.stringify(sanitized, null, 2) + "\n", "utf8");
+  return sanitized;
+}
+
+// 取脱敏后报告里某个候选数组的真实长度。字段缺失按 0 处理，
+// 这样调用方可以无条件写 countAuditFindings(written, "hits")，不必各自判空。
+function countAuditFindings(sanitizedReport, field = "findings") {
+  if (!sanitizedReport || typeof sanitizedReport !== "object") return 0;
+  const value = sanitizedReport[field];
+  return Array.isArray(value) ? value.length : 0;
 }
 
 function normalizeScreenshotData(data) {

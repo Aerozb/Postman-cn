@@ -503,13 +503,16 @@ async function main() {
   }
   const hits = Array.from(merged.values()).sort((a, b) => b.count - a.count || a.text.localeCompare(b.text));
   const output = { target: { title: target.title, url: target.url }, log, hits };
-  writeAuditReport(`${outBase}.json`, output);
+  // 用写入后的脱敏报告统计：身份噪声（团队名 slug 等）会在脱敏阶段被剔除，
+  // 若沿用过滤前的 hits.length，终端会报「发现 N 条」而报告里的 hits 是空的。
+  const written = writeAuditReport(`${outBase}.json`, output);
+  const writtenHits = Array.isArray(written.hits) ? written.hits : [];
   const summary = {
     out: `${outBase}.json`,
     screenshot: SAVE_SCREENSHOT ? `${outBase}.png` : null,
     steps: log.length,
-    hitCount: hits.length,
-    hits: hits.slice(0, 80).map((item) => item.text)
+    hitCount: writtenHits.length,
+    hits: writtenHits.slice(0, 80).map((item) => item.text)
   };
   console.log(`轻量界面审计完成：发现 ${summary.hitCount} 条待复核文本，报告已保存到 _generated/${path.basename(summary.out)}。`);
   if (SHOW_DETAILS) {

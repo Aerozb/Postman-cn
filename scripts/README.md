@@ -97,6 +97,8 @@ TUI 不传 `--thorough`。**支持 `--thorough` 的只有这 8 个：`new-reques
 
 所有报告、截图和临时文件默认写入项目同级 `_generated`，入口会拒绝项目外路径，不写入根目录或 `scripts`。JSON 报告会经过安全模块脱敏。截图默认关闭；当前支持 `--screenshot` 的命令是 `probe`、`scan`，以及 `lightweight`、`new-request`、`new-collection`、`import`、`navigation`、`deep-areas`、`targeted` 审计。PNG 像素不会经过 JSON 脱敏，可能包含当前可见的工作区或请求内容，只应在本机安全环境中使用。默认输出只保留中文摘要；`collect`、`verify`、`static-scan`、`probe`、`scan` 和全部 11 个审计只有显式传入 `--details` 才显示脱敏后的详细诊断。
 
+**终端摘要里的条数，等于报告里实际留下的条数。** 脱敏会剔除身份噪声（团队名 slug、头像 alt、纯 role 文本、测试 id 等，见 `AGENTS.md` 规则 8），所以 `writeAuditReport` 返回写盘那份脱敏结果，审计脚本一律按它计数。曾经摘要用的是过滤前的原始数组，于是出现「发现 1 条待复核文本」而报告里 `hits` 是空数组、步骤日志里 `hitCount: 1` 配 `hits: []` 的情况，维护者无法判断那条是真漏翻还是误报（2026-08-30 实测踩到，那 1 条就是团队名 slug）。新写审计脚本请沿用同一套写法：`const written = writeAuditReport(...)`，再用 `written.hits` / `written.summary` 出摘要，不要用本地的原始数组。像 `new-collection` 那种把 `englishHits` 和导航失败一起计入的复合计数，脱敏层不会覆盖，由脚本自己按脱敏后的数组重算。
+
 添加新能力时，优先给 `统一入口.ps1` 增加子命令，并把实现放入对应分类目录。脚本文件名使用简明中文，不要在仓库根目录增加新的 `.bat` 或 `.ps1` 入口。
 
 本文件是审计档位、`--thorough` 名单和 `--screenshot` 名单的唯一 Markdown 副本，其他文档一律指过来。**唯一的例外是 `统一入口.ps1` 里 `Show-Help` 的正文**——那是用户直接跑 `help` 看到的文字，无法用链接代替，改这些名单时两处要一起改。

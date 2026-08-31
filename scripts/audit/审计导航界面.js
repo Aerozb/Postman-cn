@@ -1458,15 +1458,17 @@ async function main() {
   };
 
   fs.mkdirSync(path.dirname(out), { recursive: true });
-  writeAuditReport(out, report);
+  const written = writeAuditReport(out, report);
+  // 计数取脱敏后真正写进报告的那份 summary，否则终端会报出被身份噪声过滤剔掉的误报。
+  const reported = written.summary || report.summary;
   const summary = {
     out,
-    summary: report.summary,
+    summary: reported,
     usage: used,
     top: findings.slice(0, 60).map(item => item.text)
   };
   if (flag("--details")) console.log(JSON.stringify(sanitizeAuditReport(summary), null, 2));
-  else if (report.complete) console.log(`导航界面审计完成：覆盖 ${report.summary.surfaces} 个界面，发现 ${report.summary.findings} 条候选，报告已写入 _generated/${path.basename(out)}`);
+  else if (report.complete) console.log(`导航界面审计完成：覆盖 ${reported.surfaces} 个界面，发现 ${reported.findings} 条候选，报告已写入 _generated/${path.basename(out)}`);
   else console.log(`导航界面审计已达到时间上限，部分报告已写入 _generated/${path.basename(out)}`);
   if (!report.complete) process.exitCode = 2;
 }

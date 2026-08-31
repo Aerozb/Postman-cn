@@ -12,7 +12,7 @@ description: 审计并修复本仓库的 Postman 中文汉化。用于检查实�
 3. 只通过根目录 `postman-zh.bat` 调用安装、启动、验证和审计能力，不要绕过统一入口。菜单序号与命令的对应、审计名与各档位秒数上限见 `scripts/README.md`（唯一副本）；`probe` 和通用 `scan` 只是维护者 CLI 命令，不在普通用户菜单里。
 4. 将报告、截图和临时文件写入项目同级 `_generated`，不要放进项目根目录或 `scripts`；输出路径只能使用该目录下的文件名。
 5. 默认输出保持简洁中文；只有显式使用 `--details` 时才打印完整诊断，禁止向普通用户输出大段 JSON 或 Postman/Electron/npm 内部日志。
-6. 审计报告必须通过 `scripts/audit/审计安全.js` 的 `writeAuditReport` 写入；不要把原始 CDP 目标、URL 参数、WebSocket 地址、请求/响应正文、输入值或令牌写入 `_generated`。
+6. 审计报告必须通过 `scripts/audit/审计安全.js` 的 `writeAuditReport` 写入；不要把原始 CDP 目标、URL 参数、WebSocket 地址、请求/响应正文、输入值或令牌写入 `_generated`。它返回写盘那份脱敏结果，**摘要计数一律按返回值算**（`written.hits` / `written.summary`），不要用本地的原始数组——脱敏会剔除身份噪声，用原始数组会报出报告里根本没有的条数。
 7. 截图默认关闭，只有一部分命令支持 `--screenshot`（名单见 `scripts/README.md`），并必须通过 `writeAuditScreenshot` 写入；PNG 像素不会经过 JSON 脱敏，可能包含当前可见的工作区或请求内容。
 8. 无参数 TUI 使用 `Read-Host` 接收主菜单和审计子菜单选择；每次选中并完成一项任务后应直接退出，禁止增加用于收尾的 `Read-Host`、`pause` 或其他按键等待。
 9. 通用审计不得点击文件、文件夹、上传、浏览或选择文件等会打开 Windows 原生文件选择器的入口。导入界面只用 `audit import` 从 Postman 页面侧审计；不选择本机文件或目录，结束前清理脚本打开的弹窗和菜单。

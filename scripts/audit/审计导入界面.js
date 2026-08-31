@@ -689,12 +689,14 @@ async function main() {
       log,
       screenshot: SAVE_SCREENSHOT ? `${outBase}.png` : null
     };
-    writeAuditReport(`${outBase}.json`, output);
+    const written = writeAuditReport(`${outBase}.json`, output);
+    // 计数取脱敏后真正写进报告的条目数，否则终端会报出被身份噪声过滤剔掉的误报。
+    const writtenHits = Array.isArray(written.hits) ? written.hits : [];
     const summary = {
       out: `${outBase}.json`,
       screenshot: SAVE_SCREENSHOT ? `${outBase}.png` : null,
-      hitCount: hits.length,
-      hits: hits.slice(0, 60).map((item) => item.text),
+      hitCount: writtenHits.length,
+      hits: writtenHits.slice(0, 60).map((item) => item.text),
       importDialogDetected,
       complete: true,
       openMethod: opened.via,

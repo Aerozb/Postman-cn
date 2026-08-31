@@ -324,9 +324,11 @@ async function main(){
   const budgetInfo = { limitMs: budget.limitMs, elapsedMs: Date.now() - budget.startedAt, exhausted: Boolean(budget.exhaustedAt), exhaustedAt: budget.exhaustedAt };
   const report = buildReport(target, shots, actions, merged, { complete, budget: budgetInfo, errors });
   report.coverage = { successfulActions, missingActions: coverageMissing, delegatedSurfaces: ["import"], minimumMet: coverageComplete };
-  writeAuditReport(out, report);
-  const summary = { out, complete, budget: budgetInfo, summary: report.summary, diagnostics: errors.slice(0, 8).map(diagnosticOf), actions: actions.slice(0, 60), top: report.findings.slice(0, 40).map(x => x.text) };
-  console.log(`易漏界面审计${complete ? "完成" : "已保存部分结果"}：执行 ${report.summary.actions} 次探测，发现 ${report.summary.findings} 条候选，报告已写入 _generated/${path.basename(out)}。`);
+  const written = writeAuditReport(out, report);
+  // 计数取脱敏后真正写进报告的那份 summary，否则终端会报出被身份噪声过滤剔掉的误报。
+  const reported = written.summary || report.summary;
+  const summary = { out, complete, budget: budgetInfo, summary: reported, diagnostics: errors.slice(0, 8).map(diagnosticOf), actions: actions.slice(0, 60), top: report.findings.slice(0, 40).map(x => x.text) };
+  console.log(`易漏界面审计${complete ? "完成" : "已保存部分结果"}：执行 ${reported.actions} 次探测，发现 ${reported.findings} 条候选，报告已写入 _generated/${path.basename(out)}。`);
   if (flag("--details")) console.log(JSON.stringify(sanitizeAuditReport(summary), null, 2));
   if (!complete) process.exitCode = fatalError && !budget.exhaustedAt ? 1 : 2;
 }
