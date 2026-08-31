@@ -9,20 +9,14 @@ description: 审计并修复本仓库的 Postman 中文汉化。用于检查实�
 
 1. 在项目根目录工作，并完整阅读 `AGENTS.md`。
 2. 确认权威汉化主体只有 `payload/zh-localize.js`，不要维护第二份 payload。
-3. 只通过根目录 `postman-zh.bat` 调用安装、启动、验证和审计能力；普通用户走中文 TUI，自动化和维护任务可向同一入口传入命令，不要绕过统一入口。
+3. 只通过根目录 `postman-zh.bat` 调用安装、启动、验证和审计能力，不要绕过统一入口。菜单序号与命令的对应、审计名与各档位秒数上限见 `scripts/README.md`（唯一副本）；`probe` 和通用 `scan` 只是维护者 CLI 命令，不在普通用户菜单里。
 4. 将报告、截图和临时文件写入项目同级 `_generated`，不要放进项目根目录或 `scripts`；输出路径只能使用该目录下的文件名。
 5. 默认输出保持简洁中文；只有显式使用 `--details` 时才打印完整诊断，禁止向普通用户输出大段 JSON 或 Postman/Electron/npm 内部日志。
 6. 审计报告必须通过 `scripts/audit/审计安全.js` 的 `writeAuditReport` 写入；不要把原始 CDP 目标、URL 参数、WebSocket 地址、请求/响应正文、输入值或令牌写入 `_generated`。
-7. 截图默认关闭。当前只有 `probe`、`scan` 和 `lightweight`、`new-request`、`new-collection`、`import`、`navigation`、`deep-areas`、`targeted` 审计支持 `--screenshot`，并通过 `writeAuditScreenshot` 写入；PNG 像素不会经过 JSON 脱敏，可能包含当前可见的工作区或请求内容。
+7. 截图默认关闭，只有一部分命令支持 `--screenshot`（名单见 `scripts/README.md`），并必须通过 `writeAuditScreenshot` 写入；PNG 像素不会经过 JSON 脱敏，可能包含当前可见的工作区或请求内容。
 8. 无参数 TUI 使用 `Read-Host` 接收主菜单和审计子菜单选择；每次选中并完成一项任务后应直接退出，禁止增加用于收尾的 `Read-Host`、`pause` 或其他按键等待。
 9. 通用审计不得点击文件、文件夹、上传、浏览或选择文件等会打开 Windows 原生文件选择器的入口。导入界面只用 `audit import` 从 Postman 页面侧审计；不选择本机文件或目录，结束前清理脚本打开的弹窗和菜单。
-
-## 入口行为
-
-- 主菜单提供安装、验证、还原、启动、关闭、漏翻导出、静态扫描、译文合并、深度审计、浏览器链接修复和发布；`h` 查看帮助，`0` 或 `q` 退出，空回车执行安装。
-- 深度审计子菜单提供下方 11 个审计名称；`0` 返回主菜单，`q` 退出整个 TUI。
-- `probe` 和通用 `scan` 只作为维护者 CLI 命令保留，不在普通用户菜单中。
-- 默认终端只显示简洁中文摘要；诊断 JSON 仅在显式传入 `--details` 时输出。
+10. 跳过带 `data-postman-zh-audit-skip="true"` 的元素（更新页那个自动更新开关就是这样标记的）。
 
 ## 漏翻修复流程
 
@@ -48,19 +42,14 @@ description: 审计并修复本仓库的 Postman 中文汉化。用于检查实�
 - 固定区域：`.\postman-zh.bat audit targeted`
 - 全部调试目标：`.\postman-zh.bat audit all-targets`
 
-TUI 使用默认受控档。只有 `new-request`、`navigation`、`deep-areas`、`entry-modals`、`phased`、`targeted`、`targeted-surfaces` 和 `all-targets` 支持 `--thorough`；仅在发布前确需扩大覆盖时使用。
-
-- `new-request` 没有总审计时限参数；默认仍遍历当前请求类型的全部标签页，但降低交互次数并跳过响应历史。
-- 其余高级审计有总时间、DOM/AX、候选和动作上限。`entry-modals` 的时间参数是 `--budget-ms`，其他脚本使用 `--audit-budget-ms`。
-- `entry-modals` 默认跳过重量级全局搜索；`phased` 要逐个审计所有已打开请求标签时必须另加 `--all-tabs`。
-- 达到预算会保存部分报告并返回退出码 `2`。不要把部分报告当成完整覆盖；精确时限和内部中文脚本名见 `scripts/README.md`。
+默认档就是受控档，TUI 不加 `--thorough`。哪些审计名支持 `--thorough`、时间参数是 `--budget-ms` 还是 `--audit-budget-ms`、各档位的具体秒数上限、内部中文脚本名，全部见 `scripts/README.md`（唯一副本）。达到预算会保存部分报告并返回退出码 `2`，**不要把部分报告当成完整覆盖**。`phased` 要逐个审计所有已打开请求标签必须另加 `--all-tabs`（与 `--thorough` 无关）。
 
 需要 Postman 运行时，先执行 `.\postman-zh.bat start`，不要复用上一次的 CDP 端口。查看全部命令和中文说明时执行 `.\postman-zh.bat help`。
 
 ## 判定规则
 
 - 完整英文短语、混合未翻译片段、输入框占位符、菜单项和悬浮提示属于问题。
-- `API`、`URL`、`HTTP`、`JSON`、`OAuth`、`GraphQL`、`gRPC`、`Cookie`、`SDK`、`Git`、HTTP 方法、品牌名、代码和快捷键等技术标识可保留。
+- 该保留英文的技术标识按 `AGENTS.md` 规则 9 判断（HTTP 状态短语与请求头名、品牌与模型名、代码标识符、快捷键、`API`/`Git`/`JSON` 等技术词）。
 - 不要为了清零计数而翻译示例数据、协议字段、模型名或产品名。
 - 避免点击删除、发送、发布、退出登录等破坏性操作；仅展开、悬浮、滚动或打开可安全关闭的菜单和弹窗。
 

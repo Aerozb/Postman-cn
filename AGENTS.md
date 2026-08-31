@@ -38,7 +38,7 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
       .agents\skills\                ← skill 正文（`.agents/skills/` 是 Codex 的约定位置）
       .claude\skills\                ← 同名薄指针，只为让 Claude Code 也能发现该 skill；
                                         正文不复制，改 description 时两处要同步
-      docs\  汉化教程.md  维护指南.md
+      docs\                           ← 汉化教程、维护指南，以及第 8 节索引里的三份正文
       AGENTS.md  CLAUDE.md  README.md
       postman-zh.bat                  ← 普通用户唯一入口（双击）
     _generated\                       ← 审计、扫描和翻译临时产物（可再生，可被随时删除）
@@ -59,7 +59,7 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
 
 ## 4. 脚本清单（统一入口）
 
-普通用户只需双击根目录 `postman-zh.bat`，通过中文交互菜单选择操作，不需要手敲命令。维护者和自动化测试只使用同一个入口：
+唯一入口是根目录 `postman-zh.bat`：普通用户双击走中文 TUI，维护者和自动化把子命令传给同一个入口，不要直接调内部脚本。
 
 ```powershell
 .\postman-zh.bat help
@@ -67,54 +67,19 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
 .\postman-zh.bat restore
 ```
 
-**不带命令运行（或双击 bat）会显示中文交互菜单**，主菜单为：1 安装、2 验证、3 还原、4 启动、5 关闭、6 导出漏翻、7 静态扫描、8 合并译文、9 深度审计、10 自动更新开关、11 修复浏览器链接、12 发布、`h` 帮助、`0` 退出；空回车默认安装，`q` 等同退出。选“深度审计界面”后会显示 11 项中文审计子菜单，选“自动更新开关”后显示当前状态和开/关两项，`0` 均返回主菜单。菜单只是 `统一入口.ps1` 里 `Show-Menu` 对同一批子命令的包装，带命令调用的行为完全不变。`probe` 和通用 `scan` 是维护者 CLI 命令，不放入 TUI。
+**菜单序号与命令的对应、内部 PowerShell / Node 脚本清单、`install` 的常用参数、审计名与各档位秒数上限，全部以 [`scripts/README.md`](./scripts/README.md) 为准**——那是唯一副本，别在本文件里再抄。`probe` 和通用 `scan` 是维护者 CLI 命令，不放入 TUI。
 
-菜单选择可以使用 `Read-Host`。每次选中任务后只执行一次。任务结束后走 `Stop-WithCode`：它会打印中文结果，然后**倒计时几秒**（成功 8 秒、失败 25 秒）再退出，倒计时期间按任意键立即关闭。**禁止用 `Read-Host`、`pause` 等阻塞式按键等待收尾**——那会让双击窗口看起来卡死。倒计时是 2026-08-27 加的：在那之前任务一结束窗口就消失，用户根本看不到「验证通过」，反馈是"脚本闪退了"。轮询按键用 `[Console]::KeyAvailable`，stdin 被重定向时它会抛异常，必须 try/catch 兜住（自动化调用就是这种情况）。
+改入口时的硬约束：
 
-默认输出必须是简洁中文，不要打印 Postman/Electron/npm 内部日志或独立的大段 JSON。完整诊断只能由维护者显式传入 `--details` 后显示。
+- 默认输出必须是简洁中文，不要打印 Postman/Electron/npm 内部日志或大段 JSON；完整诊断只在显式 `--details` 时输出。
+- 收尾走 `Stop-WithCode`（打印中文结果 + 倒计时几秒自动关闭），**禁止用 `Read-Host`、`pause` 等阻塞式按键等待**——双击窗口会看起来卡死。菜单选择本身可以用 `Read-Host`。
+- 实现按用途归档在 `scripts/` 下，不要在根目录再加 `.bat` 或转发用 `.ps1`。
 
-实现按用途归档在 `scripts/` 下，不要从根目录再新增 `.bat` 或转发用 `.ps1`。
+审计脚本（Node，走 CDP，需 Postman 带 `--remote-debugging-port=0` 启动）另有三条硬约束：
 
-### 内部 PowerShell 实现
-| 脚本 | 作用 |
-|---|---|
-| `scripts/internal/安装汉化.ps1` | 核心安装实现，由 `postman-zh.bat install` 调用。 |
-| `scripts/internal/修复浏览器链接.ps1` | 修复系统 URL 协议处理器的引号问题。 |
-| `scripts/internal/关闭程序.ps1` | 循环关闭全部 Postman 进程。 |
-| `scripts/internal/启动程序.ps1` | 启动 Postman 并等待当前 CDP 端口就绪。 |
-| `scripts/internal/进程工具.ps1` | 让 Postman 脱离安装控制台启动并丢弃其内部日志。 |
-
-安装命令常用参数：
-```
--PostmanDir <path>     指定 app-* 目录（不传则自动发现）
--KeepUpdates           不注入禁止自动更新补丁（默认会禁用更新）
--NoVerify              安装后不运行验证
--CleanOldVersions      打补丁成功后删除旧 app-* 目录、旧 nupkg、裁剪 RELEASES
--NoRestart             安装后不重启
-```
-
-### 汉化维护（Node）
-| 脚本 | 作用 |
-|---|---|
-| `scripts/data/提取界面文案.js` | 静态扫描实现，由 `static-scan` 调用。 |
-| `scripts/data/合并译文.js` | 合并 `_generated/trans-*.json` 译文。 |
-| `scripts/runtime/收集漏翻.js` | 导出运行时漏翻清单。 |
-| `scripts/runtime/探测更新页面.js` | 探测更新页。 |
-| `scripts/验证汉化.js` | 安装验证实现，由 `verify` 或 `install` 调用；`verify --details` 输出完整诊断。 |
-
-### 审计（Node，走 CDP，需 Postman 带 `--remote-debugging-port=0` 启动）
-`scripts/audit/` 下的脚本通过 CDP 模拟点击、悬停和右键遍历页面。使用 `postman-zh.bat audit <名称>` 调用，不要直接记内部文件名。
-
-所有审计脚本都通过 `scripts/audit/审计安全.js` 写报告。该模块会裁剪 JSON 中的本机路径、URL 查询参数、WebSocket 地址、请求/响应正文、输入值和令牌；新增审计脚本必须调用 `writeAuditReport`，不能直接 `JSON.stringify` 原始 CDP 数据。截图默认关闭；当前只有 `probe`、`scan` 和 `lightweight`、`new-request`、`new-collection`、`import`、`navigation`、`deep-areas`、`targeted` 审计实现 `--screenshot`，并必须调用 `writeAuditScreenshot`。该函数只限制输出位置和数据格式，不会脱敏 PNG 像素，截图可能包含当前可见的工作区或请求内容。默认终端只输出中文摘要，`--details` 才输出脱敏诊断。
-
-自动审计不得点击会唤起 Windows 原生文件选择器的入口，包括“文件”“文件夹”“上传”“浏览”“选择文件”“打开文件夹”及其英文标签。只有 `audit import` 可以从 Postman 页面侧安全入口打开应用内导入弹窗；它只检查链接、原始文本和代码仓库等页签，不选择本机文件或目录，并在结束前关闭自己打开的弹窗和临时菜单。`targeted-surfaces` 等通用审计只记录这类控件，不负责点击导入入口。
-
-TUI 不会自动添加 `--thorough`，因此日常选择高级审计时使用的是默认受控档。当前只有以下 8 个审计名支持显式 `--thorough`：`new-request`、`navigation`、`deep-areas`、`entry-modals`、`phased`、`targeted`、`targeted-surfaces`、`all-targets`。不要给 `lightweight`、`import` 或 `new-collection` 传这个参数。
-
-- 除 `new-request` 外，支持高强度档的脚本都有总时间预算：`entry-modals` 用 `--budget-ms`，其余用 `--audit-budget-ms`。`phased --thorough` 不等于遍历所有已打开请求标签，确需逐标签审计还要显式加 `--all-tabs`。
-- 达到时间或扫描上限时，脚本会写入部分报告并返回退出码 `2`；这表示结果可供排查，但不能当成完整覆盖。
-
-**入口审计名、内部中文脚本名、各档位的具体秒数上限，以 `scripts/README.md` 的对应表为准**——那是唯一副本，别在本文件里再抄一份数字，否则改了一处就会不一致。
+- 报告必须经 `scripts/audit/审计安全.js` 的 `writeAuditReport` 写出（它裁剪本机路径、URL 查询参数、WebSocket 地址、请求/响应正文、输入值和令牌），不得直接 `JSON.stringify` 原始 CDP 数据。截图走 `writeAuditScreenshot`，默认关闭，且**不脱敏 PNG 像素**。
+- 不得点击会唤起 Windows 原生文件选择器的入口（“文件”“文件夹”“上传”“浏览”“选择文件”“打开文件夹”及其英文标签）。只有 `audit import` 从 Postman 页面侧打开应用内导入弹窗，它不选本机文件，并在结束前关掉自己开的弹窗和临时菜单。
+- 达到时间或扫描上限时脚本会写出部分报告并返回退出码 `2`——可供排查，但**不算完整覆盖**。TUI 不会自动加 `--thorough`。
 
 ---
 
@@ -195,15 +160,7 @@ createElement(Button, {type:"primary"}, "Restart and Install Update")
 
 2. **`data-placeholder` 必须在 `ATTRS` 列表里**。评论框等富文本编辑器用它渲染占位符，漏了评论面板占位符就不翻译。
 
-3. **更新守卫是开关，不是墙**：入口的 `-KeepUpdates` 表示「保留官方自动更新、不装守卫」，它在 `统一入口.ps1` 里取反后传给 `安装汉化.ps1` 的 `-DisableUpdates`（默认即拦截）。装守卫时**不要**改 `isUpdateEnabled`（会让"设置>更新"页报"出现了一些问题"连接错误）。当前实现在 `main.js` 顶部装一个运行时守卫，并用版本无关锚点把 `downloadUpdate`、`restartAppToUpdate` 改写成**条件**分支；更新页仍应正常显示"已是最新版本"。找不到可确认的源码锚点时应报错，而不是假装成功。
-
-   守卫每次更新调用都读 `%APPDATA%\Postman\postman-zh-updates.json`（缓存约 1 秒），**文件不存在即视为关闭**，所以默认行为和以前一样是拦截。允许时走 Postman 原始实现（覆盖前已 `bind` 保存）。三个入口写同一个文件：Postman「设置 > 更新」页里注入的开关（经守卫注册的 `postman-zh:updates:get/set` IPC）、`postman-zh.bat updates on|off`、TUI 菜单第 10 项。
-
-   改这块时注意：**写偏好文件必须无 BOM**，守卫用 `JSON.parse` 读，BOM 会让解析失败并静默退回"已关闭"；`验证汉化.js` 校验的是"守卫已安装"（`updatePatch.installed`），不是"当前已拦截"——当前是否拦截由用户的开关决定，不该让 `verify` 失败。
-
-   **开关是滑动开关，单击即切换**：页面开关做成 `role=switch` 的滑动样式（轨道 + 圆钮 + 右侧「已开启/已关闭」文字），单击直接写偏好、无需二次确认。曾经为防误触加过"点两次确认开启"，但用户觉得不方便，已改回单击（2026-08-25）。防自动化误点改为只靠按钮上的 `data-postman-zh-audit-skip="true"` 标记——**新写审计脚本必须跳过带这个属性的元素**，别再靠合成点击去点它。渲染状态只改 `data-enabled`/`aria-checked` 和 label 文字，`refreshUpdateToggle`（900ms 轮询）和初始 `updates:get` 会照常把外部（命令行）改动同步回按钮。
-
-   **注入锚点不能只认一个**：更新页在不同状态下渲染的是完全不同的组件。`findUpdateToggleSlot()` 按三级兜底找位置——`.settings-autoupdate`（旧版“已是最新”里 Postman 自带的自动下载开关）、`.settings-update-changelog-container`（“有可用更新”的发布说明视图），都没有时再靠 `[class*="update-"][class*="__button"]`（`update-not-available__button`、`update-idle__button` 这类语义类名）确认当前在更新页，插到 `.settings-tab-contents` 里状态块之后。12.25.5/12.25.7 的“已是最新”状态前两个锚点**都不存在**，只有第三级能兜住；换 Postman 版本后要重新确认这三级还有效。
+3. **更新守卫是开关，不是墙**（正文见 [docs/更新守卫.md](./docs/更新守卫.md)，改这块前必读）：`-KeepUpdates` = 不装守卫；默认装守卫即拦截，偏好文件不存在视为关闭。装守卫时**不要**改 `isUpdateEnabled`（会让"设置>更新"页报连接错误）。找不到可确认的源码锚点时应报错，不要假装成功。更新页那个开关带 `data-postman-zh-audit-skip="true"`，**审计脚本必须跳过带这个属性的元素**，别用合成点击去点它。
 
 4. **菜单汉化用全局 `Menu.buildFromTemplate` 包装器**（prepend 到 `main.js`），不依赖压缩后的变量名锚点，跨版本稳定。若要加原生菜单词条，改这个包装器里的词典，且**只能用 `\u` 转义**中文，避免打包后 `main.js` 编码问题。
 
@@ -241,47 +198,7 @@ createElement(Button, {type:"primary"}, "Restart and Install Update")
 
     排查手法见第 5 节 E。
 
-15. **官方 i18n 清单取材路径与两个写词条陷阱（2026-08-29 定位）**：Postman 自己用 i18next 做多语言，`en-US` 资源包在 `https://desktop.postman.com/_ar-assets/locales/en-US/<namespace>-<hash>.json`。这是第四条、也是最权威的取材路径——每一条都是官方登记为「需要翻译」的界面文案，不是启发式猜的。
-
-    **每次动这批文案前，必须先重新获取一遍清单，不能直接用 `_generated` 里现成的 JSON。** URL 里的 `<hash>` 是内容哈希，Postman 每次发版都会换；`_generated/i18n-assets.json`、`i18n-en-raw.json`、`i18n-en-unique.json` 都是某次快照，隔一个版本就过期。12.24 → 12.25.7 之间清单从 12602 条涨到 13292 条，新增 348 条全是新功能文案（JDBC 数据源、组织迁移…），拿旧快照就会整块漏掉。
-
-    获取步骤（顺序不能换，前两步是为了让新版本把当前的 locale 包写进磁盘缓存）：
-
-    ```powershell
-    .\postman-zh.bat install        # 1. 先把补丁打到新版本并启动 Postman
-    # 2. 让它跑一会儿（十几秒），界面加载时会自动拉取 locale 资源包
-    node ..\_generated\probe-i18n-assets.js   # 3. 从 %APPDATA%\Postman\Partitions 缓存里挖出资源包 URL
-    node ..\_generated\fetch-i18n-en.js       # 4. 拉取全部 en-US 包，写 i18n-en-raw.json / i18n-en-unique.json
-    node ..\_generated\diff-i18n.js           # 5. 与当前词典对比，给出覆盖率和待翻清单
-    ```
-
-    `probe-i18n-assets.js` 是 URL 的唯一来源：它遍历 Postman 的磁盘缓存（gzip/brotli 都会解），把形如 `/_ar-assets/locales/<lng>/` 的 URL 全部捞出来。**缓存里没有的包也就拉不到**，所以第 2 步不能省——如果 probe 出来的 `en-US` 包数量比上次明显少，说明新版本还没加载够界面，等一会儿再 probe。
-
-    确认自己拿的是新清单，而不是旧快照：抓取前先备份一份（`cp i18n-en-unique.json i18n-en-unique.prev.json`），抓取后比一下条数与新增文案；`probe` 结果同样可以和 `i18n-assets.prev.json` 比资源包数量和换了 hash 的包名。
-
-    后续工具链：`batch-i18n.js` 按命名空间/长度切批（`i18n-skip.json` 里是刻意保留英文的），`probe-i18n-rules.js` 单独评估含占位符那批。
-
-    写词条时有两个坑，都会让词条**静默失效**（合并成功、`rg` 也能查到，但运行时永远命中不了）：
-    - **键必须是 `normalize()` 之后的形态**。`translate()` 先 `normalize()`（去零宽字符、`&nbsp;`→空格、**连续空白压成单个空格**、`trim()`）再查 `EXACT`。所以官方原文里带首尾空格的（`"Parse Error: "`）或带换行的多段文案，键都要写成去首尾空白、换行压成空格的形式；输出的首尾空白由 `preserveOuter` 自动补回。
-    - **`合并译文.js` 会拒收不含中文的译文**。像 `"SCIM API keys": "SCIM API Key"` 这种全英文的值会被静默丢弃，得给出含中文的写法（`"SCIM API 密钥"`）。
-
-    含 `{count}` 这类单花括号插值的官方文案（约 1300 条）**不能进 `EXACT`**——运行时 DOM 里出现的是填好值的结果，原串永远不会出现，必须写 `RULES`。这批已用一条生成管线做完，工具在 `_generated`：
-
-    | 脚本 | 作用 |
-    |---|---|
-    | `rules-skeletons.js` | 把官方文案的 ICU plural/select 展开成「运行时真正出现的骨架」，只留下现有词典还翻不出的；`rules-skip.json` / `rules-rejected.json` 里的骨架会跳过 |
-    | `rules-compile.js` | 把「骨架 → 中文模板」编译成 `[正则, 替换]`，含四项自检（填样例必须命中、译文必须含中文、不得命中常见短串、名称插值不得过宽） |
-    | `gen-rules-b*.js` | 逐批手写的翻译表，输出 `rules-b*.json` |
-    | `merge-rules.js` | 用一对 `BEGIN/END` 哨兵注释整块重写 payload 里的生成规则区，幂等 |
-    | `regress-i18n.js save\|diff` | 全量语料回归：改动前存快照，改动后列出「丢了中文」和「新增半截」的条目 |
-
-    写生成规则时踩过四个坑，都由上面的自检/回归兜住了，改这块前务必理解：
-    - **生成规则要插在 RULES 头部**。手写规则里有 `^Delete (.+)$`、`^Copy (.+)$` 这种通用动词兜底，排在前面会把具体规则整个吃掉。具体优先于通用。
-    - **同一块内也要按具体度排序**：先比骨架里的字面量字符数，相同再让「实体名候选列表」型规则优先。否则 `^Delete (.+?)\?$` 会抢在 `^Delete (环境|集合|…)\?$` 前面，把 `Delete environment?` 只翻出半截。
-    - **名称插值贴在句首最危险**：`^(名称) workspace$` 会把 `Share workspace` 变成「Share 工作区」。所以要求句首名称插值的字面量至少两个英文单词（或 ≥12 个非空白字符），句尾的至少 6 个字符；不达标的骨架直接拒收并记进 `rules-rejected.json`。
-    - **实体名/类型名插值必须走 `i18nTerm()`**（payload 里新加的辅助函数 + `I18N_TERMS` 词表）。做法是把已知实体名的候选列表直接编进正则，这样输入不是实体名时规则根本不命中、会继续往后走手写兜底，而不是被吃掉后返回英文。
-
-    每次 `merge-rules.js` 之后都要跑 `regress-i18n.js diff`，指标是「新增半截 = 0」；仍需人工判断的骨架清单见 `rules-skeletons.txt`。
+15. **官方 i18n 清单是第四条取材路径，写词条有三个静默失效陷阱**（正文见 [docs/官方i18n清单与生成规则.md](./docs/官方i18n清单与生成规则.md)，升级新版、批量补词条、改 `RULES` 生成规则区前必读）：官方 `en-US` 资源包是最权威的取材路径，但 URL 带内容哈希，**每次都要重新抓，不能用 `_generated` 里的旧快照**（12.24→12.25.7 新增 348 条）。三个让词条静默失效的坑：键必须写成 `normalize()` 后的形态（首尾空白去掉、连续空白压成一个空格）；`合并译文.js` 会静默丢弃不含中文的译文；含 `{count}` 这类插值的文案原串永不出现在 DOM 里，**不能进 `EXACT`**，必须写 `RULES`。
 
 ---
 
@@ -301,51 +218,15 @@ createElement(Button, {type:"primary"}, "Restart and Install Update")
 
 ---
 
-## 8. Postman 升级到新版本的完整流程
+## 8. 更长的内容在哪（按任务查，动手前先读对应文件）
 
-1. 查最新版：`https://dl.pstmn.io/update/status?currentVersion=<当前版本>&arch=64&platform=win`
-2. 下载 full nupkg 到 `packages/`，校验 SHA1 与 feed 一致
-3. 解压 nupkg 的 `lib/net45` 为 `app-<新版本>`
-4. 在 `packages/RELEASES` 追加新版本行
-5. 运行 `.\postman-zh.bat install -CleanOldVersions`——打补丁成功后自动删除旧 `app-*`、旧 nupkg，只保留当前版本
-6. **重新获取官方 i18n 清单并补齐新增文案**（最重要的一步，按规则 15 的步骤走）：等新版本跑起来十几秒，然后
-   `probe-i18n-assets.js` → `fetch-i18n-en.js` → `diff-i18n.js`。**不要直接用 `_generated` 里现成的清单 JSON**，
-   资源包 URL 带内容哈希、每次发版都会变，旧快照会整块漏掉新功能的文案。
-7. 运行 `.\postman-zh.bat static-scan --disk` 扫新版新增文案，走第 5A 节闭环补齐剩下的（官方清单覆盖不到的部分）
-8. 顺手核对文档里写死的版本号（`AGENTS.md` 第 2 节目录树、`README.md` 与 `docs/汉化教程.md` 里的 `-PostmanDir app-*` 示例）
+本文件只留「一句话说完、违反就直接出 bug」的规则。成段的操作步骤都在下面这些文件里，**做对应的事之前必须先完整读完**：
 
-看到 `[Postman 汉化] 验证通过` 即成功。
+| 你要做的事 | 先读 |
+|---|---|
+| 升级 Postman 到新版本 / 发布 / 提交 | [docs/升级与发布.md](./docs/升级与发布.md) |
+| 抓官方 i18n 清单、批量补词条、改 `RULES` 生成规则区 | [docs/官方i18n清单与生成规则.md](./docs/官方i18n清单与生成规则.md) |
+| 改自动更新拦截、更新页开关 | [docs/更新守卫.md](./docs/更新守卫.md) |
+| 改统一入口 / 菜单 / 加子命令 / 查审计档位和秒数 | [scripts/README.md](./scripts/README.md) |
 
----
-
-## 9. 发布前自检
-
-```powershell
-Get-ChildItem .\payload,.\scripts -Recurse -File -Filter *.js | ForEach-Object { node --check $_.FullName; if ($LASTEXITCODE) { throw "JavaScript 语法错误：$($_.FullName)" } }
-Get-ChildItem .\scripts -Recurse -File -Filter *.ps1 | ForEach-Object { [scriptblock]::Create((Get-Content -Raw -Encoding UTF8 $_.FullName)) | Out-Null }
-.\postman-zh.bat help
-.\postman-zh.bat verify
-git diff --check
-```
-
-改过词典（尤其动过 `RULES` 或 `PHRASES`）时，`verify` 通过还不够，再跑一遍全量翻译回归：
-
-```powershell
-node ..\_generated\regress-i18n.js diff    # 指标：新增半截 = 0
-```
-
-它拿官方 i18n 清单当语料，把改动前后的 `translate()` 输出逐条对比，列出「原来有中文、现在丢了」和「原来干净、现在变半截」的条目。`verify` 只检查安装完整性，抓不到这类译文质量回退。改动前记得先 `regress-i18n.js save` 存基线。
-
-不要提交任何 `app.asar` / `app.asar.original` / `app.asar.unpacked.zh` / 截图 / `_generated` 产物 / 根目录 `tmp-*` 一次性脚本 / 用户数据。`publish` 会自动 `git commit` 并推送，所以**发布前先确认 `git status` 干净**——曾经有一次它把根目录 53 个 `tmp-*` 排查产物一起提交了。
-
----
-
-## 10. 提交与发布约定
-
-- **分支**：直接提交到 `main`（本仓库没有保护分支和 PR 流程，维护者单人推送）。需要评审时才开分支发 PR。
-- **提交信息**：首行用中文概括做了什么，不带类型前缀；正文说明「为什么」和踩到的坑，便于以后回溯。AI 协作产生的提交在结尾加 `Co-Authored-By:` 尾注。
-- **`publish` 会自作主张提交**：`scripts/maintenance/发布中文版.ps1` 在推送阶段发现有改动就自动 `git commit -m "Postman 中文汉化工具链 <版本>"` 并 `git push`，不会问你。所以**跑 `publish` 前务必先看 `git status`**，别让无关文件被捎带进去。
-- **Release**：标签形式 `v<版本号>`（如 `v12.25.7`），资产是 `app.asar` 和 `Postman-cn-<版本>-win64.zip`，由 `gh` 上传。
-  - 版本号没变、要覆盖已存在的 Release：加 `-ReplaceRelease`（会先删除旧 Release 及其资产）。
-  - 后台/自动化运行时加 `-Yes` 跳过交互确认——否则脚本停在确认提示上，没有 TTY 会按「否」处理并静默退出（退出码仍是 0，容易误判成成功）。
-- **发布后核对**：用 `gh release view v<版本> --json assets` 确认资产大小和时间戳，别只看脚本输出。
+**本文件必须保持在 32 KiB 以内**：Codex 默认只读 `AGENTS.md` 的前 32 KiB（`project_doc_max_bytes`），超出部分静默截断、不报错，而 Claude Code 那边是全文——两个助手看到的规则会不一致。新增长篇内容一律放 `docs/` 并在此加一行；指针写成普通 Markdown 链接，**不要写成 `@docs/...`**（那是 Claude Code 的导入语法，会让 Claude Code 内联全文而 Codex 只看到一行字面量，等于重新制造不一致）。`publish` 的预检会检查这个大小。

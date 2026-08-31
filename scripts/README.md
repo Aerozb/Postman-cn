@@ -6,6 +6,8 @@
 
 无参数运行或双击 `postman-zh.bat` 时，`统一入口.ps1` 显示中文 TUI。菜单输入使用 `Read-Host`；选中一项后只执行一次。任务结束后走 `Stop-WithCode`：打印中文结果，再倒计时若干秒（成功 8 秒、失败 25 秒）自动关闭双击窗口，倒计时期间按任意键可立即关闭。收尾**不使用**阻塞式按键等待。
 
+倒计时是 2026-08-27 加的：在那之前任务一结束窗口就消失，用户看不到「验证通过」，反馈是"脚本闪退了"。轮询按键用 `[Console]::KeyAvailable`，stdin 被重定向时它会抛异常，必须 try/catch 兜住（自动化调用就是这种情况）。
+
 | 序号 | TUI 操作 | 入口命令 |
 |---:|---|---|
 | `1` | 安装汉化 | `install` |
@@ -37,6 +39,38 @@
 | `data/` | 静态文案扫描和译文合并。 |
 | `maintenance/` | GitHub 发布和打包。 |
 | `验证汉化.js` | 安装完成后的综合验证。 |
+
+## 实现清单
+
+### 内部 PowerShell 实现
+
+| 脚本 | 作用 |
+|---|---|
+| `internal/安装汉化.ps1` | 核心安装实现，由 `postman-zh.bat install` 调用。 |
+| `internal/修复浏览器链接.ps1` | 修复系统 URL 协议处理器的引号问题。 |
+| `internal/关闭程序.ps1` | 循环关闭全部 Postman 进程。 |
+| `internal/启动程序.ps1` | 启动 Postman 并等待当前 CDP 端口就绪。 |
+| `internal/进程工具.ps1` | 让 Postman 脱离安装控制台启动并丢弃其内部日志。 |
+
+`install` 的常用参数：
+
+```
+-PostmanDir <path>     指定 app-* 目录（不传则自动发现）
+-KeepUpdates           不注入禁止自动更新补丁（默认会禁用更新）
+-NoVerify              安装后不运行验证
+-CleanOldVersions      打补丁成功后删除旧 app-* 目录、旧 nupkg、裁剪 RELEASES
+-NoRestart             安装后不重启
+```
+
+### 汉化维护（Node）
+
+| 脚本 | 作用 |
+|---|---|
+| `data/提取界面文案.js` | 静态扫描实现，由 `static-scan` 调用。 |
+| `data/合并译文.js` | 合并 `_generated/trans-*.json` 译文。 |
+| `runtime/收集漏翻.js` | 导出运行时漏翻清单。 |
+| `runtime/探测更新页面.js` | 探测更新页。 |
+| `验证汉化.js` | 安装验证实现，由 `verify` 或 `install` 调用；`verify --details` 输出完整诊断。 |
 
 ## 审计命令对应表
 

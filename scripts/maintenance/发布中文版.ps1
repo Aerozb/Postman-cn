@@ -273,6 +273,24 @@ if (-not (Test-Path -LiteralPath $repoDir)) {
   }
 }
 
+# --- AGENTS.md 体积 ---
+# Codex 默认只读 AGENTS.md 的前 32 KiB（project_doc_max_bytes），超出部分静默截断、
+# 不报错，于是 Codex 和 Claude Code 会看到不同的规则。把它当发布门槛，别等踩坑才发现。
+# 注意 CRLF：本仓库入库是 LF，Windows 检出成 CRLF 后每行多 1 字节，所以留够余量。
+$agentsMd = Join-Path $repoDir 'AGENTS.md'
+if (Test-Path -LiteralPath $agentsMd) {
+  $agentsBytes = (Get-Item -LiteralPath $agentsMd).Length
+  $agentsFree  = 32768 - $agentsBytes
+  if ($agentsBytes -gt 32768) {
+    Write-Bad "AGENTS.md 有 $agentsBytes 字节，超过 Codex 上限 32768，尾部会被静默截断；把长内容移到 docs\ 并在 AGENTS.md 留指针"
+    $problems.Add('AGENTS.md 超过 32 KiB')
+  } elseif ($agentsBytes -gt 31744) {
+    Write-Warn2 "AGENTS.md $agentsBytes 字节，距 Codex 32 KiB 上限只剩 $agentsFree 字节；再加长内容前先往 docs\ 搬"
+  } else {
+    Write-Ok "AGENTS.md $agentsBytes 字节（Codex 32 KiB 上限内，余量 $agentsFree）"
+  }
+}
+
 # --- 远程仓库可写 ---
 if ($ghCmd -and $ghUser) {
   try {
