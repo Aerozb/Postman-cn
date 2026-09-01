@@ -558,6 +558,23 @@ if ($exists) {
   Write-Info "已删除旧 Release $Tag"
 }
 
+# 词条数实测，不写常量：每轮补词条都会变，写死必然过时
+# （2026-09-01 之前硬编码 13400，实测已 24190，少报约 45%）。
+$entryCount = ''
+$countScript = Join-Path $repoDir 'scripts\data\统计词条.js'
+if (Test-Path -LiteralPath $countScript) {
+  $c = Invoke-Native node @($countScript)
+  if ($c.Code -eq 0 -and $c.Out.Trim() -match '^\d+$') {
+    # 向下取整到百位，避免说明里出现「24190 条」这种假精确
+    $entryCount = [string]([math]::Floor([int]$c.Out.Trim() / 100) * 100)
+    Write-Ok "词条实测 $($c.Out.Trim()) 条（说明里写约 $entryCount 条）"
+  }
+}
+if (-not $entryCount) {
+  Write-Bad '统计词条失败，无法生成 Release 说明里的条数'
+  exit 1
+}
+
 # 用单引号 here-string（@'...'@）避免反引号被当成 PowerShell 转义符：
 # 双引号 here-string 里 `a=响铃(BEL)、`P 等会吃掉反引号，导致 markdown 代码块
 # 渲染成乱码（曾出现 “替换 `app-...`” → “替换 <BEL>pp-...”）。变量用 .Replace 注入。
@@ -571,11 +588,12 @@ Postman 中文汉化版 $version
 
 ## 说明
 
-- 汉化基于运行时注入，界面词典约 13400 条
+- 汉化基于运行时注入（不改源码字符串），界面词典约 $entryCount 条
+- 请求编辑器等界面由 Postman 服务端下发，官方随时会改动文案，所以**不存在一劳永逸的 100% 覆盖**；遇到没翻的地方欢迎提 Issue
 - 默认关闭自动更新，避免官方更新覆盖汉化；需要时可在「设置 > 更新」页里的开关自行打开
 - 绿色版不含 `app.asar.original`（英文原版备份），如需还原英文请重装官方版
-- 部分内容刻意保留英文：HTTP 头名、AI 模型名、协议名、产品专有名词等
-'@.Replace('$version', $version)
+- 部分内容刻意保留英文：HTTP 状态短语与请求头名、AI 模型名、协议与产品专有名词、代码标识符、快捷键等
+'@.Replace('$version', $version).Replace('$entryCount', $entryCount)
 $notesFile = Join-Path $outDir 'release-notes.md'
 Set-Content -LiteralPath $notesFile -Value $notes -Encoding UTF8
 
