@@ -116,7 +116,7 @@ createElement(Button, {type:"primary"}, "Restart and Install Update")
 
 补法是加一条取材路径：**按 `createElement(组件, props, "文字")` 的第 3 个及以后字符串参数抽取**，另外把 JSX 自动运行时的 `children:"…"` 也一并抽（`static-scan` 虽然认 `children` 这个键，但把它归进 `WEAK_KEYS`，单个词的值会被"至少两个词"的规则丢掉，所以按钮上的单词标签会漏）。这条路径精度很高——本地 `app.asar` 抽出约 1700 条候选，噪声主要是通用单词和半句碎片。一次性脚本可写在 `_generated` 里。
 
-四条取材路径互补，缺一不可：
+五条取材路径互补，缺一不可：
 
 | 路径 | 覆盖 | 盲区 |
 |---|---|---|
@@ -124,6 +124,9 @@ createElement(Button, {type:"primary"}, "Restart and Install Update")
 | `collect` | 用户实际触发过的界面 | 没走到的分支 |
 | createElement/JSX children 抽取 | 弹窗标题、按钮文字、表头 | 远程 bundle 里改名过的 JSX 工厂函数 |
 | 官方 i18n 资源包（见规则 15，**每次都要重新拉，别用旧快照**） | 官方登记的全部界面文案，权威、带命名空间 | 未走 i18next 的老代码、canvas 文本 |
+| `app.asar` 里的**本地兜底页**（`html/*.html` + 对应 `js/*.js`） | 网络/启动出问题时才出现的界面 | 只有这批页面 |
+
+最后那条 2026-09-01 补上：`html/desktop-offline.html`（离线兜底）、`html/loader.html`（启动画面）、`html/auth/error.html`、`html/proxyAuth.html`、`html/no-scratchpad.html` 等页面打包在本地、**不随服务端更新**，而且恰好是"出问题时用户盯着看"的界面，前四条路径都覆盖不到：它们不走 i18next，HTML 里是纯文本而非属性形式，`collect` 也只有用户真撞上才记。抽取用 `npx --yes @electron/asar extract-file <asar> html/xxx.html`；文案多在配套 `js/*.js` 的 JSX `children:"…"`／`text:"…"` 位置（含 `text:cond?"A":"B"` 这种三元，正则要能吃到）。当时查出 11 条漏翻，其中 5 条是 `aria-label` 直接**泄露了未解析的 i18next 原始键**（`app-header:window_controls.close_win_tooltip`）——离线页没加载资源包所以键没被替换，把这些键本身写进 `EXACT` 即可。
 
 **翻的时候只翻完整的标题/标签/句子**，通用单词（`error`/`import`/`share`）和半句碎片（`Make sure the`、`or create a collection`）一律跳过——碎片由 `fixCompositeTextBlocks` 负责整句拼装，单独翻会破坏整句结果并触发 `验证汉化.js` 的守卫（本轮返工过一次）。
 
@@ -182,7 +185,9 @@ createElement(Button, {type:"primary"}, "Restart and Install Update")
     - **修复**：凡含撇号或属于"链接文字"的英文键，除标准版本外**必须再补一份弯撇号/`&nbsp;` 变体**（值相同）。少量词条直接写入译文 JSON；批量处理时可在 `_generated` 中编写一次性辅助脚本，但不要把临时脚本当作项目固定入口。
     - **排查手法**：用 CDP 取页面该文本的 `charCodeAt` 逐字符码位确认（`8217`=弯撇号，`160`=`&nbsp;`），再对比词条键。
 
-11. **合并后必须用 `rg` 验证持久化，不能只信合并数量**：`合并译文.js` 与早期校验脚本对含撇号或特殊字符的键可能处理不一致。合并后应直接执行 `rg -F "中文译文片段" payload/zh-localize.js`，确认词条确实写入权威 payload。不要用 `node -e` 内联脚本检查含特殊字符的词条。
+11. **合并后必须用 `rg` 验证持久化，不能只信合并数量**：`合并译文.js` 与早期校验脚本对含撇号或特殊字符的键可能处理不一致。合并后应直接执行 `rg -F "中文译文片段" payload/zh-localize.js`，确认词条确实写入权威 payload。不要用 `node -e` 内联脚本检查含特殊字符的词条。**"合并 N 条"只说明脚本认为有 N 条可合，不等于 N 条都生效**——还要用沙箱 `translate()` 逐条回读（2026-09-01 就是这样查出下面那条边界 bug 的）。
+
+    `合并译文.js` 判断"键是否已在 `EXACT`"时，**切片只能取 `EXACT` 这一个对象**（按括号深度扫到配对的 `}`，扫描时跳过字符串里的括号）。曾经是从 `var EXACT = {` 一路切到文件末尾，于是 `EDITABLE_EXACT`、`MENU_ITEM_EXACT`、`I18N_TERMS` 和函数内对象字面量的键（多算 2515 个）全被当成"已在 EXACT"，新词条被静默跳过。`I18N_TERMS` 是给生成规则做术语递归的表，语义和界面词条本就不同（`"group": "组"` 是术语，界面标签该是"群组"），**撞名属正常，不该互相屏蔽**。
 
 12. **CDP 调试端口每次重启都会变，必须每次重读端口文件（2026-07-22，反复踩坑）**：Postman 用 `--remote-debugging-port=0` 启动，`0`=系统随机分配端口，**每次重启（进程真正退出再拉起）都换一个新端口**，写进 `%APPDATA%\Postman\DevToolsActivePort` 文件第一行。Postman 不重启则端口不变。**任何要连 CDP 的脚本，都必须在连接前重新读端口文件当前内容取端口，绝不能用上一次记住的旧端口**——这是"重装后验证一直连不上/`ECONNREFUSED`"的根源。注意端口文件第 2 行是 `/devtools/browser/...` 路径，只取第 1 行数字。拿到端口后用 `http://127.0.0.1:<port>/json/list` 取目标，找 `desktop.postman.com` 主页面（不是 `about:blank` 等 helper frame）。
 
@@ -198,7 +203,7 @@ createElement(Button, {type:"primary"}, "Restart and Install Update")
 
     排查手法见第 5 节 E。
 
-15. **官方 i18n 清单是第四条取材路径，写词条有三个静默失效陷阱**（正文见 [docs/官方i18n清单与生成规则.md](./docs/官方i18n清单与生成规则.md)，升级新版、批量补词条、改 `RULES` 生成规则区前必读）：官方 `en-US` 资源包是最权威的取材路径，但 URL 带内容哈希，**每次都要重新抓，不能用 `_generated` 里的旧快照**（12.24→12.25.7 新增 348 条）。三个让词条静默失效的坑：键必须写成 `normalize()` 后的形态（首尾空白去掉、连续空白压成一个空格）；`合并译文.js` 会静默丢弃不含中文的译文；含 `{count}` 这类插值的文案原串永不出现在 DOM 里，**不能进 `EXACT`**，必须写 `RULES`。
+15. **官方 i18n 清单是第四条取材路径，写词条有三个静默失效陷阱**（正文见 [docs/官方i18n清单与生成规则.md](./docs/官方i18n清单与生成规则.md)，升级新版、批量补词条、改 `RULES` 生成规则区前必读）：官方 `en-US` 资源包是最权威的取材路径，但 URL 带内容哈希，**每次都要重新抓，不能用 `_generated` 里的旧快照**（12.24→12.25.7 新增 348 条）。三个让词条静默失效的坑：键必须是 `normalize()` 后的形态（首尾空白去掉、连续空白压成一个空格），`合并译文.js` 现在会在入口自动归一并报告归一条数，但**手改 payload 时仍要自己守**（2026-09-01 在 `EXACT` 里查出 34 条这样的死词条）；`合并译文.js` 会静默丢弃不含中文的译文；含 `{count}` 这类插值的文案原串永不出现在 DOM 里，**不能进 `EXACT`**，必须写 `RULES`。
 
 ---
 
