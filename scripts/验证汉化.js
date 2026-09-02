@@ -30,10 +30,39 @@ const MAIN_MENU_PATCH_MARKERS = [
   "View Logs in Explorer",
   "\\u5728\\u8d44\\u6e90\\u7ba1\\u7406\\u5668\\u4e2d\\u67e5\\u770b\\u65e5\\u5fd7"
 ];
+// 汉化包自己的版本检查：main.js 里的 require 钩子 + 主进程实现文件里的 IPC 通道名。
+// 与上面的 UPDATE_PATCH_MARKERS 无关——那个管 Postman 官方升级（默认关闭），
+// 这个只查本汉化包有没有新版（默认开启，只提示不下载）。
+const VERSION_CHECK_PATCH_MARKERS = [
+  "postman-zh:version-check",
+  "zh-version-check-main.js"
+];
+const VERSION_CHECK_IPC_MARKERS = [
+  "postman-zh:version-check:get",
+  "postman-zh:version-check:set",
+  "postman-zh:version-check:check",
+  "postman-zh:version-check:open",
+  "postman-zh:version-check:download",
+  "postman-zh:version-check:download-state",
+  "postman-zh:version-check:reveal"
+];
+// main.js 里应当出现的标记。安装阶段的临时 main.js 与 app.asar 互相比对时只能用这批
+// ——见下面 MAIN_JS_PATCH_MARKERS 的说明。
 const ALL_PATCH_MARKERS = Array.from(new Set([
   ...UPDATE_PATCH_MARKERS,
   ...EXTERNAL_URL_PATCH_MARKERS,
-  ...MAIN_MENU_PATCH_MARKERS
+  ...MAIN_MENU_PATCH_MARKERS,
+  ...VERSION_CHECK_PATCH_MARKERS,
+  ...VERSION_CHECK_IPC_MARKERS
+]));
+// 交叉比对专用子集：VERSION_CHECK_IPC_MARKERS 在 js\zh-version-check-main.js 里，
+// 那个文件打进 app.asar 但**不在** main.js 里。若把它们算进交叉比对，
+// onlyInAppAsar 会永远列出这几条，看起来像安装不一致，其实是正常的。
+const MAIN_JS_PATCH_MARKERS = Array.from(new Set([
+  ...UPDATE_PATCH_MARKERS,
+  ...EXTERNAL_URL_PATCH_MARKERS,
+  ...MAIN_MENU_PATCH_MARKERS,
+  ...VERSION_CHECK_PATCH_MARKERS
 ]));
 
 function argValue(name) {
@@ -462,17 +491,17 @@ function createPatchSource(postmanDir) {
     reason: "不存在安装阶段的临时 main.js。"
   };
   if (fs.existsSync(mainJs)) {
-    const temporaryMarkers = scanFileForMarkers(mainJs, ALL_PATCH_MARKERS);
+    const temporaryMarkers = scanFileForMarkers(mainJs, MAIN_JS_PATCH_MARKERS);
     temporaryCrossCheck = {
       checked: true,
       source: mainJs,
-      matchesAppAsar: ALL_PATCH_MARKERS.every((marker) => {
+      matchesAppAsar: MAIN_JS_PATCH_MARKERS.every((marker) => {
         return activeMarkers.has(marker) === temporaryMarkers.has(marker);
       }),
-      onlyInTemporary: ALL_PATCH_MARKERS.filter((marker) => {
+      onlyInTemporary: MAIN_JS_PATCH_MARKERS.filter((marker) => {
         return temporaryMarkers.has(marker) && !activeMarkers.has(marker);
       }),
-      onlyInAppAsar: ALL_PATCH_MARKERS.filter((marker) => {
+      onlyInAppAsar: MAIN_JS_PATCH_MARKERS.filter((marker) => {
         return activeMarkers.has(marker) && !temporaryMarkers.has(marker);
       })
     };
@@ -518,6 +547,19 @@ function inspectMainMenuPatch(source) {
     return { checked: false, installed: false, missing: [source.reason] };
   }
   const missing = MAIN_MENU_PATCH_MARKERS.filter((needle) => !source.includes(needle));
+  return { checked: true, source: source.source, installed: missing.length === 0, missing };
+}
+
+// 汉化版本检查：main.js 的 require 钩子必须在，主进程实现文件的四个 IPC 通道也必须在。
+// 只查「装没装」，不查「当前开没开」——后者由
+// %APPDATA%\Postman\postman-zh-version-check.json 决定，用户自己在设置页控制。
+function inspectVersionCheckPatch(source) {
+  if (!source.checked) {
+    return { checked: false, installed: false, missing: [source.reason] };
+  }
+  const missing = VERSION_CHECK_PATCH_MARKERS
+    .concat(VERSION_CHECK_IPC_MARKERS)
+    .filter((needle) => !source.includes(needle));
   return { checked: true, source: source.source, installed: missing.length === 0, missing };
 }
 
@@ -1830,6 +1872,7 @@ async function main() {
     result.updatePatch = inspectUpdatePatch(patchSource);
     result.externalUrlPatch = inspectExternalUrlPatch(patchSource);
     result.mainMenuPatch = inspectMainMenuPatch(patchSource);
+    result.versionCheckPatch = inspectVersionCheckPatch(patchSource);
 
     const failures = [];
     if (result.localized !== "true") {
@@ -1891,6 +1934,10 @@ async function main() {
       const mainMenuDetails = SHOW_DETAILS ? `：${JSON.stringify(sanitizeAuditReport(result.mainMenuPatch))}` : "";
       failures.push(`应用菜单汉化补丁不完整${mainMenuDetails}`);
     }
+    if (!result.versionCheckPatch || !result.versionCheckPatch.installed) {
+      const versionCheckDetails = SHOW_DETAILS ? `：${JSON.stringify(sanitizeAuditReport(result.versionCheckPatch))}` : "";
+      failures.push(`汉化版本检查补丁未安装${versionCheckDetails}`);
+    }
 
     if (SHOW_DETAILS) {
       console.log("汉化验证详情：");
@@ -1933,6 +1980,7 @@ module.exports = {
   inspectExternalUrlPatch,
   inspectMainMenuPatch,
   inspectUpdatePatch,
+  inspectVersionCheckPatch,
   resolvePostmanDir,
   resolvePostmanDirFromProcess,
   targetDesktopVersion,

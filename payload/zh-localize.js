@@ -8,6 +8,191 @@
 
   var EXACT = {
     /* === batch-translated (auto-merged) === */
+    "Failed to load header": "加载表头失败",
+    "Learn more about Postman code": "了解 Postman Code 的更多信息",
+    "Filter by hostname": "按主机名筛选",
+    "Remove this service": "移除此服务",
+    "Unable to load tests": "无法加载测试",
+    "Set Mock Server Sessions": "设置 Mock 服务器会话",
+    "List MCP servers": "列出 MCP 服务器",
+    "List Vault secrets": "列出保险库密钥",
+    "Get List of Runners": "获取运行器列表",
+    "List of users": "用户列表",
+    /* === batch-translated (auto-merged) === */
+    "Edit routing": "编辑路由",
+    "Stop local run": "停止本地运行",
+    "Update required": "需要更新",
+    "Run on localhost": "在 localhost 上运行",
+    "Detected in Cloud": "在云端检出",
+    "Save routing identifier": "保存路由标识",
+    "Deploy this simulation as a Mock Server": "把此仿真部署为 Mock 服务器",
+    "Create a simulated environment by adding mocks or using an existing simulation": "通过添加 Mock 或使用现有仿真来创建仿真环境",
+    "This folder is already linked to a different workspace. Switch to that workspace to manage it there.": "此文件夹已关联到另一个工作区。请切换到该工作区进行管理。",
+    "Live URL": "实时 URL",
+    "Add mocks": "添加 Mock",
+    "Clear key": "清除密钥",
+    "Routing ID": "路由 ID",
+    "Linked to:": "关联到：",
+    "Clear chat": "清空对话",
+    "Reload app": "重新加载应用",
+    "On Schedule": "按计划",
+    "Restart app": "重启应用",
+    "Open anyway": "仍然打开",
+    "No mocks yet": "暂无 Mock",
+    "Access mocks": "访问 Mock",
+    "Work locally": "在本地工作",
+    "Think Harder": "深入思考",
+    "No overrides": "无覆盖项",
+    "View run log": "查看运行日志",
+    "Enter prompt": "输入提示词",
+    "Update ready": "更新已就绪",
+    "Remove mock ?": "移除该 Mock？",
+    "IAM Role Auth": "IAM 角色认证",
+    "Cloud Secrets": "云端密钥",
+    "Enter API key": "输入 API 密钥",
+    "Client Secrets": "客户端密钥",
+    "Moved to Vault": "已移至保险库",
+    "Test all tools": "测试全部工具",
+    "Deploy URL slug": "部署 URL 短名",
+    "View simulation": "查看仿真",
+    "Via Postman CLI": "通过 Postman CLI",
+    "Overrides reset": "覆盖项已重置",
+    "Access Key Auth": "访问密钥认证",
+    "Stopped locally": "已在本地拦截",
+    "What to monitor?": "监控什么？",
+    "Open Source Code": "打开源代码",
+    "Retry playground": "重试演练场",
+    "Trigger an error": "触发一个错误",
+    "Updating Postman": "正在更新 Postman",
+    "Use Git workflows": "使用 Git 工作流",
+    "Enrich AI context": "丰富 AI 上下文",
+    "Test an edge case": "测试一个边界情况",
+    "Waiting for input…": "等待输入…",
+    "Simulation deployed": "仿真已部署",
+    "No mocks configured": "未配置任何 Mock",
+    "Automate with CI/CD": "用 CI/CD 自动化",
+    "Open Project Folder": "打开项目文件夹",
+    "No recipients found": "未找到收件人",
+    "Start in Agent Mode": "以 Agent 模式启动",
+    "Reset all overrides": "重置全部覆盖项",
+    "Developer Overrides": "开发者覆盖项",
+    "Send a vague prompt": "发送一个模糊的提示词",
+    "No update available": "没有可用更新",
+    "Describe alternative": "描述替代方案",
+    "Caught on the Client": "在客户端捕获",
+    "Could not load trend.": "无法加载趋势数据。",
+    "Conversation messages": "对话消息",
+    "The tool call failed.": "工具调用失败。",
+    "Waiting for a result…": "等待结果…",
+    "Finishing the update…": "正在完成更新…",
+    "Getting things ready…": "正在准备…",
+    "Go to your workspaces": "前往你的工作区",
+    "Use existing simulation": "使用现有仿真",
+    "Edit routing identifier": "编辑路由标识",
+    "How to run the monitor?": "如何运行监视器？",
+    "Describe what you need.": "描述你的需求。",
+    "Fork is now part of Use": "复刻现已归入「使用」",
+    "Opening your workspace…": "正在打开你的工作区…",
+    "More Mock Server actions": "更多 Mock 服务器操作",
+    "Chain two tools together": "把两个工具串联起来",
+    "Creating your workspace…": "正在创建你的工作区…",
+    "Filter by deployment type": "按部署类型筛选",
+    "Use local mode on Postman": "在 Postman 中使用本地模式",
+    "scans that found a secret": "个扫描发现了密钥",
+    "use an existing simulation": "使用现有仿真",
+    "No mocks in this workspace": "此工作区中没有 Mock",
+    "on run failures and errors": "在运行失败和出错时",
+    "Not available on this plan": "当前方案不支持",
+    "Test an optional parameter": "测试一个可选参数",
+    "Failed to deploy simulation": "部署仿真失败",
+    "Failed to delete simulation": "删除仿真失败",
+    "Only requests can be linked": "只能关联请求",
+    "Workspaces Without Policies": "没有策略的工作区",
+    "Another simulation is active": "已有另一个仿真在运行",
+    "Couldn't download the update": "无法下载更新",
+    "The playground couldn't load.": "演练场加载失败。",
+    "Couldn't update sidebar panels": "无法更新侧边栏面板",
+    "Instructions for the assistant": "给助手的指令",
+    "Routing identifier is required.": "必须填写路由标识。",
+    "This value cannot be displayed.": "此值无法显示。",
+    "Downloading the latest version…": "正在下载最新版本…",
+    "You can only select 5 recipients": "最多只能选择 5 个收件人",
+    "Only HTTP requests can be linked": "只能关联 HTTP 请求",
+    "We couldn't create the workspace": "我们无法创建该工作区",
+    "Simulate a multi-turn conversation": "模拟多轮对话",
+    "Show the workspaces without a policy": "显示没有策略的工作区",
+    "The response could not be generated.": "无法生成响应。",
+    "most recently updated · current state": "最近更新 · 当前状态",
+    "Local Protection is off for this team": "此团队未启用本地防护",
+    "Add at least one mock before starting.": "启动前请至少添加一个 Mock。",
+    "View logs, requests, and session state.": "查看日志、请求和会话状态。",
+    "Requires Local Protection admin controls": "需要本地防护的管理员控制权限",
+    "Where secrets get stopped — last 90 days": "密钥在何处被拦截 — 最近 90 天",
+    "Enter a name for the deployed Mock Server": "为部署的 Mock 服务器输入名称",
+    "This simulation has no mock configurations.": "此仿真没有任何 Mock 配置。",
+    "Update the deployed Mock Server name or URL.": "更新已部署 Mock 服务器的名称或 URL。",
+    "Select team members or enter email addresses": "选择团队成员或输入邮箱地址",
+    "Could not reset overrides. Please try again.": "无法重置覆盖项，请重试。",
+    "This mock will be removed from the simulation": "该 Mock 将从此仿真中移除",
+    "Use path or header to route requests to mock.": "使用路径或请求头把请求路由到 Mock。",
+    "Fix scenario validation errors before starting": "启动前请先修复场景校验错误",
+    "Start the simulation to see request logs here.": "启动仿真后即可在此查看请求日志。",
+    "Add email recipients for run failures and errors": "添加运行失败和出错时的邮件收件人",
+    "approximate — this team has over 10,000 workspaces": "近似值 — 此团队的工作区超过 10,000 个",
+    "Learn more about working with local files on Postman": "了解在 Postman 中处理本地文件的更多信息",
+    "Used when you deploy this simulation as a Mock Server.": "在把此仿真部署为 Mock 服务器时使用。",
+    "Create a code mock first, then add it to this simulation.": "请先创建代码 Mock，再把它添加到此仿真。",
+    "No mocks added yet. Pick a workspace mock to get started.": "尚未添加 Mock。选择一个工作区 Mock 即可开始。",
+    "Use lowercase letters, numbers, hyphens, and underscores.": "只能使用小写字母、数字、连字符和下划线。",
+    "Start the simulation to inspect pm.state for each member mock.": "启动仿真后即可查看各成员 Mock 的 pm.state。",
+    "The provider rejected this API key. Check the key and try again.": "服务提供方拒绝了此 API 密钥。请检查密钥后重试。",
+    "There was an error updating the sidebar configuration. Try again.": "更新侧边栏配置时出错，请重试。",
+    "Use collections as dependencies or fork them into your workspace.": "把集合作为依赖使用，或将其复刻到你的工作区。",
+    "Could not save simulation changes. Fix errors and try Start again.": "无法保存仿真改动。请修复错误后重新点击「启动」。",
+    "Starting a simulation locally is only available on the desktop app.": "仅桌面应用支持在本地启动仿真。",
+    "This link opens something your version of Postman doesn't have yet.": "此链接要打开的内容在你当前的 Postman 版本中尚不存在。",
+    "Another mock in this simulation already uses this routing identifier.": "此仿真中已有另一个 Mock 使用了该路由标识。",
+    "The provider or organization does not allow requests from this browser.": "服务提供方或组织不允许来自此浏览器的请求。",
+    "The currently active simulation will be stopped before starting this one": "启动此仿真前，当前正在运行的仿真将被停止",
+    "Local Protection isn't on this plan, so there's nothing to compare against.": "当前方案不含本地防护，因此没有可对比的数据。",
+    "Could not sync changes to cloud — started local run from your current edits.": "无法把改动同步到云端 — 已按你当前的编辑启动本地运行。",
+    "Make changes to your APIs and test them locally before pushing them to cloud.": "先在本地修改并测试你的 API，然后再推送到云端。",
+    "You need to be signed in to Postman before we can create a workspace for you.": "需要先登录 Postman，我们才能为你创建工作区。",
+    "Could not save this simulation to the cloud. Fix the error and try Deploy again.": "无法把此仿真保存到云端。请修复错误后重新点击「部署」。",
+    "Could not open the deployed Mock Server. Try opening it from the Services sidebar.": "无法打开已部署的 Mock 服务器。请尝试从「服务」侧边栏打开。",
+    "The provider rejected the number of selected tools. Deselect some tools and try again.": "服务提供方拒绝了所选工具的数量。请取消选择部分工具后重试。",
+    "Reload Postman to finish updating. You'll pick up right where this link was taking you.": "重新加载 Postman 以完成更新。之后会直接回到此链接原本要去的位置。",
+    "Choose how requests reach each mock when you run locally or on the deployed Mock Server.": "选择在本地运行或在已部署的 Mock 服务器上运行时，请求如何到达各个 Mock。",
+    "Selected tools must have unique names. Rename or deselect duplicate tools and try again.": "所选工具的名称必须唯一。请重命名或取消选择重复的工具后重试。",
+    "Restart Postman to finish updating. You'll pick up right where this link was taking you.": "重启 Postman 以完成更新。之后会直接回到此链接原本要去的位置。",
+    "You are a helpful assistant. Give concise, accurate answers and explain tool use clearly.": "你是一个有帮助的助手。请给出简洁准确的回答，并清楚说明工具的使用方式。",
+    "The routing identifier addresses this mock for both path and header (x-mock-slug) routing.": "路由标识同时用于路径路由和请求头（x-mock-slug）路由，用来定位此 Mock。",
+    "Your API key stays in memory for this browser session and is sent directly to the provider.": "你的 API 密钥仅保存在此浏览器会话的内存中，并直接发送给服务提供方。",
+    "Work with your teammates by keeping changes to your codebase in sync with changes to your APIs.": "让代码库的改动与 API 的改动保持同步，从而与队友协作。",
+    "Something went wrong while updating. Try again, or come back to this link once Postman has updated.": "更新时出了点问题。请重试，或等 Postman 更新完成后再回到此链接。",
+    "Use Postman CLI to validate, test, and sync API changes automatically as part of your CI/CD pipeline.": "在 CI/CD 流水线中使用 Postman CLI 自动校验、测试并同步 API 改动。",
+    "Give Postman AI richer project context to help update APIs, tests, collections, and related project files.": "为 Postman AI 提供更丰富的项目上下文，帮助更新 API、测试、集合和相关项目文件。",
+    "This simulation's mocks aren't available locally. Add mocks that exist in this workspace, then start again.": "此仿真的 Mock 在本地不可用。请添加此工作区中已存在的 Mock，然后重新启动。",
+    "Open a project folder in a workspace to build your APIs locally and keep Postman in sync with your codebase.": "在工作区中打开一个项目文件夹，即可在本地构建 API 并让 Postman 与你的代码库保持同步。",
+    "This link needs a newer version of Postman than is currently available. Come back to it once an update is out.": "此链接需要比当前可用版本更新的 Postman。等有新版发布后再回来打开。",
+    "You are viewing Postman Cloud. Switch to Local mode to work with files in their Git repository and keep them in sync.": "你正在查看 Postman 云端。切换到本地模式即可在 Git 仓库中处理文件并保持同步。",
+    "Starting a simulation locally is only available on the desktop app. Deploy it as a Mock Server to Postman Cloud instead.": "仅桌面应用支持在本地启动仿真。你可以改为把它作为 Mock 服务器部署到 Postman 云端。",
+    "Field selection is paused because the current query can't be parsed. Fix the query in the editor to select fields again.": "由于当前查询无法解析，字段选择已暂停。请在编辑器中修正查询后再选择字段。",
+    "This link needs a newer version of Postman than is currently available. You can open it now, but parts of it may not work.": "此链接需要比当前可用版本更新的 Postman。你可以现在打开，但部分功能可能无法使用。",
+    "Something went wrong while updating. You can try again, or open this now on your current version. Parts of it may not work.": "更新时出了点问题。你可以重试，或用当前版本直接打开，但部分功能可能无法使用。",
+    "This link needs a newer version of Postman, and updates on this installation are managed by your administrator. Ask them to update Postman to open it.": "此链接需要更新版本的 Postman，而此安装的更新由你的管理员统一管理。请联系管理员升级 Postman 后再打开。",
+    "Cloud connectors enable teams to bring APIs into the API Catalog. API specifications then appear in the API Catalog with metadata, including the associated environments and clusters. Collections are automatically generated for further API development in Postman.": "云连接器让团队可以把 API 引入 API 目录。API 规范随后会带着元数据出现在 API 目录中，包括关联的环境和集群。系统还会自动生成集合，供在 Postman 中进一步开发 API。",
+    "Couldn’t download the update": "无法下载更新",
+    "The playground couldn’t load.": "演练场加载失败。",
+    "Couldn’t update sidebar panels": "无法更新侧边栏面板",
+    "We couldn’t create the workspace": "我们无法创建该工作区",
+    "This link opens something your version of Postman doesn’t have yet.": "此链接要打开的内容在你当前的 Postman 版本中尚不存在。",
+    "Local Protection isn’t on this plan, so there’s nothing to compare against.": "当前方案不含本地防护，因此没有可对比的数据。",
+    "Reload Postman to finish updating. You’ll pick up right where this link was taking you.": "重新加载 Postman 以完成更新。之后会直接回到此链接原本要去的位置。",
+    "Restart Postman to finish updating. You’ll pick up right where this link was taking you.": "重启 Postman 以完成更新。之后会直接回到此链接原本要去的位置。",
+    "This simulation’s mocks aren’t available locally. Add mocks that exist in this workspace, then start again.": "此仿真的 Mock 在本地不可用。请添加此工作区中已存在的 Mock，然后重新启动。",
+    "Field selection is paused because the current query can’t be parsed. Fix the query in the editor to select fields again.": "由于当前查询无法解析，字段选择已暂停。请在编辑器中修正查询后再选择字段。",
+    /* === batch-translated (auto-merged) === */
     "Preparing your workspaces...": "正在准备你的工作区…",
     "This might take a few minutes.": "这可能需要几分钟。",
     /* === batch-translated (auto-merged) === */
@@ -30453,6 +30638,8 @@
       // React 重渲染会抹掉外来节点，靠这轮轮询补回；同时把命令行改过的状态同步回按钮。
       installUpdateToggle(root);
       refreshUpdateToggle();
+      installVersionCheckPanel(root);
+      refreshVersionCheckToggle();
     }, 900);
   }
 
@@ -30653,6 +30840,472 @@
     })["catch"](function () {});
   }
 
+  // ── 汉化版本更新检查（渲染进程侧）────────────────────────────────
+  // 与上面那个「Postman 自动更新」开关是两回事，别混：
+  //   上面那个默认**关闭**，管的是 Postman 官方升级（升级会覆盖汉化，所以默认拦）；
+  //   这个默认**开启**，只查本汉化包 GitHub 上有没有新版，永远只提示、不下载不安装。
+  // 网络请求全在主进程（payload/zh-version-check-main.js），这里只经 IPC 拿结果，
+  // 因为渲染进程受 Postman 的 CSP 约束，connect-src 不一定放行 api.github.com。
+  var VERSION_CHECK_BOX_ID = "postman-zh-version-check";
+  var VERSION_CHECK_BUTTON_ID = "postman-zh-version-check-button";
+  var VERSION_CHECK_LABEL_ID = "postman-zh-version-check-label";
+  var VERSION_CHECK_STATUS_ID = "postman-zh-version-check-status";
+  var VERSION_CHECK_ACTION_ID = "postman-zh-version-check-action";
+  var VERSION_CHECK_DOWNLOAD_ID = "postman-zh-version-check-download";
+  var VERSION_CHECK_PROGRESS_ID = "postman-zh-version-check-progress";
+  var VERSION_BANNER_ID = "postman-zh-version-banner";
+  // 下载进度轮询句柄。只在有下载在跑时才轮，跑完立刻停——
+  // 不能挂进 900ms 那个常驻轮询里，那会每秒发一次 IPC。
+  var downloadPollTimer = null;
+
+  function renderVersionCheckState(button, enabled) {
+    var on = enabled !== false;
+    button.setAttribute("aria-checked", on ? "true" : "false");
+    button.setAttribute("data-enabled", on ? "true" : "false");
+    var label = document.getElementById(VERSION_CHECK_LABEL_ID);
+    if (label) {
+      label.textContent = on ? "已开启" : "已关闭";
+    }
+  }
+
+  function describeVersionResult(result) {
+    if (!result) {
+      return "";
+    }
+    if (result.status === "disabled") {
+      return "检查已关闭。";
+    }
+    if (result.status === "error") {
+      // 撞 GitHub 限额和真的断网，对用户的建议不一样：前者等一会儿自然恢复，
+      // 后者查网络。detail 里带了 rate limited 就明说。
+      if (/rate limited/.test(String(result.detail || ""))) {
+        return "GitHub 接口访问次数暂时用尽，过一会儿会自动恢复；也可以直接打开发布页查看。";
+      }
+      return "暂时查不到最新版本，请稍后再试或直接打开发布页。";
+    }
+    if (result.status === "update-available") {
+      return "发现新版本 " + (result.latestVersion || "") + "，当前 v" + (result.localVersion || "?") + "。";
+    }
+    if (result.status === "latest") {
+      return "已是最新版本（v" + (result.localVersion || "?") + "）。";
+    }
+    return "";
+  }
+
+  function renderVersionCheckResult(result) {
+    var status = document.getElementById(VERSION_CHECK_STATUS_ID);
+    if (status) {
+      status.textContent = describeVersionResult(result);
+    }
+    var action = document.getElementById(VERSION_CHECK_ACTION_ID);
+    if (action) {
+      var showAction = !!result && (result.status === "update-available" || result.status === "error");
+      action.style.display = showAction ? "" : "none";
+    }
+    // 「下载新版」只在真有新版、且该版本带 app.asar 资产时才出现。
+    // 绿色版 zip 要用户自己解压，不能就地替换，所以没有 asar 资产就只给发布页链接。
+    var dl = document.getElementById(VERSION_CHECK_DOWNLOAD_ID);
+    if (dl) {
+      var canDownload = !!result && result.status === "update-available" &&
+        !!result.asset && !!result.asset.url;
+      dl.style.display = canDownload ? "" : "none";
+    }
+  }
+
+  function formatBytes(n) {
+    var v = Number(n) || 0;
+    if (v >= 1048576) {
+      return (v / 1048576).toFixed(1) + " MB";
+    }
+    if (v >= 1024) {
+      return Math.round(v / 1024) + " KB";
+    }
+    return v + " B";
+  }
+
+  function describeDownloadState(state) {
+    if (!state || state.status === "idle") {
+      return "";
+    }
+    if (state.status === "downloading") {
+      var got = formatBytes(state.receivedBytes);
+      if (state.totalBytes) {
+        return "正在下载 " + (state.version || "") + "：" + state.percent + "%（" +
+          got + " / " + formatBytes(state.totalBytes) + "）";
+      }
+      return "正在下载 " + (state.version || "") + "：已收到 " + got;
+    }
+    if (state.status === "verifying") {
+      return "下载完成，正在校验完整性…";
+    }
+    if (state.status === "ready") {
+      return "已下载 " + (state.version || "") + "（" + formatBytes(state.totalBytes) +
+        "），校验通过。点「打开下载位置」取文件，然后运行汉化工具的安装即可。";
+    }
+    if (state.status === "error") {
+      return "下载失败：" + (state.detail || "未知原因");
+    }
+    return "";
+  }
+
+  function renderDownloadState(state) {
+    var box = document.getElementById(VERSION_CHECK_PROGRESS_ID);
+    if (box) {
+      var text = describeDownloadState(state);
+      box.textContent = text;
+      box.style.display = text ? "" : "none";
+    }
+    var dl = document.getElementById(VERSION_CHECK_DOWNLOAD_ID);
+    if (dl) {
+      var busy = !!state && (state.status === "downloading" || state.status === "verifying");
+      dl.disabled = busy;
+      if (state && state.status === "ready") {
+        dl.textContent = "打开下载位置";
+        dl.setAttribute("data-mode", "reveal");
+      } else if (busy) {
+        dl.textContent = "下载中…";
+        dl.setAttribute("data-mode", "busy");
+      } else {
+        dl.textContent = "下载新版";
+        dl.setAttribute("data-mode", "download");
+      }
+    }
+  }
+
+  function stopDownloadPoll() {
+    if (downloadPollTimer) {
+      clearInterval(downloadPollTimer);
+      downloadPollTimer = null;
+    }
+  }
+
+  // 下载期间每秒问一次进度；到达终态（ready/error/idle）就停，不留常驻轮询。
+  function startDownloadPoll() {
+    var ipc = getUpdateToggleIpc();
+    if (!ipc || downloadPollTimer) {
+      return;
+    }
+    downloadPollTimer = setInterval(function () {
+      Promise.resolve(ipc.invoke("postman-zh:version-check:download-state")).then(function (state) {
+        renderDownloadState(state);
+        if (!state || state.status === "ready" || state.status === "error" || state.status === "idle") {
+          stopDownloadPoll();
+        }
+      })["catch"](function () {
+        stopDownloadPoll();
+      });
+    }, 1000);
+  }
+
+  // 设置页那一栏：开关 + 状态文字 + 「打开发布页」按钮。
+  // 插在 Postman 自动更新总闸下面，同属「更新」这一类。
+  function installVersionCheckPanel(root) {
+    if (typeof document.getElementById !== "function" || typeof document.createElement !== "function") {
+      return;
+    }
+    if (document.getElementById(VERSION_CHECK_BOX_ID)) {
+      return;
+    }
+    // 依附在更新总闸后面：那块已经解决了「怎么在更新页找落点」的问题，
+    // 不必再维护第二套锚点。
+    var anchor = document.getElementById("postman-zh-update-switch");
+    if (!anchor || !anchor.parentNode) {
+      return;
+    }
+    var ipc = getUpdateToggleIpc();
+    if (!ipc) {
+      return;
+    }
+
+    var box = document.createElement("div");
+    box.id = VERSION_CHECK_BOX_ID;
+    box.className = "settings-autoupdate";
+
+    var container = document.createElement("div");
+    container.className = "settings-autoupdate-info-container";
+
+    var header = document.createElement("div");
+    header.className = "settings-autoupdate-header";
+    header.textContent = "汉化版本更新检查";
+
+    var body = document.createElement("div");
+    body.className = "settings-autoupdate-body";
+
+    var button = document.createElement("button");
+    button.type = "button";
+    button.id = VERSION_CHECK_BUTTON_ID;
+    button.setAttribute("role", "switch");
+    // 和更新总闸同样的道理：审计脚本别拿合成点击去点它
+    button.setAttribute("data-postman-zh-audit-skip", "true");
+    var knob = document.createElement("span");
+    knob.id = "postman-zh-version-check-knob";
+    button.appendChild(knob);
+
+    var stateLabel = document.createElement("span");
+    stateLabel.id = VERSION_CHECK_LABEL_ID;
+
+    body.appendChild(button);
+    body.appendChild(stateLabel);
+
+    var status = document.createElement("div");
+    status.id = VERSION_CHECK_STATUS_ID;
+    status.className = "settings-autoupdate-footer";
+
+    var action = document.createElement("button");
+    action.type = "button";
+    action.id = VERSION_CHECK_ACTION_ID;
+    action.setAttribute("data-postman-zh-audit-skip", "true");
+    action.textContent = "打开发布页下载";
+    action.style.display = "none";
+
+    // 「下载新版」：在应用内后台拉 app.asar，校验后放进暂存目录。
+    // 刻意不自动安装——换 app.asar 必须先杀干净 Postman 进程，
+    // 自动重启会打断用户正在编辑的请求。
+    var dlButton = document.createElement("button");
+    dlButton.type = "button";
+    dlButton.id = VERSION_CHECK_DOWNLOAD_ID;
+    dlButton.setAttribute("data-postman-zh-audit-skip", "true");
+    dlButton.setAttribute("data-mode", "download");
+    dlButton.textContent = "下载新版";
+    dlButton.style.display = "none";
+
+    var progress = document.createElement("div");
+    progress.id = VERSION_CHECK_PROGRESS_ID;
+    progress.className = "settings-autoupdate-footer";
+    progress.style.display = "none";
+
+    var footer = document.createElement("div");
+    footer.className = "settings-autoupdate-footer";
+    footer.textContent = "开启后每 6 小时查一次本汉化包的 GitHub 发布页。下载后需要你确认才安装（替换 app.asar 要先关闭 Postman）。与上面的 Postman 自动更新无关。";
+
+    container.appendChild(header);
+    container.appendChild(body);
+    container.appendChild(status);
+    container.appendChild(action);
+    container.appendChild(dlButton);
+    container.appendChild(progress);
+    container.appendChild(footer);
+    box.appendChild(container);
+    anchor.parentNode.insertBefore(box, anchor.nextSibling);
+
+    renderVersionCheckState(button, true);
+
+    dlButton.addEventListener("click", function () {
+      var mode = dlButton.getAttribute("data-mode");
+      if (mode === "busy") {
+        return;
+      }
+      if (mode === "reveal") {
+        Promise.resolve(ipc.invoke("postman-zh:version-check:reveal"))["catch"](function () {});
+        return;
+      }
+      dlButton.disabled = true;
+      dlButton.textContent = "下载中…";
+      dlButton.setAttribute("data-mode", "busy");
+      Promise.resolve(ipc.invoke("postman-zh:version-check:download")).then(function (state) {
+        renderDownloadState(state);
+        startDownloadPoll();
+      })["catch"](function () {
+        renderDownloadState({ status: "error", detail: "无法启动下载" });
+      });
+    });
+
+    var busy = false;
+    button.addEventListener("click", function () {
+      if (busy) {
+        return;
+      }
+      busy = true;
+      var next = button.getAttribute("data-enabled") !== "true";
+      Promise.resolve(ipc.invoke("postman-zh:version-check:set", next)).then(function (value) {
+        renderVersionCheckState(button, value);
+        return ipc.invoke("postman-zh:version-check:check", value === true);
+      }).then(function (result) {
+        renderVersionCheckResult(result);
+        if (result && result.status !== "update-available") {
+          removeVersionBanner();
+        }
+      })["catch"](function () {})
+        .then(function () {
+          busy = false;
+        });
+    });
+
+    action.addEventListener("click", function () {
+      // URL 由主进程写死，这里不传参数，避免渲染进程能指定任意外链
+      Promise.resolve(ipc.invoke("postman-zh:version-check:open"))["catch"](function () {});
+    });
+
+    Promise.resolve(ipc.invoke("postman-zh:version-check:get")).then(function (value) {
+      renderVersionCheckState(button, value);
+      return ipc.invoke("postman-zh:version-check:check", false);
+    }).then(function (result) {
+      renderVersionCheckResult(result);
+      // 面板可能是在下载途中被 React 重渲染后重建的，把当前下载状态接回来
+      return ipc.invoke("postman-zh:version-check:download-state");
+    }).then(function (state) {
+      renderDownloadState(state);
+      if (state && (state.status === "downloading" || state.status === "verifying")) {
+        startDownloadPoll();
+      }
+    })["catch"](function () {});
+  }
+
+  function removeVersionBanner() {
+    if (typeof document.getElementById !== "function") {
+      return;
+    }
+    var banner = document.getElementById(VERSION_BANNER_ID);
+    if (banner && banner.parentNode) {
+      banner.parentNode.removeChild(banner);
+    }
+  }
+
+  // `postman-zh.bat zh-updates on|off` 直接写偏好文件，页面开关要跟着回正
+  // ——和 refreshUpdateToggle 同一个道理。只同步开关状态、不重查版本
+  // （查询有 6 小时节流），所以这轮轮询不产生任何网络请求。
+  function refreshVersionCheckToggle() {
+    if (typeof document.getElementById !== "function") {
+      return;
+    }
+    var button = document.getElementById(VERSION_CHECK_BUTTON_ID);
+    if (!button) {
+      return;
+    }
+    var ipc = getUpdateToggleIpc();
+    if (!ipc) {
+      return;
+    }
+    Promise.resolve(ipc.invoke("postman-zh:version-check:get")).then(function (value) {
+      renderVersionCheckState(button, value);
+    })["catch"](function () {});
+  }
+
+  // 有新版时在右下角浮一个提示条。刻意做得克制：
+  // 不挡工作区、不弹模态、可关闭、可「不再提示这个版本」。
+  function showVersionBanner(result) {
+    if (typeof document.getElementById !== "function" || typeof document.createElement !== "function") {
+      return;
+    }
+    if (!document.body || document.getElementById(VERSION_BANNER_ID)) {
+      return;
+    }
+    var ipc = getUpdateToggleIpc();
+    if (!ipc) {
+      return;
+    }
+
+    var banner = document.createElement("div");
+    banner.id = VERSION_BANNER_ID;
+    banner.setAttribute("role", "status");
+    // 审计脚本别点它，也别把它的文字当漏翻候选
+    banner.setAttribute("data-postman-zh-audit-skip", "true");
+
+    var title = document.createElement("div");
+    title.className = "postman-zh-version-banner__title";
+    title.textContent = "汉化有新版本 " + (result.latestVersion || "");
+
+    var text = document.createElement("div");
+    text.className = "postman-zh-version-banner__text";
+    var canDownload = !!result.asset && !!result.asset.url;
+    text.textContent = canDownload
+      ? "当前 v" + (result.localVersion || "?") + "。可以直接下载新版汉化包。"
+      : "当前 v" + (result.localVersion || "?") + "。前往发布页下载新版汉化包。";
+
+    var actions = document.createElement("div");
+    actions.className = "postman-zh-version-banner__actions";
+
+    // 有 app.asar 资产才给「下载」，否则只能去发布页拿绿色版 zip 自己解压
+    var primary = document.createElement("button");
+    primary.type = "button";
+    primary.className = "postman-zh-version-banner__primary";
+    primary.setAttribute("data-postman-zh-audit-skip", "true");
+    if (canDownload) {
+      primary.textContent = "下载新版";
+      primary.addEventListener("click", function () {
+        primary.disabled = true;
+        primary.textContent = "下载中…";
+        Promise.resolve(ipc.invoke("postman-zh:version-check:download")).then(function (state) {
+          // 下载在后台跑，横幅收起，进度去「设置 > 更新」页看
+          renderDownloadState(state);
+          startDownloadPoll();
+          text.textContent = "已在后台开始下载，进度见「设置 > 更新」页。";
+          primary.textContent = "已开始";
+        })["catch"](function () {
+          primary.disabled = false;
+          primary.textContent = "下载新版";
+          text.textContent = "无法启动下载，请到发布页手动下载。";
+        });
+      });
+    } else {
+      primary.textContent = "打开发布页";
+      primary.addEventListener("click", function () {
+        Promise.resolve(ipc.invoke("postman-zh:version-check:open"))["catch"](function () {});
+        removeVersionBanner();
+      });
+    }
+
+    var open = document.createElement("button");
+    open.type = "button";
+    open.className = "postman-zh-version-banner__secondary";
+    open.setAttribute("data-postman-zh-audit-skip", "true");
+    open.textContent = "打开发布页";
+    open.style.display = canDownload ? "" : "none";
+    open.addEventListener("click", function () {
+      Promise.resolve(ipc.invoke("postman-zh:version-check:open"))["catch"](function () {});
+      removeVersionBanner();
+    });
+
+    var later = document.createElement("button");
+    later.type = "button";
+    later.className = "postman-zh-version-banner__secondary";
+    later.setAttribute("data-postman-zh-audit-skip", "true");
+    later.textContent = "以后再说";
+    later.addEventListener("click", removeVersionBanner);
+
+    var never = document.createElement("button");
+    never.type = "button";
+    never.className = "postman-zh-version-banner__secondary";
+    never.setAttribute("data-postman-zh-audit-skip", "true");
+    never.textContent = "不再提示此版本";
+    never.addEventListener("click", function () {
+      Promise.resolve(ipc.invoke("postman-zh:version-check:dismiss", result.latestVersion || ""))["catch"](function () {});
+      removeVersionBanner();
+    });
+
+    actions.appendChild(primary);
+    if (canDownload) {
+      actions.appendChild(open);
+    }
+    actions.appendChild(later);
+    actions.appendChild(never);
+    banner.appendChild(title);
+    banner.appendChild(text);
+    banner.appendChild(actions);
+    document.body.appendChild(banner);
+  }
+
+  // 启动后查一次。延迟 20 秒：让 Postman 自己的启动请求先走完，
+  // 别在最忙的时候插一脚，也避开启动期代理还没就绪的情况。
+  var versionCheckStarted = false;
+  function startVersionCheck() {
+    if (versionCheckStarted) {
+      return;
+    }
+    versionCheckStarted = true;
+    var ipc = getUpdateToggleIpc();
+    if (!ipc) {
+      return;
+    }
+    setTimeout(function () {
+      Promise.resolve(ipc.invoke("postman-zh:version-check:check", false)).then(function (result) {
+        if (result && result.status === "update-available" && !result.dismissed) {
+          showVersionBanner(result);
+        }
+      })["catch"](function () {});
+    }, 20000);
+  }
+
   function injectStyle() {
     if (document.getElementById("postman-zh-localizer-style")) {
       return;
@@ -30712,6 +31365,128 @@
       "}",
       "html[data-postman-zh-localized='true'] #postman-zh-update-switch .settings-autoupdate-footer {",
       "  color: var(--content-color-warning, #e07b39);",
+      "}",
+      // 汉化版本检查：开关沿用总闸的样式，只换 id
+      "html[data-postman-zh-localized='true'] #postman-zh-version-check .settings-autoupdate-body {",
+      "  display: flex;",
+      "  align-items: center;",
+      "  gap: 10px;",
+      "}",
+      "html[data-postman-zh-localized='true'] #postman-zh-version-check-button {",
+      "  position: relative;",
+      "  flex: 0 0 auto;",
+      "  width: 40px;",
+      "  height: 22px;",
+      "  padding: 0;",
+      "  border: none;",
+      "  border-radius: 11px;",
+      "  cursor: pointer;",
+      "  background: var(--border-color-strong, #b5b5b5);",
+      "  transition: background 0.15s ease;",
+      "}",
+      "html[data-postman-zh-localized='true'] #postman-zh-version-check-button[data-enabled='true'] {",
+      "  background: var(--base-color-brand, #ff6c37);",
+      "}",
+      "html[data-postman-zh-localized='true'] #postman-zh-version-check-button:focus-visible {",
+      "  outline: 2px solid var(--base-color-brand, #ff6c37);",
+      "  outline-offset: 2px;",
+      "}",
+      "html[data-postman-zh-localized='true'] #postman-zh-version-check-knob {",
+      "  position: absolute;",
+      "  top: 2px;",
+      "  left: 2px;",
+      "  width: 18px;",
+      "  height: 18px;",
+      "  border-radius: 50%;",
+      "  background: #ffffff;",
+      "  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);",
+      "  transition: transform 0.15s ease;",
+      "}",
+      "html[data-postman-zh-localized='true'] #postman-zh-version-check-button[data-enabled='true'] #postman-zh-version-check-knob {",
+      "  transform: translateX(18px);",
+      "}",
+      "html[data-postman-zh-localized='true'] #postman-zh-version-check-label {",
+      "  font-size: 12px;",
+      "  color: var(--content-color-secondary, #6b6b6b);",
+      "}",
+      "html[data-postman-zh-localized='true'] #postman-zh-version-check-status:empty {",
+      "  display: none;",
+      "}",
+      "html[data-postman-zh-localized='true'] #postman-zh-version-check-action {",
+      "  margin-top: 6px;",
+      "  padding: 4px 10px;",
+      "  font-size: 12px;",
+      "  border: 1px solid var(--border-color-default, #c4c4c4);",
+      "  border-radius: 4px;",
+      "  background: transparent;",
+      "  color: var(--content-color-primary, #212121);",
+      "  cursor: pointer;",
+      "}",
+      "html[data-postman-zh-localized='true'] #postman-zh-version-check-download {",
+      "  margin-top: 6px;",
+      "  margin-left: 6px;",
+      "  padding: 4px 10px;",
+      "  font-size: 12px;",
+      "  border: none;",
+      "  border-radius: 4px;",
+      "  background: var(--base-color-brand, #ff6c37);",
+      "  color: #ffffff;",
+      "  cursor: pointer;",
+      "}",
+      "html[data-postman-zh-localized='true'] #postman-zh-version-check-download:disabled {",
+      "  opacity: 0.6;",
+      "  cursor: default;",
+      "}",
+      "html[data-postman-zh-localized='true'] #postman-zh-version-check-progress {",
+      "  margin-top: 6px;",
+      "  color: var(--content-color-secondary, #6b6b6b);",
+      "}",
+      // 新版提示条：右下角浮层，不挡工作区
+      "html[data-postman-zh-localized='true'] #postman-zh-version-banner {",
+      "  position: fixed;",
+      "  right: 16px;",
+      "  bottom: 16px;",
+      "  z-index: 2147483000;",
+      "  max-width: 320px;",
+      "  padding: 12px 14px;",
+      "  border: 1px solid var(--border-color-default, #c4c4c4);",
+      "  border-left: 3px solid var(--base-color-brand, #ff6c37);",
+      "  border-radius: 6px;",
+      "  background: var(--background-color-primary, #ffffff);",
+      "  color: var(--content-color-primary, #212121);",
+      "  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);",
+      "  font-size: 12px;",
+      "  line-height: 1.6;",
+      "}",
+      "html[data-postman-zh-localized='true'] .postman-zh-version-banner__title {",
+      "  font-weight: 600;",
+      "  margin-bottom: 2px;",
+      "}",
+      "html[data-postman-zh-localized='true'] .postman-zh-version-banner__text {",
+      "  color: var(--content-color-secondary, #6b6b6b);",
+      "}",
+      "html[data-postman-zh-localized='true'] .postman-zh-version-banner__actions {",
+      "  display: flex;",
+      "  flex-wrap: wrap;",
+      "  gap: 6px;",
+      "  margin-top: 10px;",
+      "}",
+      "html[data-postman-zh-localized='true'] .postman-zh-version-banner__primary,",
+      "html[data-postman-zh-localized='true'] .postman-zh-version-banner__secondary {",
+      "  padding: 4px 10px;",
+      "  font-size: 12px;",
+      "  border-radius: 4px;",
+      "  cursor: pointer;",
+      "}",
+      "html[data-postman-zh-localized='true'] .postman-zh-version-banner__primary {",
+      "  border: none;",
+      "  background: var(--base-color-brand, #ff6c37);",
+      "  color: #ffffff;",
+      "}",
+      "html[data-postman-zh-localized='true'] .postman-zh-version-banner__secondary {",
+      "  border: 1px solid var(--border-color-default, #c4c4c4);",
+      "  background: transparent;",
+      "  color: var(--content-color-secondary, #6b6b6b);",
       "}"
     ].join("\n");
     (document.head || document.documentElement).appendChild(style);
@@ -30734,7 +31509,9 @@
     if (document.body || document.documentElement) {
       walk(document.body || document.documentElement);
       installUpdateToggle(document);
+      installVersionCheckPanel(document);
     }
+    startVersionCheck();
     observe();
   }
 

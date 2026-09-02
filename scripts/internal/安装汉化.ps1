@@ -209,12 +209,20 @@ function Assert-PayloadFiles {
   Assert-JavaScriptSyntax -PathValue $Payload -Name "zh-localize.js"
   Assert-JavaScriptSyntax -PathValue $AuthPayload -Name "zh-auth-webview-preload.js"
 
+  $versionCheck = Join-Path (Split-Path -Parent $Payload) "zh-version-check-main.js"
+  if (-not (Test-Path -LiteralPath $versionCheck)) {
+    throw "找不到汉化版本检查文件：$versionCheck"
+  }
+  Assert-JavaScriptSyntax -PathValue $versionCheck -Name "zh-version-check-main.js"
+
   $payloadContent = Read-Utf8 $Payload
   $required = @(
     "__POSTMAN_ZH_LOCALIZER__",
     "data-postman-zh-localized",
     "MutationObserver",
-    "installShadowRootLocalization"
+    "installShadowRootLocalization",
+    "postman-zh:version-check:check",
+    "postman-zh:version-check:download"
   )
   $missing = @($required | Where-Object { -not $payloadContent.Contains($_) })
   if ($missing.Count -gt 0) {
@@ -252,12 +260,15 @@ function Assert-OriginalTree {
 
   $markerFiles = @($mainJs, $desktopPreload, $utilityPreload)
   foreach ($markerFile in $markerFiles) {
-    if ((Read-Utf8 $markerFile) -match 'postman-zh-localizer|postmanZhLocalizeMenuTemplate|postmanZhPatchOpenExternalQuotes|postman-zh:update-guard|updates disabled by postman-zh|update restart blocked by postman-zh') {
+    if ((Read-Utf8 $markerFile) -match 'postman-zh-localizer|postmanZhLocalizeMenuTemplate|postmanZhPatchOpenExternalQuotes|postman-zh:update-guard|postman-zh:version-check|updates disabled by postman-zh|update restart blocked by postman-zh') {
       throw "app.asar.original 已含汉化标记，不是干净的英文原版：$markerFile"
     }
   }
   if (Test-Path -LiteralPath (Join-Path $UnpackedDir "js\zh-localize.js")) {
     throw "app.asar.original 已包含 js\zh-localize.js，不是干净的英文原版。"
+  }
+  if (Test-Path -LiteralPath (Join-Path $UnpackedDir "js\zh-version-check-main.js")) {
+    throw "app.asar.original 已包含 js\zh-version-check-main.js，不是干净的英文原版。"
   }
   Write-Step "英文原版备份的版本和完整性验证通过。"
 }
@@ -272,10 +283,11 @@ function Assert-PatchedTree {
 
   $localizedPayload = Join-Path $UnpackedDir "js\zh-localize.js"
   $localizedAuthPayload = Join-Path $UnpackedDir "js\zh-auth-webview-preload.js"
+  $localizedVersionCheck = Join-Path $UnpackedDir "js\zh-version-check-main.js"
   $desktopPreload = Join-Path $UnpackedDir "preload_desktop.js"
   $utilityPreload = Join-Path $UnpackedDir "js\preload.js"
   $mainJs = Join-Path $UnpackedDir "main.js"
-  foreach ($requiredFile in @($localizedPayload, $localizedAuthPayload, $desktopPreload, $utilityPreload, $mainJs)) {
+  foreach ($requiredFile in @($localizedPayload, $localizedAuthPayload, $localizedVersionCheck, $desktopPreload, $utilityPreload, $mainJs)) {
     if (-not (Test-Path -LiteralPath $requiredFile)) {
       throw "补丁目录缺少文件：$requiredFile"
     }
@@ -287,6 +299,10 @@ function Assert-PatchedTree {
   if ((Get-Sha256 $localizedAuthPayload) -ne (Get-Sha256 $AuthPayload)) {
     throw "打包目录中的登录授权汉化文件与 zh-auth-webview-preload.js 不一致。"
   }
+  $versionCheckSource = Join-Path (Split-Path -Parent $Payload) "zh-version-check-main.js"
+  if ((Get-Sha256 $localizedVersionCheck) -ne (Get-Sha256 $versionCheckSource)) {
+    throw "打包目录中的版本检查脚本与 zh-version-check-main.js 不一致。"
+  }
 
   $desktopContent = Read-Utf8 $desktopPreload
   $utilityContent = Read-Utf8 $utilityPreload
@@ -296,7 +312,8 @@ function Assert-PatchedTree {
     @($utilityContent, "postman-zh-localizer:utility"),
     @($utilityContent, "postman-zh-localizer:auth-webview-preload"),
     @($mainContent, "postmanZhLocalizeMenuTemplate"),
-    @($mainContent, "postmanZhPatchOpenExternalQuotes")
+    @($mainContent, "postmanZhPatchOpenExternalQuotes"),
+    @($mainContent, "postman-zh:version-check")
   )
   foreach ($entry in $requiredMarkers) {
     if (-not ([string]$entry[0]).Contains([string]$entry[1])) {
@@ -597,6 +614,48 @@ function Patch-ExternalUrlOpening {
   Write-Step "已修复外部浏览器链接的引号处理。"
 }
 
+function Patch-VersionCheck {
+  param([string]$UnpackedDir, [string]$Payload)
+
+  # 汉化包自己的版本更新检查。和 Patch-DisableUpdates 是两件独立的事：
+  #   那个拦 Postman 官方升级（默认关闭更新，因为升级会覆盖汉化）；
+  #   这个只查本汉化包 GitHub 有没有新版，默认开启，只提示、不下载不安装。
+  #
+  # 逻辑放独立文件而不是压成 main.js 里的单行 IIFE：它有网络请求、超时、
+  # 节流和 JSON 解析，压一行没法维护。走 Patch-Preload 已验证过的
+  # 「独立文件 + 注入处 require」路子。
+  $payloadDir = Split-Path -Parent $Payload
+  $versionCheckPayload = Join-Path $payloadDir "zh-version-check-main.js"
+  if (-not (Test-Path -LiteralPath $versionCheckPayload)) {
+    throw "payload 目录中缺少 zh-version-check-main.js。"
+  }
+  Assert-JavaScriptSyntax -PathValue $versionCheckPayload -Name "zh-version-check-main.js"
+
+  $jsDir = Join-Path $UnpackedDir "js"
+  New-Item -ItemType Directory -Force -Path $jsDir | Out-Null
+  Copy-Item -LiteralPath $versionCheckPayload -Destination (Join-Path $jsDir "zh-version-check-main.js") -Force
+
+  $mainJs = Join-Path $UnpackedDir "main.js"
+  if (-not (Test-Path -LiteralPath $mainJs)) {
+    throw "未找到 main.js，无法安装汉化版本检查。"
+  }
+
+  $content = Read-Utf8 $mainJs
+  $marker = 'postman-zh:version-check'
+  if ($content.Contains($marker)) {
+    Write-Step "汉化版本检查补丁已经安装。"
+    return
+  }
+
+  # require 失败、ipcMain 取不到都只记一行 warn，绝不影响 Postman 启动和汉化主流程
+  $hook = @'
+;(()=>{try{/* postman-zh:version-check */const E=require("electron");if(E&&E.ipcMain&&!globalThis.__postmanZhVersionCheckIpc){require("./js/zh-version-check-main.js").install(E.ipcMain);}}catch(e){try{console.warn("Postman zh version check failed",e);}catch(_){}}})();
+'@
+
+  Write-Utf8 $mainJs ($hook.TrimEnd() + "`r`n" + $content)
+  Write-Step "已安装汉化版本更新检查（默认开启，只提示不自动下载）。"
+}
+
 function Patch-DisableUpdates {
   param([string]$UnpackedDir)
 
@@ -777,6 +836,7 @@ try {
   Patch-ScratchpadCompatibility -UnpackedDir $unpackedDir
   Patch-MainMenuLocalization -UnpackedDir $unpackedDir
   Patch-ExternalUrlOpening -UnpackedDir $unpackedDir
+  Patch-VersionCheck -UnpackedDir $unpackedDir -Payload $payloadFull
   if ($DisableUpdates) {
     Patch-DisableUpdates -UnpackedDir $unpackedDir
   } else {

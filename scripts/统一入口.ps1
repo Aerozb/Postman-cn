@@ -107,6 +107,52 @@ function Set-UpdatePreference {
   [System.IO.File]::WriteAllText($Path, $json, (New-Object System.Text.UTF8Encoding $false))
 }
 
+# 汉化版本检查的偏好文件。和上面那个是两回事：
+#   上面那个管 Postman 官方升级，**不存在即关闭**（拦截才是安全默认值）；
+#   这个只查本汉化包 GitHub 有没有新版，**不存在即开启**，只提示不下载。
+# 主进程实现在 payload\zh-version-check-main.js，「设置 > 更新」页的开关经 IPC 写它。
+# 同样必须无 BOM：那边用 JSON.parse 读。
+function Get-ZhUpdatePreferencePath {
+  if (-not $env:APPDATA) {
+    throw '找不到 APPDATA 目录，无法定位汉化版本检查配置。'
+  }
+  return Join-Path (Join-Path $env:APPDATA 'Postman') 'postman-zh-version-check.json'
+}
+
+function Get-ZhUpdatePreference {
+  param([string]$Path)
+
+  # 文件不存在 = 默认开启
+  if (-not (Test-Path -LiteralPath $Path)) { return $true }
+  try {
+    $raw = Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json
+    # 只有显式写了 false 才算关闭，与主进程侧 raw.enabled !== false 保持一致
+    return ($raw.enabled -ne $false)
+  } catch {
+    return $true
+  }
+}
+
+function Set-ZhUpdatePreference {
+  param([string]$Path, [bool]$Enabled)
+
+  $dir = Split-Path -Parent $Path
+  if (-not (Test-Path -LiteralPath $dir)) {
+    New-Item -ItemType Directory -Path $dir -Force | Out-Null
+  }
+  # 保留 dismissedTag：用户点过「不再提示此版本」的记忆不该被命令行清掉
+  $dismissed = ''
+  if (Test-Path -LiteralPath $Path) {
+    try {
+      $existing = Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json
+      if ($existing.dismissedTag) { $dismissed = [string]$existing.dismissedTag }
+    } catch { }
+  }
+  $payload = [ordered]@{ enabled = $Enabled; dismissedTag = $dismissed }
+  $json = $payload | ConvertTo-Json -Compress
+  [System.IO.File]::WriteAllText($Path, $json, (New-Object System.Text.UTF8Encoding $false))
+}
+
 function Assert-NodeRuntime {
   $node = Get-Command node -ErrorAction SilentlyContinue
   if (-not $node) {
@@ -181,6 +227,7 @@ Postman 中文汉化工具
   install       安装汉化、关闭自动更新并验证（菜单里直接回车即为此项）
   restore       还原英文原版
   updates       查看自动更新开关；updates on 允许更新，updates off 恢复拦截（默认）
+  zh-updates    查看汉化版本检查开关；zh-updates on|off 切换（默认开启），zh-updates check 立即查一次
   collect       导出运行时收集到的漏翻；加 -Clear 清空记录，--details 查看候选明细
   verify        只验证当前 Postman 汉化状态；加 --details 查看完整诊断
   start         启动 Postman 并等待 CDP 调试端口
@@ -230,6 +277,14 @@ Postman 中文汉化工具
   .\postman-zh.bat updates       查看当前状态
   .\postman-zh.bat updates on    允许 Postman 自动更新（升级后需要重新汉化）
   .\postman-zh.bat updates off   恢复拦截
+
+汉化版本检查（与上面那个是两件事）：
+  上面那个管 Postman 官方升级，默认关闭；这个只查本汉化包 GitHub 有没有新版，
+  默认开启，只提示不自动下载。同一个开关也在「设置 > 更新」页里。
+  .\postman-zh.bat zh-updates        查看当前状态
+  .\postman-zh.bat zh-updates on     开启检查（默认）
+  .\postman-zh.bat zh-updates off    关闭检查，一个请求都不发
+  .\postman-zh.bat zh-updates check  忽略 6 小时节流，立即查一次
 '@
 }
 
@@ -403,7 +458,7 @@ try {
     }
   }
 
-  $validCommands = @('install', 'restore', 'updates', 'collect', 'verify', 'start', 'stop', 'fix-browser', 'static-scan', 'merge', 'probe', 'scan', 'audit', 'publish', 'help')
+  $validCommands = @('install', 'restore', 'updates', 'zh-updates', 'collect', 'verify', 'start', 'stop', 'fix-browser', 'static-scan', 'merge', 'probe', 'scan', 'audit', 'publish', 'help')
   if ($validCommands -notcontains $Command) {
     Write-Host "未知命令：$Command"
     Write-Host "请运行 .\postman-zh.bat help 查看可用命令。"
@@ -459,6 +514,65 @@ try {
       } else {
         Write-Host "无法识别的参数：$($RemainingArguments[0])"
         Write-Host '用法：.\postman-zh.bat updates [on|off]'
+        Stop-WithCode 2
+      }
+    }
+
+    'zh-updates' {
+      # 汉化包自己的版本检查。与 'updates' 无关：那个管 Postman 官方升级。
+      $prefPath = Get-ZhUpdatePreferencePath
+      $action = if ($RemainingArguments.Count -gt 0) { ([string]$RemainingArguments[0]).ToLowerInvariant() } else { '' }
+
+      if ($action -eq '') {
+        if (Get-ZhUpdatePreference -Path $prefPath) {
+          Write-Host '汉化版本检查：已开启（默认）。每 6 小时查一次 GitHub 发布页，只提示不自动下载。'
+        } else {
+          Write-Host '汉化版本检查：已关闭。不会发出任何网络请求。'
+        }
+      } elseif (@('on', 'enable', 'true', '1') -contains $action) {
+        Set-ZhUpdatePreference -Path $prefPath -Enabled $true
+        Write-Host '汉化版本检查已开启。有新版时会在右下角提示，可在「设置 > 更新」页关闭。'
+      } elseif (@('off', 'disable', 'false', '0') -contains $action) {
+        Set-ZhUpdatePreference -Path $prefPath -Enabled $false
+        Write-Host '汉化版本检查已关闭。'
+      } elseif (@('check', 'now') -contains $action) {
+        # 立即查一次：走 payload 里那份主进程实现，避免两套请求逻辑各写一遍
+        $checkScript = Join-Path (Split-Path -Parent $PSScriptRoot) 'payload\zh-version-check-main.js'
+        if (-not (Test-Path -LiteralPath $checkScript)) {
+          Write-Host '找不到版本检查脚本，无法查询。'
+          Stop-WithCode 1
+        }
+        # 这段只调 check(true) 并打印中文结论；不写偏好文件
+        $inline = @'
+// argv[0]=node、argv[1]=本临时脚本、argv[2] 才是传进来的实现文件路径
+const target = process.argv[2];
+if (!target) { console.log('缺少版本检查脚本路径。'); process.exit(1); }
+const m = require(target);
+m.check(true).then((r) => {
+  if (r.status === 'disabled') { console.log('汉化版本检查已关闭。先运行 zh-updates on 再查。'); return; }
+  if (r.status === 'error') {
+    if (/rate limited/.test(r.detail || '')) { console.log('GitHub 接口访问次数暂时用尽，过一会儿会自动恢复。'); }
+    else { console.log('暂时查不到最新版本（' + (r.detail || '未知原因') + '）。'); }
+    return;
+  }
+  if (r.status === 'update-available') {
+    console.log('发现新版本 ' + r.latestVersion + '（当前 v' + (r.localVersion || '?') + '）');
+    console.log('下载地址：' + r.url);
+    return;
+  }
+  console.log('已是最新版本（v' + (r.localVersion || '?') + '）。');
+}).catch((e) => { console.log('查询失败：' + ((e && e.message) || e)); process.exit(1); });
+'@
+        $tmp = Join-Path $env:TEMP ("postman-zh-check-{0}.js" -f ([guid]::NewGuid().ToString('N')))
+        try {
+          [System.IO.File]::WriteAllText($tmp, $inline, (New-Object System.Text.UTF8Encoding $false))
+          Invoke-NodeScript $tmp @($checkScript)
+        } finally {
+          Remove-Item -LiteralPath $tmp -Force -ErrorAction SilentlyContinue
+        }
+      } else {
+        Write-Host "无法识别的参数：$($RemainingArguments[0])"
+        Write-Host '用法：.\postman-zh.bat zh-updates [on|off|check]'
         Stop-WithCode 2
       }
     }

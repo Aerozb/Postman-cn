@@ -20,7 +20,7 @@
 ```
 Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（勿动其官方文件）
   Postman.exe  Update.exe
-  app-12.25.7\                        ← 当前版本；resources\app.asar 是补丁目标
+  app-12.26.3\                        ← 当前版本；resources\app.asar 是补丁目标
     resources\app.asar.original       ← 首次安装时自动备份的英文原版
   packages\                           ← 官方安装包 + RELEASES
   postman-zh-workspace\               ← 所有非官方内容都在这里
@@ -28,6 +28,7 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
       payload\
         zh-localize.js                ← 汉化主体：词典 + 翻译逻辑 + 收集器（唯一的"数据源"）
         zh-auth-webview-preload.js    ← 登录/授权 webview 的预加载汉化
+        zh-version-check-main.js      ← 汉化版本更新检查（主进程侧，走 IPC）
       scripts\
         统一入口.ps1                   ← 命令分发器（唯一实现入口）
         internal\                     ← 安装、启动、停止等内部 PowerShell 实现
@@ -164,6 +165,8 @@ createElement(Button, {type:"primary"}, "Restart and Install Update")
 2. **`data-placeholder` 必须在 `ATTRS` 列表里**。评论框等富文本编辑器用它渲染占位符，漏了评论面板占位符就不翻译。
 
 3. **更新守卫是开关，不是墙**（正文见 [docs/更新守卫.md](./docs/更新守卫.md)，改这块前必读）：`-KeepUpdates` = 不装守卫；默认装守卫即拦截，偏好文件不存在视为关闭。装守卫时**不要**改 `isUpdateEnabled`（会让"设置>更新"页报连接错误）。找不到可确认的源码锚点时应报错，不要假装成功。更新页那个开关带 `data-postman-zh-audit-skip="true"`，**审计脚本必须跳过带这个属性的元素**，别用合成点击去点它。
+
+   **「设置 > 更新」页里有两个开关，别混**：上面那个是 Postman 官方升级（默认**关闭**，偏好文件 `postman-zh-updates.json`，不存在即关闭）；下面那个是汉化包自己的版本检查（默认**开启**，偏好文件 `postman-zh-version-check.json`，不存在即开启，只查 GitHub 有没有新版、只提示不下载）。两份状态独立，命令分别是 `updates on|off` 和 `zh-updates on|off|check`。
 
 4. **菜单汉化用全局 `Menu.buildFromTemplate` 包装器**（prepend 到 `main.js`），不依赖压缩后的变量名锚点，跨版本稳定。若要加原生菜单词条，改这个包装器里的词典，且**只能用 `\u` 转义**中文，避免打包后 `main.js` 编码问题。
 

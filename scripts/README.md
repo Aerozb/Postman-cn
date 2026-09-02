@@ -25,11 +25,20 @@
 | `h` | 查看完整命令帮助 | `help` |
 | `0` / `q` | 退出 | 不执行命令 |
 
-直接回车等同于选择 `1`。深度审计子菜单输入 `0` 返回主菜单，输入 `q` 退出整个 TUI。`probe` 和通用 `scan` 保留为维护者 CLI 命令，不放入普通用户菜单。
+直接回车等同于选择 `1`。深度审计子菜单输入 `0` 返回主菜单，输入 `q` 退出整个 TUI。`probe`、通用 `scan` 和 `zh-updates` 保留为维护者 CLI 命令，不放入普通用户菜单（汉化版本检查默认开启，普通用户在「设置 > 更新」页里就能切换，不需要再占一个菜单位）。
 
 `verify`、`collect`、`probe`、`scan`、全部审计，以及不加 `--disk` 的 `static-scan`，都要连 CDP，**Postman 必须在运行**，否则会报「没有找到 Postman 页面目标」。先 `start` 再跑。`install` 自己会重启 Postman，所以它内置的那次验证不受影响；`static-scan --disk` 读磁盘缓存，不需要 Postman 在运行。
 
-自动更新开关默认关闭（拦截官方升级，保护汉化）。它读写 `%APPDATA%\Postman\postman-zh-updates.json`，和 Postman「设置 > 更新」页里注入的开关是同一份状态；命令行改完约 1 秒内页面开关会自动回正。
+「设置 > 更新」页里有**两个**汉化工具注入的开关，命令行也是两条命令，别混：
+
+| | `updates [on\|off]` | `zh-updates [on\|off\|check]` |
+|---|---|---|
+| 管什么 | Postman 官方升级 | 本汉化包有没有新版 |
+| 默认 | 关闭（拦截，保护汉化） | 开启（只提示不下载） |
+| 偏好文件 | `%APPDATA%\Postman\postman-zh-updates.json` | `%APPDATA%\Postman\postman-zh-version-check.json` |
+| 文件不存在 | 视为关闭 | 视为开启 |
+
+两者都与页面开关共享同一份状态，命令行改完约 1 秒内页面开关自动回正。`zh-updates check` 会忽略 6 小时节流立即查一次。细节和边界见 [docs/更新守卫.md](../docs/更新守卫.md)。
 
 | 路径 | 用途 |
 |---|---|
@@ -69,6 +78,7 @@
 |---|---|
 | `data/提取界面文案.js` | 静态扫描实现，由 `static-scan` 调用。 |
 | `data/合并译文.js` | 合并 `_generated/trans-*.json` 译文。 |
+| `data/统计词条.js` | 统计各字典词条数；`publish` 用它生成 Release 说明里的条数，`--details` 看分项。 |
 | `runtime/收集漏翻.js` | 导出运行时漏翻清单。 |
 | `runtime/探测更新页面.js` | 探测更新页。 |
 | `验证汉化.js` | 安装验证实现，由 `verify` 或 `install` 调用；`verify --details` 输出完整诊断。 |
