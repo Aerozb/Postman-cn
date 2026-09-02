@@ -591,7 +591,8 @@ Postman 中文汉化版 $version
 - 汉化基于运行时注入（不改源码字符串），界面词典约 $entryCount 条
 - 请求编辑器等界面由 Postman 服务端下发，官方随时会改动文案，所以**不存在一劳永逸的 100% 覆盖**；遇到没翻的地方欢迎提 Issue
 - 默认关闭自动更新，避免官方更新覆盖汉化；需要时可在「设置 > 更新」页里的开关自行打开
-- 绿色版不含 `app.asar.original`（英文原版备份），如需还原英文请重装官方版
+- 手动替换 `app.asar` 前**请先备份原文件**，否则之后无法还原英文
+- 绿色版是免安装独立包，不含工具链和英文原版备份（`app.asar.original`），所以**既不能还原英文，也不能用 `install` 更新汉化**——它会把已汉化的包误当原版，被完整性检查拦下。需要这两项能力请装官方版 Postman，再用本仓库的 `postman-zh.bat`：菜单第 `1` 项装汉化、第 `3` 项一键还原英文
 - 部分内容刻意保留英文：HTTP 状态短语与请求头名、AI 模型名、协议与产品专有名词、代码标识符、快捷键等
 '@.Replace('$version', $version).Replace('$entryCount', $entryCount)
 $notesFile = Join-Path $outDir 'release-notes.md'
