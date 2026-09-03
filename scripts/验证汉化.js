@@ -41,10 +41,7 @@ const VERSION_CHECK_IPC_MARKERS = [
   "postman-zh:version-check:get",
   "postman-zh:version-check:set",
   "postman-zh:version-check:check",
-  "postman-zh:version-check:open",
-  "postman-zh:version-check:download",
-  "postman-zh:version-check:download-state",
-  "postman-zh:version-check:reveal"
+  "postman-zh:version-check:open"
 ];
 // main.js 里应当出现的标记。安装阶段的临时 main.js 与 app.asar 互相比对时只能用这批
 // ——见下面 MAIN_JS_PATCH_MARKERS 的说明。

@@ -221,8 +221,7 @@ function Assert-PayloadFiles {
     "data-postman-zh-localized",
     "MutationObserver",
     "installShadowRootLocalization",
-    "postman-zh:version-check:check",
-    "postman-zh:version-check:download"
+    "postman-zh:version-check:check"
   )
   $missing = @($required | Where-Object { -not $payloadContent.Contains($_) })
   if ($missing.Count -gt 0) {

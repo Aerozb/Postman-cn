@@ -30636,10 +30636,14 @@
       forceRequestTypeSpecialText(root);
       forceGlobalSearchSpecialText(root);
       // React 重渲染会抹掉外来节点，靠这轮轮询补回；同时把命令行改过的状态同步回按钮。
-      installUpdateToggle(root);
-      refreshUpdateToggle();
-      installVersionCheckPanel(root);
-      refreshVersionCheckToggle();
+      // 切到别的设置页签后 Postman 不卸载旧页面，我们插的面板会滞留在共享容器里，
+      // 所以先摘掉跑偏的，再决定要不要重新插（顺序反了会立刻插回去）。
+      if (!removeStrayUpdatePanels()) {
+        installUpdateToggle(root);
+        refreshUpdateToggle();
+        installVersionCheckPanel(root);
+        refreshVersionCheckToggle();
+      }
     }, 900);
   }
 
@@ -30686,6 +30690,37 @@
   var SETTINGS_PANE = ".settings-tab-contents";
 
   // 返回 { parent, before }：把开关插到 parent 里、before 之前（before 为 null 则追加到末尾）
+  //
+  // 三级锚点都必须要求节点**当前可见**，不能只判断"存在"（2026-09-02 用户报「每个设置
+  // 页都有更新开关」就是这么来的）：Postman 的设置对话框切页签时**不卸载**已渲染过的
+  // 页面，"更新"页那个 update-not-available__button 会隐藏但留在 DOM 里，于是在"通用"
+  // "主题"等任何页签上第三级锚点都能命中，面板就被插进了共享容器 .settings-tab-contents。
+  function isVisibleNode(el) {
+    if (!el || el.nodeType !== 1) {
+      return false;
+    }
+    try {
+      // offsetParent 为 null 覆盖 display:none 和祖先隐藏；再要求有实际尺寸，
+      // 兼顾 visibility:hidden 和 height:0 的折叠容器。
+      if (el.offsetParent === null && el !== document.body) {
+        return false;
+      }
+      var rect = el.getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // 我们自己注入的两块都复用了 settings-autoupdate 类名，找锚点时都要跳过，
+  // 否则第二块会拿第一块当锚点、或者切页签后自己给自己当参照。
+  //
+  // id 写成字面量而不是引用 VERSION_CHECK_BOX_ID：那个常量声明在本函数下方约 200 行，
+  // 靠 var 提升虽然不报错，但取值时机就依赖 IIFE 的执行顺序了，太脆。
+  function isOwnPanel(el) {
+    return !!el && (el.id === "postman-zh-version-check" || el.id === "postman-zh-update-switch");
+  }
+
   function findUpdateToggleSlot(scope) {
     // 1) 优先用自带的自动更新块 / 发布说明块，插在它前面
     for (var i = 0; i < UPDATE_TOGGLE_ANCHORS.length; i += 1) {
@@ -30696,39 +30731,92 @@
         continue;
       }
       for (var j = 0; j < nodes.length; j += 1) {
-        // 跳过我们自己注入的那块（它复用了 settings-autoupdate 类名）
-        if (nodes[j].id === "postman-zh-update-switch") {
+        if (isOwnPanel(nodes[j])) {
           continue;
         }
-        if (nodes[j].parentNode) {
+        if (nodes[j].parentNode && isVisibleNode(nodes[j])) {
           return { parent: nodes[j].parentNode, before: nodes[j] };
         }
       }
     }
 
-    // 2) 兜底：靠更新状态按钮确认当前在“更新”页，插到状态块之后
-    var btn;
+    // 2) 兜底：靠更新状态按钮确认当前**正在**看更新页，插到状态块之后。
+    //    必须逐个查可见性——隐藏的旧页签节点不算。
+    var buttons;
     try {
-      btn = scope.querySelector(UPDATE_STATE_BUTTON);
+      buttons = scope.querySelectorAll(UPDATE_STATE_BUTTON);
     } catch (e) {
-      btn = null;
-    }
-    if (!btn || typeof btn.closest !== "function") {
       return null;
     }
-    var pane = btn.closest(SETTINGS_PANE);
-    if (!pane) {
-      return null;
+    for (var k = 0; k < buttons.length; k += 1) {
+      var btn = buttons[k];
+      if (typeof btn.closest !== "function" || !isVisibleNode(btn)) {
+        continue;
+      }
+      var pane = btn.closest(SETTINGS_PANE);
+      if (!pane) {
+        continue;
+      }
+      // 找到 pane 的直接子节点里包含该按钮的那个
+      var child = btn;
+      while (child.parentElement && child.parentElement !== pane) {
+        child = child.parentElement;
+      }
+      if (child.parentElement !== pane) {
+        continue;
+      }
+      return { parent: pane, before: child.nextSibling };
     }
-    // 找到 pane 的直接子节点里包含该按钮的那个
-    var child = btn;
-    while (child.parentElement && child.parentElement !== pane) {
-      child = child.parentElement;
+    return null;
+  }
+
+  // 切到别的设置页签后，我们插的面板会跟着留在共享容器里（Postman 不卸载旧页签）。
+  // 所以每轮轮询都要确认「当前确实还在更新页」，不在就把自己摘掉。
+  function removeStrayUpdatePanels() {
+    if (typeof document.getElementById !== "function") {
+      return false;
     }
-    if (child.parentElement !== pane) {
-      return null;
+    var box = document.getElementById("postman-zh-update-switch");
+    var verBox = document.getElementById("postman-zh-version-check");
+    if (!box && !verBox) {
+      return false;
     }
-    return { parent: pane, before: child.nextSibling };
+    // 判断依据和第二级锚点一致：更新页的状态按钮当前可见，或者 Postman 自带的
+    // 自动更新块 / 发布说明块可见。
+    var onUpdatePage = false;
+    try {
+      var probes = [];
+      for (var i = 0; i < UPDATE_TOGGLE_ANCHORS.length; i += 1) {
+        var found = document.querySelectorAll(UPDATE_TOGGLE_ANCHORS[i]);
+        for (var j = 0; j < found.length; j += 1) {
+          if (!isOwnPanel(found[j])) {
+            probes.push(found[j]);
+          }
+        }
+      }
+      var btns = document.querySelectorAll(UPDATE_STATE_BUTTON);
+      for (var k = 0; k < btns.length; k += 1) {
+        probes.push(btns[k]);
+      }
+      for (var m = 0; m < probes.length; m += 1) {
+        if (isVisibleNode(probes[m])) {
+          onUpdatePage = true;
+          break;
+        }
+      }
+    } catch (e) {
+      return false;
+    }
+    if (onUpdatePage) {
+      return false;
+    }
+    if (box && box.parentNode) {
+      box.parentNode.removeChild(box);
+    }
+    if (verBox && verBox.parentNode) {
+      verBox.parentNode.removeChild(verBox);
+    }
+    return true;
   }
 
   function installUpdateToggle(root) {
@@ -30851,12 +30939,7 @@
   var VERSION_CHECK_LABEL_ID = "postman-zh-version-check-label";
   var VERSION_CHECK_STATUS_ID = "postman-zh-version-check-status";
   var VERSION_CHECK_ACTION_ID = "postman-zh-version-check-action";
-  var VERSION_CHECK_DOWNLOAD_ID = "postman-zh-version-check-download";
-  var VERSION_CHECK_PROGRESS_ID = "postman-zh-version-check-progress";
   var VERSION_BANNER_ID = "postman-zh-version-banner";
-  // 下载进度轮询句柄。只在有下载在跑时才轮，跑完立刻停——
-  // 不能挂进 900ms 那个常驻轮询里，那会每秒发一次 IPC。
-  var downloadPollTimer = null;
 
   function renderVersionCheckState(button, enabled) {
     var on = enabled !== false;
@@ -30902,99 +30985,6 @@
       var showAction = !!result && (result.status === "update-available" || result.status === "error");
       action.style.display = showAction ? "" : "none";
     }
-    // 「下载新版」只在真有新版、且该版本带 app.asar 资产时才出现。
-    // 绿色版 zip 要用户自己解压，不能就地替换，所以没有 asar 资产就只给发布页链接。
-    var dl = document.getElementById(VERSION_CHECK_DOWNLOAD_ID);
-    if (dl) {
-      var canDownload = !!result && result.status === "update-available" &&
-        !!result.asset && !!result.asset.url;
-      dl.style.display = canDownload ? "" : "none";
-    }
-  }
-
-  function formatBytes(n) {
-    var v = Number(n) || 0;
-    if (v >= 1048576) {
-      return (v / 1048576).toFixed(1) + " MB";
-    }
-    if (v >= 1024) {
-      return Math.round(v / 1024) + " KB";
-    }
-    return v + " B";
-  }
-
-  function describeDownloadState(state) {
-    if (!state || state.status === "idle") {
-      return "";
-    }
-    if (state.status === "downloading") {
-      var got = formatBytes(state.receivedBytes);
-      if (state.totalBytes) {
-        return "正在下载 " + (state.version || "") + "：" + state.percent + "%（" +
-          got + " / " + formatBytes(state.totalBytes) + "）";
-      }
-      return "正在下载 " + (state.version || "") + "：已收到 " + got;
-    }
-    if (state.status === "verifying") {
-      return "下载完成，正在校验完整性…";
-    }
-    if (state.status === "ready") {
-      return "已下载 " + (state.version || "") + "（" + formatBytes(state.totalBytes) +
-        "），校验通过。点「打开下载位置」取文件，然后运行汉化工具的安装即可。";
-    }
-    if (state.status === "error") {
-      return "下载失败：" + (state.detail || "未知原因");
-    }
-    return "";
-  }
-
-  function renderDownloadState(state) {
-    var box = document.getElementById(VERSION_CHECK_PROGRESS_ID);
-    if (box) {
-      var text = describeDownloadState(state);
-      box.textContent = text;
-      box.style.display = text ? "" : "none";
-    }
-    var dl = document.getElementById(VERSION_CHECK_DOWNLOAD_ID);
-    if (dl) {
-      var busy = !!state && (state.status === "downloading" || state.status === "verifying");
-      dl.disabled = busy;
-      if (state && state.status === "ready") {
-        dl.textContent = "打开下载位置";
-        dl.setAttribute("data-mode", "reveal");
-      } else if (busy) {
-        dl.textContent = "下载中…";
-        dl.setAttribute("data-mode", "busy");
-      } else {
-        dl.textContent = "下载新版";
-        dl.setAttribute("data-mode", "download");
-      }
-    }
-  }
-
-  function stopDownloadPoll() {
-    if (downloadPollTimer) {
-      clearInterval(downloadPollTimer);
-      downloadPollTimer = null;
-    }
-  }
-
-  // 下载期间每秒问一次进度；到达终态（ready/error/idle）就停，不留常驻轮询。
-  function startDownloadPoll() {
-    var ipc = getUpdateToggleIpc();
-    if (!ipc || downloadPollTimer) {
-      return;
-    }
-    downloadPollTimer = setInterval(function () {
-      Promise.resolve(ipc.invoke("postman-zh:version-check:download-state")).then(function (state) {
-        renderDownloadState(state);
-        if (!state || state.status === "ready" || state.status === "error" || state.status === "idle") {
-          stopDownloadPoll();
-        }
-      })["catch"](function () {
-        stopDownloadPoll();
-      });
-    }, 1000);
   }
 
   // 设置页那一栏：开关 + 状态文字 + 「打开发布页」按钮。
@@ -31058,57 +31048,22 @@
     action.textContent = "打开发布页下载";
     action.style.display = "none";
 
-    // 「下载新版」：在应用内后台拉 app.asar，校验后放进暂存目录。
-    // 刻意不自动安装——换 app.asar 必须先杀干净 Postman 进程，
-    // 自动重启会打断用户正在编辑的请求。
-    var dlButton = document.createElement("button");
-    dlButton.type = "button";
-    dlButton.id = VERSION_CHECK_DOWNLOAD_ID;
-    dlButton.setAttribute("data-postman-zh-audit-skip", "true");
-    dlButton.setAttribute("data-mode", "download");
-    dlButton.textContent = "下载新版";
-    dlButton.style.display = "none";
-
-    var progress = document.createElement("div");
-    progress.id = VERSION_CHECK_PROGRESS_ID;
-    progress.className = "settings-autoupdate-footer";
-    progress.style.display = "none";
-
     var footer = document.createElement("div");
     footer.className = "settings-autoupdate-footer";
-    footer.textContent = "开启后每 6 小时查一次本汉化包的 GitHub 发布页。下载后需要你确认才安装（替换 app.asar 要先关闭 Postman）。与上面的 Postman 自动更新无关。";
+    // 不提供应用内下载：汉化包的 Release 标签 == Postman 版本号，所以「汉化有新版」
+    // 必然意味着 Postman 也换了版本，那份 app.asar 不能装到当前版本目录里
+    // （和目录里的 Electron 二进制、.pak 资源是配套的）。详见 docs/更新守卫.md。
+    footer.textContent = "开启后每 6 小时查一次本汉化包的 GitHub 发布页，只提示不自动下载。新版通常对应新版 Postman，需要下载完整包重新安装。与上面的 Postman 自动更新无关。";
 
     container.appendChild(header);
     container.appendChild(body);
     container.appendChild(status);
     container.appendChild(action);
-    container.appendChild(dlButton);
-    container.appendChild(progress);
     container.appendChild(footer);
     box.appendChild(container);
     anchor.parentNode.insertBefore(box, anchor.nextSibling);
 
     renderVersionCheckState(button, true);
-
-    dlButton.addEventListener("click", function () {
-      var mode = dlButton.getAttribute("data-mode");
-      if (mode === "busy") {
-        return;
-      }
-      if (mode === "reveal") {
-        Promise.resolve(ipc.invoke("postman-zh:version-check:reveal"))["catch"](function () {});
-        return;
-      }
-      dlButton.disabled = true;
-      dlButton.textContent = "下载中…";
-      dlButton.setAttribute("data-mode", "busy");
-      Promise.resolve(ipc.invoke("postman-zh:version-check:download")).then(function (state) {
-        renderDownloadState(state);
-        startDownloadPoll();
-      })["catch"](function () {
-        renderDownloadState({ status: "error", detail: "无法启动下载" });
-      });
-    });
 
     var busy = false;
     button.addEventListener("click", function () {
@@ -31141,13 +31096,6 @@
       return ipc.invoke("postman-zh:version-check:check", false);
     }).then(function (result) {
       renderVersionCheckResult(result);
-      // 面板可能是在下载途中被 React 重渲染后重建的，把当前下载状态接回来
-      return ipc.invoke("postman-zh:version-check:download-state");
-    }).then(function (state) {
-      renderDownloadState(state);
-      if (state && (state.status === "downloading" || state.status === "verifying")) {
-        startDownloadPoll();
-      }
     })["catch"](function () {});
   }
 
@@ -31207,50 +31155,18 @@
 
     var text = document.createElement("div");
     text.className = "postman-zh-version-banner__text";
-    var canDownload = !!result.asset && !!result.asset.url;
-    text.textContent = canDownload
-      ? "当前 v" + (result.localVersion || "?") + "。可以直接下载新版汉化包。"
-      : "当前 v" + (result.localVersion || "?") + "。前往发布页下载新版汉化包。";
+    text.textContent = "当前 v" + (result.localVersion || "?") + "。前往发布页下载新版汉化包。";
 
     var actions = document.createElement("div");
     actions.className = "postman-zh-version-banner__actions";
 
-    // 有 app.asar 资产才给「下载」，否则只能去发布页拿绿色版 zip 自己解压
-    var primary = document.createElement("button");
-    primary.type = "button";
-    primary.className = "postman-zh-version-banner__primary";
-    primary.setAttribute("data-postman-zh-audit-skip", "true");
-    if (canDownload) {
-      primary.textContent = "下载新版";
-      primary.addEventListener("click", function () {
-        primary.disabled = true;
-        primary.textContent = "下载中…";
-        Promise.resolve(ipc.invoke("postman-zh:version-check:download")).then(function (state) {
-          // 下载在后台跑，横幅收起，进度去「设置 > 更新」页看
-          renderDownloadState(state);
-          startDownloadPoll();
-          text.textContent = "已在后台开始下载，进度见「设置 > 更新」页。";
-          primary.textContent = "已开始";
-        })["catch"](function () {
-          primary.disabled = false;
-          primary.textContent = "下载新版";
-          text.textContent = "无法启动下载，请到发布页手动下载。";
-        });
-      });
-    } else {
-      primary.textContent = "打开发布页";
-      primary.addEventListener("click", function () {
-        Promise.resolve(ipc.invoke("postman-zh:version-check:open"))["catch"](function () {});
-        removeVersionBanner();
-      });
-    }
-
+    // 不提供应用内下载：新版汉化包对应的是新版 Postman，那份 app.asar 装不到
+    // 当前版本目录里（详见 docs/更新守卫.md），只能把用户送到发布页。
     var open = document.createElement("button");
     open.type = "button";
-    open.className = "postman-zh-version-banner__secondary";
+    open.className = "postman-zh-version-banner__primary";
     open.setAttribute("data-postman-zh-audit-skip", "true");
     open.textContent = "打开发布页";
-    open.style.display = canDownload ? "" : "none";
     open.addEventListener("click", function () {
       Promise.resolve(ipc.invoke("postman-zh:version-check:open"))["catch"](function () {});
       removeVersionBanner();
@@ -31273,10 +31189,7 @@
       removeVersionBanner();
     });
 
-    actions.appendChild(primary);
-    if (canDownload) {
-      actions.appendChild(open);
-    }
+    actions.appendChild(open);
     actions.appendChild(later);
     actions.appendChild(never);
     banner.appendChild(title);
@@ -31421,25 +31334,6 @@
       "  background: transparent;",
       "  color: var(--content-color-primary, #212121);",
       "  cursor: pointer;",
-      "}",
-      "html[data-postman-zh-localized='true'] #postman-zh-version-check-download {",
-      "  margin-top: 6px;",
-      "  margin-left: 6px;",
-      "  padding: 4px 10px;",
-      "  font-size: 12px;",
-      "  border: none;",
-      "  border-radius: 4px;",
-      "  background: var(--base-color-brand, #ff6c37);",
-      "  color: #ffffff;",
-      "  cursor: pointer;",
-      "}",
-      "html[data-postman-zh-localized='true'] #postman-zh-version-check-download:disabled {",
-      "  opacity: 0.6;",
-      "  cursor: default;",
-      "}",
-      "html[data-postman-zh-localized='true'] #postman-zh-version-check-progress {",
-      "  margin-top: 6px;",
-      "  color: var(--content-color-secondary, #6b6b6b);",
       "}",
       // 新版提示条：右下角浮层，不挡工作区
       "html[data-postman-zh-localized='true'] #postman-zh-version-banner {",
