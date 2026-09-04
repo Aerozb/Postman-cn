@@ -35,7 +35,9 @@ Postman 桌面版汉化补丁，适用于 Windows 10/11 与 Postman 12.x。
 | `9` | 深度审计界面 | 进入中文审计子菜单。 |
 | `10` | 自动更新开关 | 默认关闭；开启后官方升级会覆盖汉化。 |
 | `11` | 修复浏览器链接 | 仅在登录页外部链接异常时使用。 |
-| `12` | 发布（维护者） | 推送代码并创建 Release。 || `h` | 查看完整命令帮助 | 查看维护命令和参数。 |
+| `12` | 发布（维护者） | 推送代码并创建 Release。 |
+| `13` | 查看项目数据 | GitHub 的 Star、下载量、访问与克隆趋势。 |
+| `h` | 查看完整命令帮助 | 查看维护命令和参数。 |
 | `0` | 退出 | 不执行操作；`q` 也可退出。 |
 
 选择一项任务后只执行该任务，结束时会显示中文结果并自动关闭双击打开的窗口，不需要再按确认键。默认不打印大段 Postman/Electron/npm 日志或诊断 JSON；维护者只有显式传入 `--details` 才会看到脱敏后的详细诊断。
@@ -74,6 +76,7 @@ Postman 桌面版汉化补丁，适用于 Windows 10/11 与 Postman 12.x。
 .\postman-zh.bat restore       # 还原英文原版
 .\postman-zh.bat updates on    # 允许 Postman 自动更新（默认是 off）
 .\postman-zh.bat zh-updates    # 查看汉化版本检查开关（默认 on）；加 check 立即查一次
+.\postman-zh.bat stats         # 查看 GitHub 项目数据；加 --details 看逐日与来源
 .\postman-zh.bat help          # 查看所有命令
 ```
 

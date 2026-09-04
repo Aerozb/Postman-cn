@@ -239,6 +239,7 @@ Postman 中文汉化工具
   scan          扫描可点击界面；支持 --out、--details，显式加 --screenshot 才保存截图
   audit <名称>  运行指定深度审计；支持 --details，--out 可用裸名称或 .json
   publish       调用维护者发布脚本
+  stats         查看 GitHub 项目数据（Star、下载量、访问与克隆）；加 --details 看逐日与来源
   help          显示本帮助
 
 审计名称：
@@ -336,6 +337,7 @@ function Show-Menu {
     @{ Key = '10'; Command = 'updates';     Label = '自动更新开关';     Note = '默认关闭；开启后官方升级会覆盖汉化' }
     @{ Key = '11'; Command = 'fix-browser'; Label = '修复浏览器链接';   Note = '仅在登录页外部链接异常时用' }
     @{ Key = '12'; Command = 'publish';     Label = '发布（维护者）';   Note = '推送代码到 GitHub 并发 Release' }
+    @{ Key = '13'; Command = 'stats';       Label = '查看项目数据';     Note = 'Star、下载量、访问与克隆趋势' }
     @{ Key = 'h';  Command = 'help';        Label = '查看完整命令帮助'; Note = '' }
     @{ Key = '0';  Command = 'exit';        Label = '退出';             Note = '不执行任何操作' }
   )
@@ -467,14 +469,14 @@ try {
     }
   }
 
-  $validCommands = @('install', 'restore', 'updates', 'zh-updates', 'collect', 'verify', 'start', 'stop', 'fix-browser', 'static-scan', 'merge', 'probe', 'scan', 'audit', 'publish', 'help')
+  $validCommands = @('install', 'restore', 'updates', 'zh-updates', 'collect', 'verify', 'start', 'stop', 'fix-browser', 'static-scan', 'merge', 'probe', 'scan', 'audit', 'publish', 'stats', 'help')
   if ($validCommands -notcontains $Command) {
     Write-Host "未知命令：$Command"
     Write-Host "请运行 .\postman-zh.bat help 查看可用命令。"
     Stop-WithCode 2
   }
 
-  $nodeCommands = @('install', 'collect', 'verify', 'static-scan', 'merge', 'probe', 'scan', 'audit')
+  $nodeCommands = @('install', 'collect', 'verify', 'static-scan', 'merge', 'probe', 'scan', 'audit', 'stats')
   if ($nodeCommands -contains $Command) {
     Assert-NodeRuntime
   }
@@ -672,6 +674,11 @@ m.check(true).then((r) => {
 
     'publish' {
       Invoke-PowerShellScript (Join-Path $maintenanceRoot '发布中文版.ps1') @{} @($RemainingArguments)
+    }
+
+    'stats' {
+      # 只读 GitHub 公开数据 + 本仓库流量，走 gh CLI（认证由 gh 管，脚本里不出现令牌）
+      Invoke-NodeScript (Join-Path $maintenanceRoot '查看项目数据.js') @($RemainingArguments)
     }
   }
 } catch {
