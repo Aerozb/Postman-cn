@@ -16,7 +16,7 @@
 | `4` | 启动 Postman | `start` |
 | `5` | 关闭 Postman | `stop` |
 | `6` | 导出运行时漏翻 | `collect` |
-| `7` | 静态扫描界面文案 | `static-scan` |
+| `7` | 静态扫描界面文案 | `static-scan --disk` |
 | `8` | 合并译文 | `merge` |
 | `9` | 深度审计界面 | `audit <名称>` |
 | `10` | 自动更新开关 | `updates [on\|off]` |
@@ -28,6 +28,8 @@
 直接回车等同于选择 `1`。深度审计子菜单输入 `0` 返回主菜单，输入 `q` 退出整个 TUI。`probe`、通用 `scan` 和 `zh-updates` 保留为维护者 CLI 命令，不放入普通用户菜单（汉化版本检查默认开启，普通用户在「设置 > 更新」页里就能切换，不需要再占一个菜单位）。
 
 `verify`、`collect`、`probe`、`scan`、全部审计，以及不加 `--disk` 的 `static-scan`，都要连 CDP，**Postman 必须在运行**，否则会报「没有找到 Postman 页面目标」。先 `start` 再跑。`install` 自己会重启 Postman，所以它内置的那次验证不受影响；`static-scan --disk` 读磁盘缓存，不需要 Postman 在运行。
+
+**菜单第 7 项自动补 `--disk`，别去掉**（2026-09-03 实测）：不带 `--disk` 走 CDP 路径，而 `Debugger.getScriptSource` 对 Postman 那几个 6 MB 级脚本（`monaco-editor-language-ts`、`requester-desktop`）单个就要 **120 秒以上**，前 3 个就烧掉 6 分钟，120 个根本跑不完——用户看到的是「选了 7 之后卡住不动」，会以为脚本挂了。`--disk` 读磁盘缓存约 28 秒扫完 845 个资源，是唯一适合放进菜单的走法。CDP 路径保留给维护者手敲 `static-scan`（不加 `--disk`）时用。菜单项的默认参数写在 `Show-Menu` 的 `DefaultArgs` 字段里。
 
 「设置 > 更新」页里有**两个**汉化工具注入的开关，命令行也是两条命令，别混：
 

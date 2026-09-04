@@ -318,6 +318,11 @@ function Format-MenuCell {
 # 双击 postman-zh.bat（不带任何命令）时显示的交互菜单。
 # 返回值：@{ Command = '<命令>'; Arguments = @(...) }，或 $null 表示用户选择退出。
 function Show-Menu {
+  # DefaultArgs：菜单选中该项时自动补上的参数。
+  # 第 7 项必须带 --disk：不带时走 CDP 路径，而 Debugger.getScriptSource 对
+  # Postman 那几个 6 MB 级脚本单个就要 120 秒以上（2026-09-03 实测前 3 个烧掉
+  # 6 分钟），120 个根本跑不完，用户看到的就是「卡住不动」。--disk 读磁盘缓存
+  # 约 40 秒扫完 820 个资源，是唯一适合放进菜单的走法。
   $items = @(
     @{ Key = '1';  Command = 'install';     Label = '安装汉化';         Note = '打补丁、关闭自动更新并验证（最常用）' }
     @{ Key = '2';  Command = 'verify';      Label = '验证汉化状态';     Note = '只检查，不改动' }
@@ -325,7 +330,7 @@ function Show-Menu {
     @{ Key = '4';  Command = 'start';       Label = '启动 Postman';     Note = '启动并等待 CDP 调试端口' }
     @{ Key = '5';  Command = 'stop';        Label = '关闭 Postman';     Note = '循环杀干净全部进程' }
     @{ Key = '6';  Command = 'collect';     Label = '导出运行时漏翻';   Note = '导出用户实际遇到的漏翻文案' }
-    @{ Key = '7';  Command = 'static-scan'; Label = '静态扫描界面文案'; Note = '扫出未翻译候选，供补词条' }
+    @{ Key = '7';  Command = 'static-scan'; Label = '静态扫描界面文案'; Note = '扫出未翻译候选，供补词条'; DefaultArgs = @('--disk') }
     @{ Key = '8';  Command = 'merge';       Label = '合并译文';         Note = '把 _generated/trans-*.json 并入词典' }
     @{ Key = '9';  Command = 'audit';       Label = '深度审计界面';     Note = '需要再选一个审计名称' }
     @{ Key = '10'; Command = 'updates';     Label = '自动更新开关';     Note = '默认关闭；开启后官方升级会覆盖汉化' }
@@ -367,7 +372,11 @@ function Show-Menu {
       continue
     }
 
+    # 菜单项自带的默认参数（目前只有第 7 项的 --disk）
     $arguments = @()
+    if ($picked.ContainsKey('DefaultArgs') -and $picked.DefaultArgs) {
+      $arguments = @($picked.DefaultArgs)
+    }
     if ($picked.Command -eq 'audit') {
       $auditItems = @(
         @{ Key = '1';  Name = 'lightweight';       Label = '轻量界面巡检' }

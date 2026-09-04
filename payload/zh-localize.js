@@ -8,6 +8,8 @@
 
   var EXACT = {
     /* === batch-translated (auto-merged) === */
+    "source_type_tooltip.jdbc": "通过 JDBC 连接数据库，并把某张表作为该数据集的一部分来查询。",
+    /* === batch-translated (auto-merged) === */
     "Failed to load header": "加载表头失败",
     "Learn more about Postman code": "了解 Postman Code 的更多信息",
     "Filter by hostname": "按主机名筛选",

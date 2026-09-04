@@ -129,6 +129,8 @@ createElement(Button, {type:"primary"}, "Restart and Install Update")
 
 最后那条 2026-09-01 补上：`html/desktop-offline.html`（离线兜底）、`html/loader.html`（启动画面）、`html/auth/error.html`、`html/proxyAuth.html`、`html/no-scratchpad.html` 等页面打包在本地、**不随服务端更新**，而且恰好是"出问题时用户盯着看"的界面，前四条路径都覆盖不到：它们不走 i18next，HTML 里是纯文本而非属性形式，`collect` 也只有用户真撞上才记。抽取用 `npx --yes @electron/asar extract-file <asar> html/xxx.html`；文案多在配套 `js/*.js` 的 JSX `children:"…"`／`text:"…"` 位置（含 `text:cond?"A":"B"` 这种三元，正则要能吃到）。当时查出 11 条漏翻，其中 5 条是 `aria-label` 直接**泄露了未解析的 i18next 原始键**（`app-header:window_controls.close_win_tooltip`）——离线页没加载资源包所以键没被替换，把这些键本身写进 `EXACT` 即可。
 
+**界面上出现 `namespace:a.b.c` 或 `a.b.c` 形态的字符串，就是 i18next 没解析出来的原始键，一律当漏翻处理**，把键本身写进 `EXACT`。除上面那 5 条外，2026-09-03 又在数据集界面撞到 `source_type_tooltip.jdbc`：官方清单里同组有 file/local/cloud/remote/mysql/postgres/sqlserver 七条，**独缺 jdbc**——Postman 新加 JDBC 数据源时忘了配文案，i18next 找不到就把键吐到 tooltip 上。这类是官方的疏漏，只能我们兜。
+
 **翻的时候只翻完整的标题/标签/句子**，通用单词（`error`/`import`/`share`）和半句碎片（`Make sure the`、`or create a collection`）一律跳过——碎片由 `fixCompositeTextBlocks` 负责整句拼装，单独翻会破坏整句结果并触发 `验证汉化.js` 的守卫（本轮返工过一次）。
 
 ### B. 兜底：运行时收集用户实际遇到的漏翻
