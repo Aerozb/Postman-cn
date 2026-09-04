@@ -35,6 +35,9 @@ try {
 # 但**不要用 Read-Host / pause 等阻塞式按键等待**：那会让双击窗口看起来卡住。
 # 倒计时期间按任意键可以立即关闭。
 $script:MenuMode = $false
+# 成功后倒计时秒数。默认 8 秒够看一行结论；stats 那种整屏表格要更久，
+# 在分发到该命令前改成 60。
+$script:CloseDelaySeconds = 8
 
 function Wait-BeforeClose {
   param([int]$Seconds = 8)
@@ -64,7 +67,10 @@ function Stop-WithCode {
     Write-Host ''
     if ($Code -eq 0) {
       Write-Host '操作完成。' -ForegroundColor Green
-      Wait-BeforeClose -Seconds 8
+      # 纯查看型命令（stats）成功后要留久一点：输出是给人读的表格，
+      # 8 秒读不完（2026-09-04 用户报「查看完数据咋闪退了」）。
+      # 其余命令只需看一眼「验证通过」之类的结论，8 秒够。
+      Wait-BeforeClose -Seconds $script:CloseDelaySeconds
     } else {
       Write-Host "操作失败（退出码 $Code）。上面的中文提示说明了原因。" -ForegroundColor Yellow
       # 失败时多留一会儿，让用户看清报错。
@@ -239,7 +245,7 @@ Postman 中文汉化工具
   scan          扫描可点击界面；支持 --out、--details，显式加 --screenshot 才保存截图
   audit <名称>  运行指定深度审计；支持 --details，--out 可用裸名称或 .json
   publish       调用维护者发布脚本
-  stats         查看 GitHub 项目数据（Star、下载量、访问与克隆）；加 --details 看逐日与来源
+  stats         查看 GitHub 项目数据（Star、下载量、访问来源、热门页面）；加 --full 看完整 14 天逐日
   help          显示本帮助
 
 审计名称：
@@ -678,6 +684,8 @@ m.check(true).then((r) => {
 
     'stats' {
       # 只读 GitHub 公开数据 + 本仓库流量，走 gh CLI（认证由 gh 管，脚本里不出现令牌）
+      # 输出是整屏表格，倒计时放宽到 60 秒；随时按任意键可立即关闭。
+      $script:CloseDelaySeconds = 60
       Invoke-NodeScript (Join-Path $maintenanceRoot '查看项目数据.js') @($RemainingArguments)
     }
   }

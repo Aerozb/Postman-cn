@@ -76,7 +76,7 @@ Postman 桌面版汉化补丁，适用于 Windows 10/11 与 Postman 12.x。
 .\postman-zh.bat restore       # 还原英文原版
 .\postman-zh.bat updates on    # 允许 Postman 自动更新（默认是 off）
 .\postman-zh.bat zh-updates    # 查看汉化版本检查开关（默认 on）；加 check 立即查一次
-.\postman-zh.bat stats         # 查看 GitHub 项目数据；加 --details 看逐日与来源
+.\postman-zh.bat stats         # 查看 GitHub 项目数据；加 --full 看完整 14 天逐日
 .\postman-zh.bat help          # 查看所有命令
 ```
 
