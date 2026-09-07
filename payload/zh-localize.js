@@ -8,6 +8,200 @@
 
   var EXACT = {
     /* === batch-translated (auto-merged) === */
+    "Teammates can now join your team quickly and seamlessly.": "团队成员现在可以快速、顺畅地加入你的团队。",
+    "Set request timeout (in seconds)": "设置请求超时时间（秒）",
+    "MultiSelect is focused ,type to refine list, press Down to open the menu, press left to focus selected values": "多选框已获得焦点。输入可筛选列表，按向下方向键打开菜单，按向左方向键聚焦已选值。",
+    "The coast is clear": "一切正常",
+    "All systems are go": "系统已就绪",
+    "No anomalies detected": "未发现异常",
+    "Standing by for launch": "准备就绪，等待启动",
+    "Available on Solo and Team plans": "适用于个人版和团队版套餐",
+    "Available on Solo, Team, and Enterprise plans": "适用于个人版、团队版和企业版套餐",
+    "About resource usage": "关于资源使用情况",
+    "Agent Chat": "代理聊天",
+    "Close banner": "关闭横幅",
+    "Creating API clients and application code...": "正在创建 API 客户端和应用代码……",
+    "Fetching request definitions...": "正在获取请求定义……",
+    "Agent Mode understands the datasets and views in your workspace. It uses your real field names when writing requests, tests, and scripts. You can describe the data you need so Agent Mode generates realistic test data for you.": "代理模式可理解工作区中的数据集和视图，并在编写请求、测试和脚本时使用真实字段名。只需描述所需的数据，代理模式就能为你生成贴近实际的测试数据。",
+    "Cloud performance test runs now consume virtual user (VU) hours, based on the number of virtual users in a run and the test’s duration. Team Admins can view a detailed breakdown of VU hour usage by run, including the run name, source, collection, VU hours consumed, who created the run, and when it finished.": "云端性能测试现在根据虚拟用户数量和测试时长消耗虚拟用户（VU）小时。团队管理员可按运行查看 VU 小时用量明细，包括运行名称、来源、集合、消耗的 VU 小时、创建者和结束时间。",
+    "Each dataset pulls from one or more sources and exposes views: saved SQL queries that select, filter, join, and transform fields for a specific test. Solo plans support CSV, JSON, and Excel file sources, including AI-assisted generation. Team and Enterprise plans can also connect to live databases, like MySQL and PostgreSQL. Enterprise plans additionally support custom JDBC drivers for many JDBC-compatible databases. Databases that aren’t publicly exposed are reachable over an SSH tunnel, and connection details can be stored as vault secrets in Postman Vault.": "每个数据集从一个或多个数据源提取数据，并提供视图：为特定测试选择、筛选、连接和转换字段的已保存 SQL 查询。个人版支持 CSV、JSON 和 Excel 文件数据源，也支持 AI 辅助生成。团队版和企业版还可连接 MySQL、PostgreSQL 等在线数据库。企业版另外支持自定义 JDBC 驱动，以连接多种兼容 JDBC 的数据库。未公开开放的数据库可通过 SSH 隧道访问，连接信息可作为密钥存储在 Postman 保管库中。",
+    "Introducing Postman Datasets": "Postman 数据集现已推出",
+    "Migrate your small team to Postman Organizations using a self-serve option": "自助将小型团队迁移到 Postman 组织",
+    "Other updates": "其他更新",
+    "Pay-as-you-go for performance test VU hours": "性能测试 VU 小时按量付费",
+    "Postman Datasets are managed groups of structured data that live inside your workspace, designed to power realistic, repeatable, and scalable API testing. Create a dataset once and reuse it across collection runs, monitors, performance tests, mock servers, scripts, and Flows. It works in the Postman app, the Postman CLI, and CI environments.": "Postman 数据集是工作区中集中管理的结构化数据，用于支持贴近实际、可重复且可扩展的 API 测试。创建一次数据集，即可在集合运行、监控器、性能测试、Mock 服务器、脚本和 Flows 中复用。它适用于 Postman 应用、Postman CLI 和 CI 环境。",
+    "Run performance tests in the Postman Cloud": "在 Postman 云端运行性能测试",
+    "Run performance tests in the Postman Cloud to scale beyond the limits of a single machine, keep tests running after you close your computer, and persist detailed performance data for later review. Postman distributes the load across managed workers and streams metrics, errors, and test assertions live while the run is in progress, using the same collection and scripts you already test with. You can compare past runs and share results with your team.": "在 Postman 云端运行性能测试，突破单机限制，关闭电脑后仍可继续测试，并保存详细性能数据以供后续查看。Postman 会将负载分配到托管工作节点，并在运行期间实时传输指标、错误和测试断言，继续使用你现有的集合和脚本。你可以比较历史运行，并与团队共享结果。",
+    "Test API performance": "测试 API 性能",
+    "Test APIs with datasets in Postman": "在 Postman 中使用数据集测试 API",
+    "You can also add setup and teardown collections to a cloud performance test, to prepare what the test needs before it starts and clean up once it ends.": "你还可以为云端性能测试添加初始化和清理集合，在测试开始前完成准备工作，并在结束后清理资源。",
+    "You can now migrate your small team to organizations yourself directly from the Postman app.": "现在，你可以直接在 Postman 应用中自助将小型团队迁移到组织。",
+    "Couldn't find the API you are looking for": "找不到你要查找的 API",
+    "Connecting to WebSocket server...": "正在连接 WebSocket 服务器……",
+    "Couldn't evaluate the Before query script": "执行查询前脚本失败",
+    "Couldn't evaluate the On message script": "执行收到消息时脚本失败",
+    "Couldn't evaluate the Before invoke script": "执行调用前脚本失败",
+    "Authenticate and Proceed": "验证身份并继续",
+    "Search options": "搜索选项",
+    "Couldn’t fetch environment name.": "获取环境名称失败。",
+    "Couldn't find the schedule you are looking for.": "找不到你要查找的计划。",
+    "Search datasets and datafiles": "搜索数据集和数据文件",
+    "Search for APIs": "搜索 API",
+    "Max number of items selected": "已达到可选项目数量上限",
+    "This collection is unavailable.": "此集合不可用。",
+    "Join a team in your organization": "加入你所在组织中的团队",
+    "Request access to edit and manage roles on this API.": "申请编辑此 API 及管理其角色的权限。",
+    "Request access to edit and manage roles on this monitor.": "申请编辑此监控器及管理其角色的权限。",
+    "Request access to edit and manage roles on this collection.": "申请编辑此集合及管理其角色的权限。",
+    "Request access to edit and manage roles on this environment.": "申请编辑此环境及管理其角色的权限。",
+    "The source collection has been deleted or removed from the workspace it belonged to.": "源集合已被删除，或已从其所属工作区中移除。",
+    "Unable to create collection": "创建集合失败",
+    "Couldn't find the run log for this Integration": "找不到此集成的运行日志",
+    "Couldn't delete Collection Access Key for the requested Collection.": "删除指定集合的集合访问密钥失败。",
+    "Deleted selected variable(s).": "已删除所选变量。",
+    "Folder not found": "找不到文件夹",
+    "Response not found": "找不到响应",
+    "Environment not found": "找不到环境",
+    "Workspace not found": "找不到工作区",
+    "Item not found": "找不到项目",
+    "Cloud performance test runs now consume virtual user (VU) hours, based on the number of virtual users in a run and the test's duration. Team Admins can view a detailed breakdown of VU hour usage by run, including the run name, source, collection, VU hours consumed, who created the run, and when it finished.": "云端性能测试现在根据虚拟用户数量和测试时长消耗虚拟用户（VU）小时。团队管理员可按运行查看 VU 小时用量明细，包括运行名称、来源、集合、消耗的 VU 小时、创建者和结束时间。",
+    "Each dataset pulls from one or more sources and exposes views: saved SQL queries that select, filter, join, and transform fields for a specific test. Solo plans support CSV, JSON, and Excel file sources, including AI-assisted generation. Team and Enterprise plans can also connect to live databases, like MySQL and PostgreSQL. Enterprise plans additionally support custom JDBC drivers for many JDBC-compatible databases. Databases that aren't publicly exposed are reachable over an SSH tunnel, and connection details can be stored as vault secrets in Postman Vault.": "每个数据集从一个或多个数据源提取数据，并提供视图：为特定测试选择、筛选、连接和转换字段的已保存 SQL 查询。个人版支持 CSV、JSON 和 Excel 文件数据源，也支持 AI 辅助生成。团队版和企业版还可连接 MySQL、PostgreSQL 等在线数据库。企业版另外支持自定义 JDBC 驱动，以连接多种兼容 JDBC 的数据库。未公开开放的数据库可通过 SSH 隧道访问，连接信息可作为密钥存储在 Postman 保管库中。",
+    "Couldn’t find the API you are looking for": "找不到你要查找的 API",
+    "Couldn’t evaluate the Before query script": "执行查询前脚本失败",
+    "Couldn’t evaluate the On message script": "执行收到消息时脚本失败",
+    "Couldn’t evaluate the Before invoke script": "执行调用前脚本失败",
+    "Couldn't fetch environment name.": "获取环境名称失败。",
+    "Couldn’t find the schedule you are looking for.": "找不到你要查找的计划。",
+    "Couldn’t find the run log for this Integration": "找不到此集成的运行日志",
+    "Couldn’t delete Collection Access Key for the requested Collection.": "删除指定集合的集合访问密钥失败。",
+    /* === batch-translated (auto-merged) === */
+    "Console Webview": "控制台视图",
+    "Unable to connect to our servers": "连接服务器失败",
+    "Go To Scratchpad": "前往草稿区",
+    "Go to Lightweight API Client": "前往轻量 API 客户端",
+    /* === batch-translated (auto-merged) === */
+    "Work locally with Git": "使用 Git 在本地工作",
+    "Open your working directory on Postman to build your APIs locally and keep the changes in sync with your codebase.": "在 Postman 中打开工作目录，在本地构建 API，并让更改与代码库保持同步。",
+    "Local first development": "本地优先开发",
+    "Work on your APIs locally just like you’d work on your codebase and publish them to your workspace once ready.": "像处理代码库一样在本地开发 API，准备就绪后再发布到工作区。",
+    "Native Git support": "原生 Git 支持",
+    "Use your existing Git workflow to manage changes to your APIs; work on a branch, merge when ready.": "使用现有的 Git 工作流管理 API 更改；在分支上开发，准备就绪后再合并。",
+    "Set up workflows to publish your API changes automatically on Git events like merge.": "设置工作流，在合并等 Git 事件发生时自动发布 API 更改。",
+    "More about native Git support on Postman": "了解 Postman 的原生 Git 支持",
+    "Native Git support is only available on the Desktop App.": "原生 Git 支持仅在桌面应用中可用。",
+    ": Native Git support is only available on the Desktop App.": "：原生 Git 支持仅在桌面应用中可用。",
+    "Note: Native Git support is only available on the Desktop App.": "注意：原生 Git 支持仅在桌面应用中可用。",
+    "Open Desktop App": "打开桌面应用",
+    "(Retries use additional monitoring calls.)": "（重试会额外消耗监控调用次数。）",
+    "Directory (tenant) ID": "目录（租户）ID",
+    "The Microsoft Entra directory (tenant) that owns your Key Vaults. Every secret linked through this connection authenticates against this directory.": "你的 Key Vault 所属的 Microsoft Entra 目录（租户）。通过此连接关联的每个密钥都会使用该目录进行身份验证。",
+    "Azure cloud": "Azure 云",
+    "Service principal (client secret)": "服务主体（客户端密钥）",
+    "Application (client) ID": "应用程序（客户端）ID",
+    "Client secret": "客户端密钥",
+    "Microsoft Entra user (sign in on this device)": "Microsoft Entra 用户（在此设备上登录）",
+    "Custom app (client) ID": "自定义应用（客户端）ID",
+    "Bring your own Entra app. Requires the desktop redirect URI plus admin consent. The app must be registered in this connection's directory (tenant).": "使用你自己的 Entra 应用。需要配置桌面重定向 URI 并获得管理员同意。该应用必须注册在此连接的目录（租户）中。",
+    "Secret identifier": "密钥标识符",
+    "Copy the \"Secret Identifier\" from the secret in the Azure portal. Omit the trailing version to always read the latest value.": "从 Azure 门户中的密钥页面复制“密钥标识符”。省略末尾的版本号即可始终读取最新值。",
+    "Unlock with native password manager": "使用本机密码管理器解锁",
+    "No vault key is saved in your native password manager. Enter the key manually to unlock your vault.": "本机密码管理器中未保存保管库密钥。请手动输入密钥以解锁保管库。",
+    "Couldn't get the vault key from your native password manager. Try again, or enter the key manually.": "从本机密码管理器获取保管库密钥失败。请重试，或手动输入密钥。",
+    "The secrets stored on this device were encrypted with a different vault key, so Postman can't open them. Nothing has been deleted. Refresh to try again, or clear them to start fresh with your current key.": "此设备上存储的密钥使用另一把保管库密钥加密，因此 Postman 未能打开它们。没有任何内容被删除。请刷新后重试，或清空这些密钥以使用当前保管库密钥重新开始。",
+    "Clear vault": "清空保管库",
+    "Unlock your vault to view and use this secret.": "解锁保管库即可查看和使用此密钥。",
+    "Loading schema…": "正在加载模式……",
+    "Install in Terminal": "在终端中安装",
+    "Add an API key to run this command": "添加 API 密钥以运行此命令",
+    "Run on Cloud (static IP)": "在云端运行（静态 IP）",
+    "Egress routing strategy": "出口路由策略",
+    "Sets the source IPs your load generators send requests from.": "设置负载生成器发送请求时使用的源 IP。",
+    "Requests come from a shared pool of IP addresses.": "请求来自共享 IP 地址池。",
+    "Requests come from static IPs you can allowlist in your firewall.": "请求来自静态 IP，你可以将这些 IP 加入防火墙白名单。",
+    "Requests come from static IPs you can allowlist in your firewall. Learn More": "请求来自静态 IP，你可以将这些 IP 加入防火墙白名单。了解更多",
+    "Dynamic IPs": "动态 IP",
+    "Static IPs": "静态 IP",
+    "Upgrade to run performance test on the cloud from a static IP": "升级以使用静态 IP 在云端运行性能测试",
+    "Route your cloud performance runs through static IPs that you can allowlist, so we can reach APIs behind firewalls. Upgrade your plan to get started.": "让云端性能测试通过可加入白名单的静态 IP 发送请求，从而访问防火墙后的 API。升级套餐即可开始使用。",
+    "You don't have permission to disconnect this app. Contact a team admin.": "你没有断开此应用连接的权限。请联系团队管理员。",
+    "You don't have permission to disconnect this gateway. Contact a team admin.": "你没有断开此网关连接的权限。请联系团队管理员。",
+    "Entity": "实体",
+    "This installer command isn't recognized. Copy it to review and run it manually.": "未识别到此安装命令。请复制并检查命令后手动运行。",
+    "Hide file sizes": "隐藏文件大小",
+    "Failed to remove folder": "移除文件夹失败",
+    "Open new folder": "打开新文件夹",
+    "No remote configured": "尚未配置远程仓库",
+    "Remove folder": "移除文件夹",
+    "No issues": "没有问题",
+    "No auto-fixable issues": "没有可自动修复的问题",
+    "Make the most out of native Git support on Postman.": "充分利用 Postman 的原生 Git 支持。",
+    "Couldn’t complete that action": "操作未完成",
+    "Keep changes to your APIs in sync with the codebase": "让 API 更改与代码库保持同步",
+    "Link this folder to the workspace so it can sync with Postman Cloud.": "将此文件夹关联到工作区，以便与 Postman 云端同步。",
+    "Generate API artifacts": "生成 API 产物",
+    "Use Postman AI to generate collections, environments and more.": "使用 Postman AI 生成集合、环境等内容。",
+    "Pull from cloud": "从云端拉取",
+    "Bring in your collections, specs and more from cloud workspaces.": "从云端工作区导入你的集合、规范等内容。",
+    "Connect this folder to the workspace to pull from cloud": "将此文件夹连接到工作区以从云端拉取",
+    "Push to cloud": "推送到云端",
+    "Publish local changes to cloud workspace.": "将本地更改发布到云端工作区。",
+    "Set up Git to push to cloud": "配置 Git 以推送到云端",
+    "Connect this folder to the workspace to push to cloud": "将此文件夹连接到工作区以推送到云端",
+    "Configure remote": "配置远程仓库",
+    "Couldn’t run the command in the terminal": "在终端中运行命令失败",
+    "No folder selected": "尚未选择文件夹",
+    "Open a local folder before generating API artifacts": "生成 API 产物前请先打开本地文件夹",
+    "Rerun": "重新运行",
+    "Preparing run": "正在准备运行",
+    "Analyze with AI": "使用 AI 分析",
+    "Turned off by your organization's Postman installation settings.": "已由你所在组织的 Postman 安装设置关闭。",
+    "Start server": "启动服务器",
+    "Stop server": "停止服务器",
+    "Restart to apply changes": "重启以应用更改",
+    "Copy server URL": "复制服务器 URL",
+    "Restart to apply tool changes": "重启以应用工具更改",
+    "Show a per-tab readiness icon flagging entity types not yet wired up for Agent Mode.": "在每个标签页显示就绪状态图标，标记尚未接入代理模式的实体类型。",
+    "Mocked": "已模拟",
+    "Mock events": "Mock 事件",
+    "Served by mocks": "由 Mock 响应",
+    "No data loaded yet": "尚未加载数据",
+    "Mock test failures": "Mock 测试失败",
+    "Run in Postman button": "“在 Postman 中运行”按钮",
+    "Add Run in Postman button": "添加“在 Postman 中运行”按钮",
+    "Loading provider details…": "正在加载提供商详情……",
+    "Available in the desktop app": "可在桌面应用中使用",
+    "No time series data available": "暂无时间序列数据",
+    "You're missing out on API users": "你正在错失 API 用户",
+    "This document has no content yet.": "此文档尚无内容。",
+    "Document info isn't available yet.": "文档信息尚不可用。",
+    "Click Refresh to load data from this source.": "点击“刷新”以从此数据源加载数据。",
+    "No keys are linked to an external provider yet.": "尚无密钥关联到外部提供商。",
+    "Users who viewed, forked, called, or reacted to your content.": "查看、派生、调用你的内容或对其做出回应的用户。",
+    "Nothing to preview yet. Switch to the Markdown tab to start writing.": "尚无可预览的内容。请切换到 Markdown 标签页开始编写。",
+    "Connect one in Team Settings → External Vault Integrations before linking keys.": "关联密钥前，请先在“团队设置 → 外部保管库集成”中连接一个提供商。",
+    "Connect one in Team Settings → External Vault Integrations to start linking keys.": "在“团队设置 → 外部保管库集成”中连接一个提供商，即可开始关联密钥。",
+    "No mock events yet. Requests served by a mock will appear here during and after the run.": "尚无 Mock 事件。由 Mock 响应的请求会在运行期间和结束后显示在这里。",
+    "Resolve a key from a connected external vault integration instead of storing its value in Postman.": "通过已连接的外部保管库集成解析密钥，而不是将密钥值存储在 Postman 中。",
+    "We couldn't load this provider's configuration. Check your connection and try reopening this dialog.": "加载此提供商的配置失败。请检查连接，然后尝试重新打开此对话框。",
+    "This connection has no authentication method. Add one in Team Settings → External Vault Integrations.": "此连接尚未配置身份验证方式。请在“团队设置 → 外部保管库集成”中添加。",
+    "Help more developers discover and use your API on Postman by adding Run in Postman buttons to your website.": "在网站上添加“在 Postman 中运行”按钮，帮助更多开发者在 Postman 上发现并使用你的 API。",
+    "Postman stores only the reference. The secret value stays in your provider and is resolved at request time.": "Postman 仅存储引用。密钥值保留在提供商处，并在发送请求时解析。",
+    "These keys point to a connection that no longer exists. Re-link them to a live connection to restore resolution.": "这些密钥指向的连接已不存在。请将它们重新关联到有效连接，以恢复密钥解析。",
+    "One or more connections no longer exist. Affected keys will fail to resolve until they are re-linked to a live connection.": "一个或多个连接已不存在。受影响的密钥需要重新关联到有效连接后，才能正常解析。",
+    "When a developer forks your collection, it pulls a copy into their private workspace so they can add credentials, edit requests, and save progress. It also helps them keep up to date with changes and prompts them to watch your collection to receive notifications when you post workspace updates.": "开发者派生你的集合时，会将副本拉取到自己的私有工作区，以便添加凭据、编辑请求并保存进度。这也有助于他们及时了解更改，并提示他们关注你的集合，以便在你发布工作区更新时收到通知。",
+    "Work on your APIs locally just like you'd work on your codebase and publish them to your workspace once ready.": "像处理代码库一样在本地开发 API，准备就绪后再发布到工作区。",
+    "Bring your own Entra app. Requires the desktop redirect URI plus admin consent. The app must be registered in this connection’s directory (tenant).": "使用你自己的 Entra 应用。需要配置桌面重定向 URI 并获得管理员同意。该应用必须注册在此连接的目录（租户）中。",
+    "Couldn’t get the vault key from your native password manager. Try again, or enter the key manually.": "从本机密码管理器获取保管库密钥失败。请重试，或手动输入密钥。",
+    "The secrets stored on this device were encrypted with a different vault key, so Postman can’t open them. Nothing has been deleted. Refresh to try again, or clear them to start fresh with your current key.": "此设备上存储的密钥使用另一把保管库密钥加密，因此 Postman 未能打开它们。没有任何内容被删除。请刷新后重试，或清空这些密钥以使用当前保管库密钥重新开始。",
+    "You don’t have permission to disconnect this app. Contact a team admin.": "你没有断开此应用连接的权限。请联系团队管理员。",
+    "You don’t have permission to disconnect this gateway. Contact a team admin.": "你没有断开此网关连接的权限。请联系团队管理员。",
+    "This installer command isn’t recognized. Copy it to review and run it manually.": "未识别到此安装命令。请复制并检查命令后手动运行。",
+    "Couldn't complete that action": "操作未完成",
+    "Turned off by your organization’s Postman installation settings.": "已由你所在组织的 Postman 安装设置关闭。",
+    "You’re missing out on API users": "你正在错失 API 用户",
+    "Document info isn’t available yet.": "文档信息尚不可用。",
+    "We couldn’t load this provider’s configuration. Check your connection and try reopening this dialog.": "加载此提供商的配置失败。请检查连接，然后尝试重新打开此对话框。",
+    /* === batch-translated (auto-merged) === */
     "source_type_tooltip.jdbc": "通过 JDBC 连接数据库，并把某张表作为该数据集的一部分来查询。",
     /* === batch-translated (auto-merged) === */
     "Failed to load header": "加载表头失败",
@@ -7321,7 +7515,7 @@
     "Scanning for Postman files...": "正在扫描 Postman 文件…",
     "Unable to connect to workspace": "连接工作区失败",
     "Unable to disconnect from workspace": "断开工作区连接失败",
-    "Couldn't run the command in the terminal": "无法在终端中运行命令",
+    "Couldn't run the command in the terminal": "在终端中运行命令失败",
     "This folder is a Git repository, but no remote is configured. Add a remote to pull from or publish to Postman Cloud.": "此文件夹是 Git 仓库，但尚未配置远程仓库。请添加远程仓库，以便从 Postman 云端拉取或发布。",
     "Give Postman permission to connect this folder to this workspace, synced with your Git branches.": "允许 Postman 将此文件夹连接到此工作区，并与 Git 分支同步。",
     "Disconnect from the workspace to open a different folder.": "断开工作区连接后才能打开其他文件夹。",
@@ -26823,6 +27017,14 @@
   }
 
   var RULES = [
+    // 12.27.0 新增云端模块校验：模块列表保留原样，动作仅接受推送/保存两种。
+    [/^These modules can['’]t load in the cloud: (.+?)\. Use pm\.require\(\) for third-party libraries, remove blocked built-ins \(like fs\), then (push|save) again\.$/, function (text, modules, action) {
+      return "以下模块不支持在云端加载：" + modules + "。请用 pm.require() 引入第三方库，并移除受限的内置模块（如 fs），然后重新" + (action === "push" ? "推送" : "保存") + "。";
+    }],
+    // ICU # 会按英文区域格式加入千位逗号，兼容批量删除弹窗中的实体计数。
+    [/^(\d+(?:,\d{3})*)\s+(Folders?|Requests?|Examples?)$/i, function (text, count, kind) {
+      return count + " 个" + { folder: "文件夹", request: "请求", example: "示例" }[kind.toLowerCase().replace(/s$/, "")];
+    }],
     // ==== BEGIN 官方 i18n 清单生成的插值规则（rules-b*.json，勿手改）====
     [/^Cloud\s+mocks\s+don['’]t\s+support\s+pm\.state,\s+and\s+these\s+modules\s+can['’]t\s+load\s+in\s+the\s+cloud:\s+(?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60}?)\.\s+Use\s+pm\.require\(\)\s+for\s+third-party\s+libraries,\s+remove\s+blocked\s+built-ins\s+\(like\s+fs\),\s+and\s+keep\s+the\s+handler\s+stateless,\s+then\s+push\s+again\.$/, "云端 Mock 不支持 pm.state，而以下模块也无法在云端加载：$1。请用 pm.require() 引入第三方库、移除被禁用的内置模块（如 fs），并保持处理函数无状态，然后重新推送。"],
     [/^Cloud\s+mocks\s+don['’]t\s+support\s+pm\.state,\s+and\s+these\s+modules\s+can['’]t\s+load\s+in\s+the\s+cloud:\s+(?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60}?)\.\s+Use\s+pm\.require\(\)\s+for\s+third-party\s+libraries,\s+remove\s+blocked\s+built-ins\s+\(like\s+fs\),\s+and\s+keep\s+the\s+handler\s+stateless,\s+then\s+save\s+again\.$/, "云端 Mock 不支持 pm.state，而以下模块也无法在云端加载：$1。请用 pm.require() 引入第三方库、移除被禁用的内置模块（如 fs），并保持处理函数无状态，然后重新保存。"],
@@ -28812,7 +29014,7 @@
       nodes.push(scope);
     }
     if (scope.querySelectorAll) {
-      var found = scope.querySelectorAll("div, span, p, label, button, li, [role='option'], [role='status'], [aria-live]");
+      var found = scope.querySelectorAll("div, span, p, label, button, li, .error-block h3, [role='option'], [role='status'], [aria-live]");
       for (var i = 0; i < found.length; i += 1) {
         nodes.push(found[i]);
       }
@@ -28823,6 +29025,27 @@
         continue;
       }
       var text = normalize(nodes[j].innerText || nodes[j].textContent || "");
+      // 本地登录错误页的段落被域名和动态错误码拆开；只在完整原文匹配时翻译，保留子节点。
+      if (nodes[j].matches && nodes[j].matches(".error-block h3") &&
+          /^Check if your internet connection is stable\. If you are using a firewall or a proxy server, disable it or whitelist getpostman\.com and then retry\. If the problem persists, try again after some time\. \(Error code:\s*[^)]*\)$/i.test(text)) {
+        var errorCodeNode = nodes[j].querySelector("#error-code");
+        var domainNode = nodes[j].querySelector("u");
+        if (errorCodeNode && domainNode && normalize(domainNode.textContent) === "getpostman.com") {
+          for (var authIndex = 0; authIndex < nodes[j].childNodes.length; authIndex += 1) {
+            var authChild = nodes[j].childNodes[authIndex];
+            if (authChild.nodeType !== 3) { continue; }
+            var authText = normalize(authChild.nodeValue || "");
+            if (/^Check if your internet connection/.test(authText)) {
+              authChild.nodeValue = "请检查网络连接是否稳定。如果正在使用防火墙或代理服务器，请关闭它们或将 ";
+            } else if (/^and then retry\./.test(authText)) {
+              authChild.nodeValue = " 加入白名单后重试。若问题仍然存在，请稍后再试。（错误代码：";
+            } else if (authText === ")") {
+              authChild.nodeValue = "）";
+            }
+          }
+          continue;
+        }
+      }
       if (!text || text.length > 260) {
         continue;
       }
@@ -30687,9 +30910,10 @@
   // 但 12.25.1 的“已是最新”状态两个都没有，只能靠状态按钮定位：
   // Postman 给这些按钮起的是语义类名（update-not-available__button、
   // update-idle__button 等），比 styled-components 随机类名稳定得多。
-  var UPDATE_TOGGLE_ANCHORS = [".settings-autoupdate", ".settings-update-changelog-container"];
+  var UPDATE_TOGGLE_ANCHORS = [".settings-update-changelog-container", ".settings-autoupdate"];
   var UPDATE_STATE_BUTTON = '[class*="update-"][class*="__button"]';
   var SETTINGS_PANE = ".settings-tab-contents";
+  var UPDATE_CONTROLS_ID = "postman-zh-update-controls";
 
   // 返回 { parent, before }：把开关插到 parent 里、before 之前（before 为 null 则追加到末尾）
   //
@@ -30714,17 +30938,36 @@
     }
   }
 
-  // 我们自己注入的两块都复用了 settings-autoupdate 类名，找锚点时都要跳过，
-  // 否则第二块会拿第一块当锚点、或者切页签后自己给自己当参照。
+  // 排除自己的设置区和两块面板，也兼容旧版复用 settings-autoupdate 的节点，
+  // 避免切页签后自己给自己当参照。
   //
   // id 写成字面量而不是引用 VERSION_CHECK_BOX_ID：那个常量声明在本函数下方约 200 行，
   // 靠 var 提升虽然不报错，但取值时机就依赖 IIFE 的执行顺序了，太脆。
   function isOwnPanel(el) {
-    return !!el && (el.id === "postman-zh-version-check" || el.id === "postman-zh-update-switch");
+    return !!el && (el.id === "postman-zh-update-controls" || el.id === "postman-zh-version-check" || el.id === "postman-zh-update-switch");
+  }
+
+  // 发布说明可能被包在横向 flex / grid 中。插到它的同级会挤成几列，
+  // 应越过这些横排包装，放在整个说明区上方；保留 Postman 自己的布局样式。
+  function stackedUpdateSlot(anchor) {
+    var before = anchor;
+    var parent = anchor.parentElement;
+    var pane = typeof anchor.closest === "function" ? anchor.closest(SETTINGS_PANE) : null;
+    var view = anchor.ownerDocument && anchor.ownerDocument.defaultView;
+    while (parent && parent !== pane && view && typeof view.getComputedStyle === "function") {
+      var css = view.getComputedStyle(parent);
+      var horizontal = /^(inline-)?flex$/.test(css.display) && !/^column/.test(css.flexDirection);
+      if (!horizontal && !/^(inline-)?grid$/.test(css.display)) {
+        break;
+      }
+      before = parent;
+      parent = parent.parentElement;
+    }
+    return parent ? { parent: parent, before: before } : null;
   }
 
   function findUpdateToggleSlot(scope) {
-    // 1) 优先用自带的自动更新块 / 发布说明块，插在它前面
+    // 1) 优先放在整块发布说明上方；旧版没有说明时再用自带的自动更新块。
     for (var i = 0; i < UPDATE_TOGGLE_ANCHORS.length; i += 1) {
       var nodes;
       try {
@@ -30737,7 +30980,7 @@
           continue;
         }
         if (nodes[j].parentNode && isVisibleNode(nodes[j])) {
-          return { parent: nodes[j].parentNode, before: nodes[j] };
+          return stackedUpdateSlot(nodes[j]);
         }
       }
     }
@@ -30778,9 +31021,10 @@
     if (typeof document.getElementById !== "function") {
       return false;
     }
+    var controls = document.getElementById(UPDATE_CONTROLS_ID);
     var box = document.getElementById("postman-zh-update-switch");
     var verBox = document.getElementById("postman-zh-version-check");
-    if (!box && !verBox) {
+    if (!controls && !box && !verBox) {
       return false;
     }
     // 判断依据和第二级锚点一致：更新页的状态按钮当前可见，或者 Postman 自带的
@@ -30812,6 +31056,9 @@
     if (onUpdatePage) {
       return false;
     }
+    if (controls && controls.parentNode) {
+      controls.parentNode.removeChild(controls);
+    }
     if (box && box.parentNode) {
       box.parentNode.removeChild(box);
     }
@@ -30826,9 +31073,6 @@
     // 加载本文件，那里的 document 是极简桩，没有 getElementById/querySelectorAll。
     // 缺任一 API 就直接放弃注入，绝不能让翻译主流程崩掉。
     if (typeof document.getElementById !== "function" || typeof document.querySelectorAll !== "function") {
-      return;
-    }
-    if (document.getElementById("postman-zh-update-switch")) {
       return;
     }
     var scope = root && typeof root.querySelectorAll === "function" ? root : document;
@@ -30847,50 +31091,73 @@
       return;
     }
 
+    var controls = document.getElementById(UPDATE_CONTROLS_ID);
+    if (!controls) {
+      controls = document.createElement("section");
+      controls.id = UPDATE_CONTROLS_ID;
+      controls.setAttribute("aria-label", "更新设置");
+    }
+    // 更新状态切换后重新定位同一个设置区，保留按钮和 IPC 事件处理器。
+    // 兜底锚点的 nextSibling 可能就是设置区本身，此时无需移动。
+    if (slot.before !== controls && (controls.parentNode !== slot.parent || controls.nextSibling !== slot.before)) {
+      slot.parent.insertBefore(controls, slot.before || null);
+    }
+    var existing = document.getElementById("postman-zh-update-switch");
+    if (existing) {
+      if (existing.parentNode !== controls) {
+        controls.insertBefore(existing, controls.firstChild);
+      }
+      return;
+    }
+
     var box = document.createElement("div");
     box.id = "postman-zh-update-switch";
-    box.className = "settings-autoupdate";
+    box.className = "postman-zh-update-panel";
 
     var container = document.createElement("div");
-    container.className = "settings-autoupdate-info-container";
+    container.className = "postman-zh-update-panel__content";
 
     var header = document.createElement("div");
-    header.className = "settings-autoupdate-header";
+    header.id = "postman-zh-update-switch-title";
+    header.className = "postman-zh-update-panel__title";
     header.textContent = "Postman 自动更新（汉化工具开关）";
 
     var body = document.createElement("div");
-    body.className = "settings-autoupdate-body";
+    body.className = "postman-zh-update-panel__control";
     // 做成真正的滑动开关：一个 role=switch 的按钮当轨道，里面一个圆钮，右侧配文字。
     var button = document.createElement("button");
     button.type = "button";
     button.id = "postman-zh-update-switch-button";
     button.setAttribute("role", "switch");
+    button.setAttribute("aria-labelledby", header.id);
+    button.setAttribute("aria-describedby", "postman-zh-update-switch-description");
     // 给自动化审计一个明确的“别点我”标记：本轮真出过事——审计脚本把按钮文字
     // 「已关闭」当成设置页标签名点了一下，自动更新被打开，Postman 随即自更新，
     // 汉化被英文原版覆盖。
     button.setAttribute("data-postman-zh-audit-skip", "true");
     var knob = document.createElement("span");
     knob.id = "postman-zh-update-switch-knob";
+    knob.className = "postman-zh-update-panel__knob";
     button.appendChild(knob);
 
     var stateLabel = document.createElement("span");
     stateLabel.id = "postman-zh-update-switch-label";
+    stateLabel.className = "postman-zh-update-panel__state";
 
     body.appendChild(button);
     body.appendChild(stateLabel);
     renderUpdateToggleState(button, false);
 
     var footer = document.createElement("div");
-    footer.className = "settings-autoupdate-footer";
+    footer.id = "postman-zh-update-switch-description";
+    footer.className = "postman-zh-update-panel__description";
     footer.textContent = "默认关闭以保护汉化。开启后 Postman 可能自动升级，升级后界面会变回英文，需要重新运行汉化工具。";
 
     container.appendChild(header);
     container.appendChild(body);
     container.appendChild(footer);
     box.appendChild(container);
-    // 插到状态块附近：这是总闸，应该出现在 Postman 自带的「自动下载主要更新」
-    // 细项、发布说明或更新状态块旁边。
-    slot.parent.insertBefore(box, slot.before || null);
+    controls.insertBefore(box, controls.firstChild);
 
     var busy = false;
     button.addEventListener("click", function () {
@@ -30971,8 +31238,14 @@
     if (result.status === "update-available") {
       return "发现新版本 " + (result.latestVersion || "") + "，当前 v" + (result.localVersion || "?") + "。";
     }
+    if (result.status === "local-unpublished") {
+      return "当前 Postman v" + (result.localVersion || "?") + " 对应的汉化包尚未在 GitHub 发布。最新已发布版本为 " + (result.latestVersion || "?") + "。";
+    }
+    if (result.status === "release-incomplete") {
+      return "GitHub 上的 " + (result.latestVersion || "?") + " 汉化产物尚未上传完整，请稍后再检查。";
+    }
     if (result.status === "latest") {
-      return "已是最新版本（v" + (result.localVersion || "?") + "）。";
+      return "已是 GitHub 最新已发布汉化版本（" + (result.latestVersion || "?") + "）。";
     }
     return "";
   }
@@ -30984,8 +31257,10 @@
     }
     var action = document.getElementById(VERSION_CHECK_ACTION_ID);
     if (action) {
-      var showAction = !!result && (result.status === "update-available" || result.status === "error");
+      var showAction = !!result && (result.status === "update-available" || result.status === "error" ||
+        result.status === "local-unpublished" || result.status === "release-incomplete");
       action.style.display = showAction ? "" : "none";
+      action.textContent = result && result.status === "update-available" ? "打开发布页下载" : "查看发布页";
     }
   }
 
@@ -30995,13 +31270,17 @@
     if (typeof document.getElementById !== "function" || typeof document.createElement !== "function") {
       return;
     }
-    if (document.getElementById(VERSION_CHECK_BOX_ID)) {
-      return;
-    }
     // 依附在更新总闸后面：那块已经解决了「怎么在更新页找落点」的问题，
     // 不必再维护第二套锚点。
     var anchor = document.getElementById("postman-zh-update-switch");
     if (!anchor || !anchor.parentNode) {
+      return;
+    }
+    var existing = document.getElementById(VERSION_CHECK_BOX_ID);
+    if (existing) {
+      if (existing.parentNode !== anchor.parentNode || anchor.nextSibling !== existing) {
+        anchor.parentNode.insertBefore(existing, anchor.nextSibling);
+      }
       return;
     }
     var ipc = getUpdateToggleIpc();
@@ -31011,37 +31290,42 @@
 
     var box = document.createElement("div");
     box.id = VERSION_CHECK_BOX_ID;
-    box.className = "settings-autoupdate";
+    box.className = "postman-zh-update-panel";
 
     var container = document.createElement("div");
-    container.className = "settings-autoupdate-info-container";
+    container.className = "postman-zh-update-panel__content";
 
     var header = document.createElement("div");
-    header.className = "settings-autoupdate-header";
+    header.id = "postman-zh-version-check-title";
+    header.className = "postman-zh-update-panel__title";
     header.textContent = "汉化版本更新检查";
 
     var body = document.createElement("div");
-    body.className = "settings-autoupdate-body";
+    body.className = "postman-zh-update-panel__control";
 
     var button = document.createElement("button");
     button.type = "button";
     button.id = VERSION_CHECK_BUTTON_ID;
     button.setAttribute("role", "switch");
+    button.setAttribute("aria-labelledby", header.id);
+    button.setAttribute("aria-describedby", "postman-zh-version-check-description " + VERSION_CHECK_STATUS_ID);
     // 和更新总闸同样的道理：审计脚本别拿合成点击去点它
     button.setAttribute("data-postman-zh-audit-skip", "true");
     var knob = document.createElement("span");
     knob.id = "postman-zh-version-check-knob";
+    knob.className = "postman-zh-update-panel__knob";
     button.appendChild(knob);
 
     var stateLabel = document.createElement("span");
     stateLabel.id = VERSION_CHECK_LABEL_ID;
+    stateLabel.className = "postman-zh-update-panel__state";
 
     body.appendChild(button);
     body.appendChild(stateLabel);
 
     var status = document.createElement("div");
     status.id = VERSION_CHECK_STATUS_ID;
-    status.className = "settings-autoupdate-footer";
+    status.className = "postman-zh-update-panel__description";
 
     var action = document.createElement("button");
     action.type = "button";
@@ -31051,7 +31335,8 @@
     action.style.display = "none";
 
     var footer = document.createElement("div");
-    footer.className = "settings-autoupdate-footer";
+    footer.id = "postman-zh-version-check-description";
+    footer.className = "postman-zh-update-panel__description";
     // 不提供应用内下载：汉化包的 Release 标签 == Postman 版本号，所以「汉化有新版」
     // 必然意味着 Postman 也换了版本，那份 app.asar 不能装到当前版本目录里
     // （和目录里的 Electron 二进制、.pak 资源是配套的）。详见 docs/更新守卫.md。
@@ -31059,9 +31344,9 @@
 
     container.appendChild(header);
     container.appendChild(body);
+    container.appendChild(footer);
     container.appendChild(status);
     container.appendChild(action);
-    container.appendChild(footer);
     box.appendChild(container);
     anchor.parentNode.insertBefore(box, anchor.nextSibling);
 
@@ -31235,61 +31520,71 @@
       "html[data-postman-zh-localized='true'] select {",
       "  font-family: Inter, 'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', system-ui, sans-serif;",
       "}",
-      // 更新总闸：做成滑动开关。尽量借用 Postman 的主题变量，深色/浅色主题都能读。
-      "html[data-postman-zh-localized='true'] #postman-zh-update-switch .settings-autoupdate-body {",
+      // 两个开关共用独立的整宽设置区，与发布说明上下分隔；不复用官方横排布局类。
+      "html[data-postman-zh-localized='true'] #postman-zh-update-controls {",
       "  display: flex;",
-      "  align-items: center;",
-      "  gap: 10px;",
-      "}",
-      "html[data-postman-zh-localized='true'] #postman-zh-update-switch-button {",
-      "  position: relative;",
+      "  flex-direction: column;",
       "  flex: 0 0 auto;",
-      "  width: 40px;",
-      "  height: 22px;",
-      "  padding: 0;",
-      "  border: none;",
-      "  border-radius: 11px;",
-      "  cursor: pointer;",
-      "  background: var(--border-color-strong, #b5b5b5);",
-      "  transition: background 0.15s ease;",
+      "  box-sizing: border-box;",
+      "  width: 100%;",
+      "  min-width: 0;",
+      "  margin: 16px 0 20px;",
+      "  border: 1px solid var(--border-color-default, #ededed);",
+      "  border-radius: 8px;",
+      "  background: var(--background-color-secondary, #f9f9f9);",
       "}",
-      "html[data-postman-zh-localized='true'] #postman-zh-update-switch-button[data-enabled='true'] {",
-      "  background: var(--base-color-brand, #ff6c37);",
+      "html[data-postman-zh-localized='true'] #postman-zh-update-controls .postman-zh-update-panel {",
+      "  box-sizing: border-box;",
+      "  width: 100%;",
+      "  min-width: 0;",
+      "  padding: 16px 20px;",
       "}",
-      "html[data-postman-zh-localized='true'] #postman-zh-update-switch-button:focus-visible {",
-      "  outline: 2px solid var(--base-color-brand, #ff6c37);",
-      "  outline-offset: 2px;",
+      "html[data-postman-zh-localized='true'] #postman-zh-update-controls .postman-zh-update-panel + .postman-zh-update-panel {",
+      "  border-top: 1px solid var(--border-color-default, #ededed);",
       "}",
-      "html[data-postman-zh-localized='true'] #postman-zh-update-switch-knob {",
-      "  position: absolute;",
-      "  top: 2px;",
-      "  left: 2px;",
-      "  width: 18px;",
-      "  height: 18px;",
-      "  border-radius: 50%;",
-      "  background: #ffffff;",
-      "  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);",
-      "  transition: transform 0.15s ease;",
+      "html[data-postman-zh-localized='true'] .postman-zh-update-panel__content {",
+      "  display: grid;",
+      "  grid-template-columns: minmax(0, 1fr) auto;",
+      "  gap: 6px 20px;",
+      "  align-items: start;",
+      "  min-width: 0;",
       "}",
-      "html[data-postman-zh-localized='true'] #postman-zh-update-switch-button[data-enabled='true'] #postman-zh-update-switch-knob {",
-      "  transform: translateX(18px);",
+      "html[data-postman-zh-localized='true'] .postman-zh-update-panel__title {",
+      "  grid-column: 1;",
+      "  font-size: 13px;",
+      "  font-weight: 600;",
+      "  line-height: 22px;",
+      "  color: var(--content-color-primary, #212121);",
+      "  overflow-wrap: anywhere;",
       "}",
-      "html[data-postman-zh-localized='true'] #postman-zh-update-switch-label {",
+      "html[data-postman-zh-localized='true'] .postman-zh-update-panel__description {",
+      "  grid-column: 1 / -1;",
+      "  min-width: 0;",
+      "  margin: 0;",
       "  font-size: 12px;",
+      "  line-height: 1.65;",
       "  color: var(--content-color-secondary, #6b6b6b);",
+      "  overflow-wrap: anywhere;",
       "}",
-      "html[data-postman-zh-localized='true'] #postman-zh-update-switch .settings-autoupdate-footer {",
-      "  color: var(--content-color-warning, #e07b39);",
+      "html[data-postman-zh-localized='true'] #postman-zh-update-switch-description {",
+      "  color: var(--content-color-warning, #a86b00);",
       "}",
-      // 汉化版本检查：开关沿用总闸的样式，只换 id
-      "html[data-postman-zh-localized='true'] #postman-zh-version-check .settings-autoupdate-body {",
+      "html[data-postman-zh-localized='true'] #postman-zh-version-check-status {",
+      "  color: var(--content-color-primary, #212121);",
+      "}",
+      "html[data-postman-zh-localized='true'] .postman-zh-update-panel__control {",
+      "  grid-column: 2;",
+      "  grid-row: 1;",
       "  display: flex;",
       "  align-items: center;",
-      "  gap: 10px;",
+      "  gap: 8px;",
+      "  white-space: nowrap;",
       "}",
-      "html[data-postman-zh-localized='true'] #postman-zh-version-check-button {",
+      // 开关使用主题变量，深色/浅色模式保持一致；按钮和状态文字不参与挤压。
+      "html[data-postman-zh-localized='true'] .postman-zh-update-panel__control [role='switch'] {",
       "  position: relative;",
       "  flex: 0 0 auto;",
+      "  box-sizing: border-box;",
       "  width: 40px;",
       "  height: 22px;",
       "  padding: 0;",
@@ -31299,14 +31594,14 @@
       "  background: var(--border-color-strong, #b5b5b5);",
       "  transition: background 0.15s ease;",
       "}",
-      "html[data-postman-zh-localized='true'] #postman-zh-version-check-button[data-enabled='true'] {",
+      "html[data-postman-zh-localized='true'] .postman-zh-update-panel__control [data-enabled='true'] {",
       "  background: var(--base-color-brand, #ff6c37);",
       "}",
-      "html[data-postman-zh-localized='true'] #postman-zh-version-check-button:focus-visible {",
+      "html[data-postman-zh-localized='true'] .postman-zh-update-panel__control [role='switch']:focus-visible {",
       "  outline: 2px solid var(--base-color-brand, #ff6c37);",
       "  outline-offset: 2px;",
       "}",
-      "html[data-postman-zh-localized='true'] #postman-zh-version-check-knob {",
+      "html[data-postman-zh-localized='true'] .postman-zh-update-panel__knob {",
       "  position: absolute;",
       "  top: 2px;",
       "  left: 2px;",
@@ -31317,18 +31612,22 @@
       "  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);",
       "  transition: transform 0.15s ease;",
       "}",
-      "html[data-postman-zh-localized='true'] #postman-zh-version-check-button[data-enabled='true'] #postman-zh-version-check-knob {",
+      "html[data-postman-zh-localized='true'] [data-enabled='true'] > .postman-zh-update-panel__knob {",
       "  transform: translateX(18px);",
       "}",
-      "html[data-postman-zh-localized='true'] #postman-zh-version-check-label {",
+      "html[data-postman-zh-localized='true'] .postman-zh-update-panel__state {",
+      "  flex: 0 0 auto;",
       "  font-size: 12px;",
+      "  line-height: 22px;",
       "  color: var(--content-color-secondary, #6b6b6b);",
       "}",
       "html[data-postman-zh-localized='true'] #postman-zh-version-check-status:empty {",
       "  display: none;",
       "}",
       "html[data-postman-zh-localized='true'] #postman-zh-version-check-action {",
-      "  margin-top: 6px;",
+      "  grid-column: 1 / -1;",
+      "  justify-self: start;",
+      "  margin: 0;",
       "  padding: 4px 10px;",
       "  font-size: 12px;",
       "  border: 1px solid var(--border-color-default, #c4c4c4);",

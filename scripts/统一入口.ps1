@@ -577,7 +577,22 @@ m.check(true).then((r) => {
     console.log('下载地址：' + r.url);
     return;
   }
-  console.log('已是最新版本（v' + (r.localVersion || '?') + '）。');
+  if (r.status === 'local-unpublished') {
+    console.log('当前 Postman v' + (r.localVersion || '?') + ' 对应的汉化包尚未在 GitHub 发布。');
+    console.log('最新已发布版本：' + r.latestVersion);
+    console.log('发布页：' + r.page);
+    return;
+  }
+  if (r.status === 'release-incomplete') {
+    console.log('GitHub 上的 ' + r.latestVersion + ' 汉化产物尚未上传完整，请稍后再检查。');
+    console.log('发布页：' + r.page);
+    return;
+  }
+  if (r.status === 'latest') {
+    console.log('已是 GitHub 最新已发布汉化版本（' + r.latestVersion + '）。');
+    return;
+  }
+  console.log('暂未确认 GitHub 发布状态，请稍后再试。');
 }).catch((e) => { console.log('查询失败：' + ((e && e.message) || e)); process.exit(1); });
 '@
         $tmp = Join-Path $env:TEMP ("postman-zh-check-{0}.js" -f ([guid]::NewGuid().ToString('N')))

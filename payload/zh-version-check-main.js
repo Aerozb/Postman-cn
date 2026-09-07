@@ -74,23 +74,53 @@ function writePrefs(next) {
 // 版本号比较：只认 v?a.b.c[.d] 这种数字段，逐段比大小。
 // 不用字符串比较——"12.9.0" > "12.10.0" 会判错。
 function parseVersion(text) {
-  const m = String(text || "").trim().match(/^v?(\d+(?:\.\d+){0,3})/);
+  const m = String(text || "").trim().match(/^v?(\d+(?:\.\d+){0,3})$/);
   if (!m) return null;
-  return m[1].split(".").map((x) => parseInt(x, 10));
+  const parts = m[1].split(".").map(Number);
+  return parts.every(Number.isSafeInteger) ? parts : null;
 }
 
-function isNewer(remote, local) {
+function compareVersions(remote, local) {
   const a = parseVersion(remote);
   const b = parseVersion(local);
-  if (!a || !b) return false;
+  if (!a || !b) return null;
   const len = Math.max(a.length, b.length);
   for (let i = 0; i < len; i += 1) {
     const x = a[i] || 0;
     const y = b[i] || 0;
-    if (x > y) return true;
-    if (x < y) return false;
+    if (x > y) return 1;
+    if (x < y) return -1;
   }
-  return false;
+  return 0;
+}
+
+function isNewer(remote, local) {
+  return compareVersions(remote, local) === 1;
+}
+
+// 标签不等于可用的汉化包：公开、稳定的 Release 还要有同版本的两个已上传附件。
+// 只核对 GitHub 元数据，不下载产物；上传中的 Release 单独显示，避免冒充最新版。
+function inspectRelease(json) {
+  const tag = json && typeof json.tag_name === "string" ? json.tag_name.trim() : "";
+  if (!json || !parseVersion(tag) || json.draft !== false || json.prerelease !== false ||
+      typeof json.published_at !== "string" || !Number.isFinite(Date.parse(json.published_at)) ||
+      !Array.isArray(json.assets)) {
+    return { error: "invalid release metadata" };
+  }
+  const version = tag.replace(/^v/, "");
+  const expected = ["app.asar", "Postman-cn-" + version + "-win64.zip"];
+  const missingAssets = expected.filter((name) => !json.assets.some((asset) =>
+    asset && asset.name === name && asset.state === "uploaded" &&
+    Number.isSafeInteger(asset.size) && asset.size > 0
+  ));
+  return {
+    tag: tag,
+    name: typeof json.name === "string" ? json.name : tag,
+    url: RELEASE_PAGE + "/tag/" + encodeURIComponent(tag),
+    publishedAt: json.published_at,
+    assetsReady: missingAssets.length === 0,
+    missingAssets: missingAssets
+  };
 }
 
 // 当前已装的汉化版本号 = app.asar 的 package.json version，也就是 Postman 版本号。
@@ -101,8 +131,7 @@ function isNewer(remote, local) {
 //   1. 装进 app.asar 后 __dirname 是 <asar>/js，上一级就是 asar 根，那里有 package.json；
 //   2. 从命令行（postman-zh.bat zh-updates check）直接 require 本文件时，__dirname
 //      是仓库的 payload/ 目录，读不到 Postman 的 package.json——改为扫安装目录名 app-<版本>。
-// 都取不到就返回空串，check() 会因此判不出新版（isNewer 对空串返回 false），
-// 宁可不提示也不误报。
+// 都取不到就返回空串，check() 显示查询错误，不把未知版本当成最新版。
 function localVersion() {
   try {
     const inAsar = path.join(__dirname, "..", "package.json");
@@ -149,6 +178,8 @@ function fetchLatest() {
         },
         timeout: REQUEST_TIMEOUT_MS
       }, (res) => {
+        res.on("error", (e) => done({ error: String((e && e.message) || e) }));
+        res.on("aborted", () => done({ error: "response aborted" }));
         // 限额用尽（403/429）时 GitHub 会给 x-ratelimit-reset（Unix 秒），
         // 按它退避才准；否则用固定退避。匿名接口是每 IP 每小时 60 次，
         // 正常用户 6 小时一次撞不到，但同一 IP 下多台机器或反复手动检查会撞。
@@ -180,13 +211,7 @@ function fetchLatest() {
         });
         res.on("end", () => {
           try {
-            const json = JSON.parse(body);
-            done({
-              tag: String(json.tag_name || ""),
-              name: String(json.name || ""),
-              url: String(json.html_url || RELEASE_PAGE),
-              publishedAt: String(json.published_at || "")
-            });
+            done(inspectRelease(JSON.parse(body)));
           } catch (e) {
             done({ error: "bad json" });
           }
@@ -211,6 +236,9 @@ async function check(force) {
   if (!prefs.enabled) {
     // 关掉了就一个请求都不发
     return Object.assign({}, base, { status: "disabled" });
+  }
+  if (!parseVersion(local)) {
+    return Object.assign({}, base, { status: "error", detail: "unknown local version" });
   }
 
   const now = Date.now();
@@ -242,15 +270,22 @@ async function check(force) {
       };
       return cached.result;
     }
-    const newer = isNewer(latest.tag, local);
+    const order = compareVersions(latest.tag, local);
+    const status = !latest.assetsReady ? "release-incomplete"
+      : order > 0 ? "update-available"
+      : order < 0 ? "local-unpublished"
+      : "latest";
     const result = {
-      status: newer ? "update-available" : "latest",
+      // 远端更旧表示本机对应版本尚未发布，不表示本机已是 GitHub 最新汉化版。
+      status: status,
       latestVersion: latest.tag,
       latestName: latest.name,
       url: latest.url,
       publishedAt: latest.publishedAt,
+      assetsReady: latest.assetsReady,
+      missingAssets: latest.missingAssets,
       // 用户点过「不再提示这个版本」后，横幅不再弹，但设置页仍显示有新版
-      dismissed: newer && prefs.dismissedTag === latest.tag
+      dismissed: status === "update-available" && prefs.dismissedTag === latest.tag
     };
     cached = { at: Date.now(), error: false, backoffMs: 0, rateLimitedUntil: 0, result: result };
     return result;
@@ -304,8 +339,8 @@ module.exports = {
   install: install,
   check: check,
   isNewer: isNewer,
+  compareVersions: compareVersions,
+  inspectRelease: inspectRelease,
   parseVersion: parseVersion,
   localVersion: localVersion
 };
-
-

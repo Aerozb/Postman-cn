@@ -89,6 +89,7 @@
 | `maintenance/查看项目数据.js` | 查 GitHub 项目数据，由 `stats` 调用。走 `gh` CLI，脚本里不出现任何令牌。 |
 | `runtime/收集漏翻.js` | 导出运行时漏翻清单。 |
 | `runtime/探测更新页面.js` | 探测更新页。 |
+| `runtime/验证版本检查.js` | 版本与发布附件状态的内存隔离回归，由 `verify` / `install` 自动调用，不发真实网络请求。 |
 | `验证汉化.js` | 安装验证实现，由 `verify` 或 `install` 调用；`verify --details` 输出完整诊断。 |
 
 ## 审计命令对应表

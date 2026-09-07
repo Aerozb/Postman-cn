@@ -6,6 +6,7 @@ const path = require("path");
 const { execFileSync } = require("child_process");
 const { fileURLToPath } = require("url");
 const { sanitizeAuditReport } = require("./audit/审计安全.js");
+const { runVersionCheckTests } = require("./runtime/验证版本检查.js");
 
 const POSTMAN_PAGE_URL_RE = /(?:^https:\/\/desktop\.postman\.com(?::\d+)?(?:[\/?#]|$)|^file:\/\/\/.*\/(?:requester|scratchpad)\.html(?:[?#]|$))/i;
 
@@ -664,6 +665,7 @@ async function waitForPostmanTarget(port, timeoutMs) {
 }
 
 async function main() {
+  const versionCheckRegression = await runVersionCheckTests();
   const timeoutMs = Number(argValue("--timeout-ms") || 30000);
   const explicitPostmanDir = argValue("--postman-dir");
   const expectUpdatesDisabled = hasFlag("--expect-updates-disabled");
@@ -1567,7 +1569,22 @@ async function main() {
         ["Users who used Postman at least once", "至少使用过一次 Postman 的用户"],
         ["Workspace with views, creates, edits, or made API requests", "有查看、创建、编辑或发送 API 请求活动的工作区"],
         ["System Environments", "系统环境"],
-        ["Only members with the API Catalog Manager role can access Service discovery page", "只有拥有 API 目录管理员角色的成员才能访问服务发现页面"]
+        ["Only members with the API Catalog Manager role can access Service discovery page", "只有拥有 API 目录管理员角色的成员才能访问服务发现页面"],
+        ["Work locally with Git", "使用 Git 在本地工作"],
+        ["Directory (tenant) ID", "目录（租户）ID"],
+        ["Unlock with native password manager", "使用本机密码管理器解锁"],
+        ["Run on Cloud (static IP)", "在云端运行（静态 IP）"],
+        ["No auto-fixable issues", "没有可自动修复的问题"],
+        ["Restart to apply tool changes", "重启以应用工具更改"],
+        ["Requests come from static IPs you can allowlist in your firewall.", "请求来自静态 IP，你可以将这些 IP 加入防火墙白名单。"],
+        ["More\u00a0about\u00a0native\u00a0Git\u00a0support\u00a0on\u00a0Postman", "了解 Postman 的原生 Git 支持"],
+        ["Turned off by your organization’s Postman installation settings.", "已由你所在组织的 Postman 安装设置关闭。"],
+        ["1 Folder", "1 个文件夹"],
+        ["1,200 Folders", "1,200 个文件夹"],
+        ["3 Requests", "3 个请求"],
+        ["0 Examples", "0 个示例"],
+        ["These modules can't load in the cloud: fs, node:net, @example/lib. Use pm.require() for third-party libraries, remove blocked built-ins (like fs), then push again.", "以下模块不支持在云端加载：fs, node:net, @example/lib。请用 pm.require() 引入第三方库，并移除受限的内置模块（如 fs），然后重新推送。"],
+        ["These modules can’t load in the cloud: fs. Use pm.require() for third-party libraries, remove blocked built-ins (like fs), then save again.", "以下模块不支持在云端加载：fs。请用 pm.require() 引入第三方库，并移除受限的内置模块（如 fs），然后重新保存。"]
       ];
       const translationPreservationTargets = [
         "OverviewController",
@@ -1751,18 +1768,30 @@ async function main() {
           fixture.setAttribute("data-postman-zh-validation", "composite-cards");
           fixture.innerHTML = [
             '<p data-probe="composite"><span>Collaborate with </span><strong>unlimited</strong><span> teammates and assign the right access levels.</span></p>',
-            '<p data-probe="composite"><span>Run all requests in </span><strong>your collections</strong><span> to efficiently test your endpoints</span></p>'
+            '<p data-probe="composite"><span>Run all requests in </span><strong>your collections</strong><span> to efficiently test your endpoints</span></p>',
+            '<div class="error-block"><h3 data-probe="composite">Check if your internet connection is stable. If you are using a firewall or a proxy server, disable it or whitelist <u>getpostman.com</u> and then retry. If the problem persists, try again after some time. (Error code: <span id="error-code">AUTH-01</span>)</h3></div>'
           ].join("");
           document.body.appendChild(fixture);
           try {
+            const errorCodeNode = fixture.querySelector('#error-code');
+            const domainNode = fixture.querySelector('u');
             localizer.walk(fixture);
             translationProbe.compositeCards.actual = Array.from(fixture.querySelectorAll('[data-probe="composite"]')).map((el) => el.textContent);
             const expected = [
               "与不限数量的团队成员协作，并分配适当的访问级别。",
-              "运行集合中的所有请求，高效测试你的端点。"
+              "运行集合中的所有请求，高效测试你的端点。",
+              "请检查网络连接是否稳定。如果正在使用防火墙或代理服务器，请关闭它们或将 getpostman.com 加入白名单后重试。若问题仍然存在，请稍后再试。（错误代码：AUTH-01）"
             ];
             if (JSON.stringify(translationProbe.compositeCards.actual) !== JSON.stringify(expected)) {
               translationProbe.compositeCards.failures.push({ expected, actual: translationProbe.compositeCards.actual });
+            }
+            if (fixture.querySelector('#error-code') !== errorCodeNode || fixture.querySelector('u') !== domainNode) {
+              translationProbe.compositeCards.failures.push({ scope: "auth-error-nodes", expected: "保留域名和动态错误码节点" });
+            }
+            errorCodeNode.textContent = "AUTH-02";
+            localizer.walk(fixture);
+            if (errorCodeNode.parentElement.textContent !== expected[2].replace("AUTH-01", "AUTH-02")) {
+              translationProbe.compositeCards.failures.push({ scope: "auth-error-refresh", expected: "错误码更新后保持中文段落" });
             }
           } finally {
             fixture.remove();
@@ -1870,6 +1899,7 @@ async function main() {
     result.externalUrlPatch = inspectExternalUrlPatch(patchSource);
     result.mainMenuPatch = inspectMainMenuPatch(patchSource);
     result.versionCheckPatch = inspectVersionCheckPatch(patchSource);
+    result.versionCheckRegression = versionCheckRegression;
 
     const failures = [];
     if (result.localized !== "true") {

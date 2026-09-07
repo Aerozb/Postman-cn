@@ -68,6 +68,40 @@ function Invoke-Native {
   } finally { $ErrorActionPreference = $prev }
 }
 
+# 发布附件必须按文件名、大小和 GitHub 返回的 SHA-256 与本机产物逐一对应。
+# 只数 uploaded 的数量会把漏传、错传同名旧包等情况误当成功。
+function Assert-ReleaseAssets {
+  param([object]$Release, [string[]]$AssetPaths)
+  if (@($Release.assets).Count -ne 2 -or @($AssetPaths).Count -ne 2) {
+    throw 'Release 必须包含完整绿色版和 app.asar 两个附件。'
+  }
+  foreach ($file in $AssetPaths) {
+    $local = Get-Item -LiteralPath $file
+    $matches = @($Release.assets | Where-Object { $_.name -eq $local.Name })
+    if ($matches.Count -ne 1 -or $matches[0].state -ne 'uploaded' -or
+        $local.Length -le 0 -or $matches[0].size -ne $local.Length) {
+      throw "附件名称、上传状态或大小校验失败：$($local.Name)"
+    }
+    $expectedDigest = 'sha256:' + (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($matches[0].digest -ne $expectedDigest) {
+      throw "附件 SHA-256 校验失败：$($local.Name)"
+    }
+  }
+}
+
+function Get-ReleaseMetadata {
+  param([string]$ReleaseTag)
+  # /releases/tags 面向已发布版本；先由 gh 定位草稿/正式版，再按 ID 读取含 digest 的 REST 数据。
+  $lookup = Invoke-Native gh @('release', 'view', $ReleaseTag, '--repo', $script:ExpectedRepo, '--json', 'databaseId', '--jq', '.databaseId')
+  $releaseId = $lookup.Out.Trim()
+  if ($lookup.Code -ne 0 -or $releaseId -notmatch '^\d+$') {
+    throw '定位 GitHub Release 失败，保留本地产物供重试。'
+  }
+  $response = Invoke-Native gh @('api', "repos/$($script:ExpectedRepo)/releases/$releaseId")
+  if ($response.Code -ne 0) { throw '读取 GitHub Release 元数据失败，保留本地产物供重试。' }
+  return ($response.Out | ConvertFrom-Json)
+}
+
 # 发布前只允许把正常的项目源码/文档加入提交。不要等 git add/commit
 # 之后才检查：那样敏感文件虽未推送，也已经进入本地提交历史。
 function Get-PublishCandidates {
@@ -588,6 +622,9 @@ Postman 中文汉化版 $version
 
 ## 说明
 
+- 汉化版本检查核对 GitHub 公开版本和两个完整附件；本机版本领先或附件尚未传齐时单独提示，不再误报最新版
+- 「设置 > 更新」的两个开关分行放在更新说明上方，避免挤压说明内容
+- 补齐本地 Git 工作流、外部保管库、云端静态 IP 性能测试、运行器和工具服务器等界面文案
 - 汉化基于运行时注入（不改源码字符串），界面词典约 $entryCount 条
 - 请求编辑器等界面由 Postman 服务端下发，官方随时会改动文案，所以**不存在一劳永逸的 100% 覆盖**；遇到没翻的地方欢迎提 Issue
 - 默认关闭自动更新，避免官方更新覆盖汉化；需要时可在「设置 > 更新」页里的开关自行打开
@@ -599,33 +636,47 @@ $notesFile = Join-Path $outDir 'release-notes.md'
 Set-Content -LiteralPath $notesFile -Value $notes -Encoding UTF8
 
 Write-Info '上传中（大文件较慢）'
-$assets = @($zipPath, $asarOut) | Where-Object { Test-Path -LiteralPath $_ }
+$assets = @($zipPath, $asarOut)
+if (@($assets | Where-Object { -not (Test-Path -LiteralPath $_ -PathType Leaf) }).Count -gt 0) {
+  Write-Bad '发布产物未生成完整，已停止上传。'
+  exit 1
+}
+$releaseCommit = (git -C $repoDir rev-parse HEAD).Trim()
+# 先建草稿、上传并校验，再公开。上传途中不进入 /releases/latest，
+# 版本检查也就不会把空标签或只传了一半的包展示成已发布版本。
 $createArgs = @('release','create',$Tag) + $assets + @(
   '--repo',$script:ExpectedRepo,
   '--title',"Postman 中文版 $version",
-  '--notes-file',$notesFile
+  '--notes-file',$notesFile,
+  '--draft', '--target', $releaseCommit
 )
 $r = Invoke-Native gh $createArgs
 if ($r.Code -ne 0) { Write-Bad "创建 Release 失败：`n$($r.Out)"; exit 1 }
 
-Write-Ok "Release 已发布"
-# 用 --json 取回后在 PS 侧格式化：--jq 表达式含双引号，
-# PS 5.1 传给原生 exe 时会剥引号并按空格拆参，必然报 "accepts at most 1 arg"
-$v = Invoke-Native gh @('release','view',$Tag,'--repo',$script:ExpectedRepo,'--json','tagName,name,assets')
 $allUploaded = $false
-$assetCount  = 0
-if ($v.Code -eq 0) {
-  try {
-    $rel = $v.Out | ConvertFrom-Json
-    Write-Info "$($rel.name) [$($rel.tagName)]"
-    foreach ($a in $rel.assets) {
-      Write-Info ("  - {0}  {1} MB  {2}" -f $a.name, [math]::Round($a.size/1MB,1), $a.state)
-    }
-    $assetCount = @($rel.assets).Count
-    # 期望 2 个资产（绿色版 zip + 单独 app.asar），且都要 uploaded 才算成功
-    $expected = @($assets).Count
-    $allUploaded = ($assetCount -eq $expected) -and (@($rel.assets | Where-Object { $_.state -ne 'uploaded' }).Count -eq 0)
-  } catch { Write-Info '（资产列表解析失败，可到网页查看）' }
+try {
+  $rel = Get-ReleaseMetadata $Tag
+  if ($rel.draft -ne $true -or $rel.prerelease -ne $false -or $rel.tag_name -cne $Tag) {
+    throw 'Release 草稿状态或标签校验失败。'
+  }
+  Assert-ReleaseAssets -Release $rel -AssetPaths $assets
+  Write-Ok '草稿的两个附件已通过名称、大小和 SHA-256 校验。'
+  $publish = Invoke-Native gh @('release','edit',$Tag,'--repo',$script:ExpectedRepo,'--draft=false','--latest')
+  if ($publish.Code -ne 0) { throw '公开 Release 失败，附件保留在草稿中，可核对后重试。' }
+  $rel = Get-ReleaseMetadata $Tag
+  if ($rel.draft -ne $false -or $rel.prerelease -ne $false -or -not $rel.published_at -or $rel.tag_name -cne $Tag) {
+    throw 'Release 公开状态校验失败。'
+  }
+  Assert-ReleaseAssets -Release $rel -AssetPaths $assets
+  $allUploaded = $true
+  Write-Ok "Release 已发布：$($rel.name) [$($rel.tag_name)]"
+  foreach ($a in $rel.assets) {
+    Write-Info ("  - {0}  {1} MB  已上传并校验" -f $a.name, [math]::Round($a.size/1MB,1))
+  }
+} catch {
+  Write-Bad $_.Exception.Message
+  Write-Info "本地产物已保留：$outDir"
+  exit 1
 }
 
 # --- 清理本地打包产物 ---

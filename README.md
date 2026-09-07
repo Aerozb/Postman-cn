@@ -63,6 +63,8 @@ Postman 桌面版汉化补丁，适用于 Windows 10/11 与 Postman 12.x。
 
 两个开关别混：上面那个管 **Postman 官方升级**（默认关，因为升级会覆盖汉化），这个只管**汉化包本身有没有新版**（默认开，只提示、不自动下载或安装）。
 
+“最新版”会核实 GitHub 的正式 Release 和两个下载附件。若本机 Postman 的版本比已发布汉化包更新，会明确显示“对应汉化包尚未发布”；只有标签、附件还没上传齐时则提示“汉化产物尚未上传完整”。
+
 **为什么不做应用内一键下载**：本项目的汉化版本号跟着 Postman 版本号走，所以「汉化有新版」通常意味着 Postman 也出了新版，那份包对应的是新版 Postman，不能直接替换到你当前版本上。需要的是下载完整包重新安装，而不是替换单个文件。
 
 - 提示条上「不再提示此版本」= 这一版不再打扰，之后有更新的版本还会提示
@@ -108,7 +110,7 @@ TUI 中的高级审计默认使用受控档。发布前确需扩大覆盖时，�
 安装到指定版本目录：
 
 ```powershell
-.\postman-zh.bat install -PostmanDir C:\Path\To\Postman\app-12.26.3
+.\postman-zh.bat install -PostmanDir C:\Path\To\Postman\app-12.27.0
 ```
 
 脚本会自动备份 `resources\app.asar` 为 `app.asar.original`，从备份解包、注入汉化、重新打包并启动验证。Postman 更新后再次运行 `install` 即可。

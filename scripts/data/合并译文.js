@@ -59,7 +59,7 @@ const exactKeys = new Set();
 {
   const marker = "var EXACT = {";
   const start = payloadForKeys.indexOf(marker);
-  let region = payloadForKeys;
+  let region = "";
   if (start >= 0) {
     // 从 EXACT 的 { 开始按括号深度扫到配对的 }，扫描时跳过字符串字面量里的括号
     const open = start + marker.length - 1;
@@ -82,12 +82,11 @@ const exactKeys = new Set();
     }
     region = payloadForKeys.slice(open, end > 0 ? end : payloadForKeys.length);
   }
-  const keyRe = /"((?:[^"\\]|\\.)+)"\s*:/g;
-  let km, kc = 0;
-  while ((km = keyRe.exec(region)) !== null && kc < 500000) {
-    kc += 1;
-    try { exactKeys.add(JSON.parse('"' + km[1] + '"')); } catch (e) {}
-  }
+  if (!region) throw new Error("找不到 EXACT 词典锚点。");
+  // 读取对象的真实键，避免正则从前一个值的尾引号跨行匹配到以冒号开头的键，
+  // 导致该键每次 merge 都被误认成新增。VM 只求值这个词典字面量，不运行翻译器。
+  const exact = vm.runInNewContext("(" + region + ")", Object.create(null), { timeout: 5000 });
+  for (const key of Object.keys(exact)) exactKeys.add(key);
 }
 
 const merged = new Map();
