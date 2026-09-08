@@ -43,7 +43,7 @@
 | 偏好文件 | `%APPDATA%\Postman\postman-zh-updates.json` | `%APPDATA%\Postman\postman-zh-version-check.json` |
 | 文件不存在 | 视为关闭 | 视为开启 |
 
-两者都与页面开关共享同一份状态，命令行改完约 1 秒内页面开关自动回正。`zh-updates check` 会忽略 6 小时节流立即查一次。细节和边界见 [docs/更新守卫.md](../docs/更新守卫.md)。
+两者都与页面开关共享同一份状态，命令行改完约 1 秒内页面开关自动回正。汉化检查在启动或进入更新页时立即执行，此后每小时检查；页面「立即检查」和 `zh-updates check` 刷新一小时普通缓存，仍遵守 GitHub 限额退避。关闭检查后手动按钮禁用。细节和边界见 [docs/更新守卫.md](../docs/更新守卫.md)。
 
 `stats` 查 GitHub 项目数据，走 `gh` CLI（认证交给 gh，脚本里不出现也不存任何令牌），只读、不改仓库。两组数据的权限不同：**Star / Fork / Release 下载量是公开的**，任何人都能看；**访问量、克隆数、来源站点需要仓库 push 权限**，且 GitHub 只保留最近 14 天，过期即丢，想留长期趋势得自己定期导出。拿不到某一组时只跳过那一节并说明原因，不会让整条命令失败。注意 Release 下载量在覆盖同一标签重新发布后会清零（`-ReplaceRelease` 是删旧建新），所以只适合看趋势。
 
@@ -92,6 +92,7 @@
 | `runtime/收集漏翻.js` | 导出运行时漏翻清单。 |
 | `runtime/探测更新页面.js` | 探测更新页。 |
 | `runtime/验证版本检查.js` | 版本与发布附件状态的内存隔离回归，由 `verify` / `install` 自动调用，不发真实网络请求。 |
+| `runtime/验证版本检查界面.js` | 立即 / 手动 / 每小时检查及并发状态回归，使用内存 DOM、IPC 和虚拟时钟，由 `verify` / `install` 自动调用。 |
 | `验证汉化.js` | 安装验证实现，由 `verify` 或 `install` 调用；`verify --details` 输出完整诊断。 |
 
 ## 审计命令对应表

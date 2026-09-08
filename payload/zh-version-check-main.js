@@ -33,8 +33,8 @@ const RELEASE_API = "https://api.github.com/repos/Aerozb/Postman-cn/releases/lat
 const RELEASE_PAGE = "https://github.com/Aerozb/Postman-cn/releases";
 const PREF_FILE = path.join(process.env.APPDATA || "", "Postman", "postman-zh-version-check.json");
 
-// 节流：GitHub 匿名接口每 IP 每小时 60 次，6 小时一次足够且不会撞限额
-const CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
+// 自动检查缓存一小时；手动检查和进入更新页可刷新，限额退避始终保留。
+const CHECK_INTERVAL_MS = 60 * 60 * 1000;
 const REQUEST_TIMEOUT_MS = 10000;
 // 失败后不要立刻重试，避免断网时每次开设置页都卡 10 秒
 const ERROR_BACKOFF_MS = 30 * 60 * 1000;
@@ -182,7 +182,7 @@ function fetchLatest() {
         res.on("aborted", () => done({ error: "response aborted" }));
         // 限额用尽（403/429）时 GitHub 会给 x-ratelimit-reset（Unix 秒），
         // 按它退避才准；否则用固定退避。匿名接口是每 IP 每小时 60 次，
-        // 正常用户 6 小时一次撞不到，但同一 IP 下多台机器或反复手动检查会撞。
+        // 自动检查每小时一次；同一 IP 下多台机器或反复手动检查仍可能触发限额。
         if (res.statusCode === 403 || res.statusCode === 429) {
           res.resume();
           var reset = parseInt(res.headers["x-ratelimit-reset"], 10);
@@ -227,7 +227,17 @@ function fetchLatest() {
   });
 }
 
-// force=true 时忽略节流（用户在设置页手动点「立即检查」）
+// 返回时重新读取偏好：请求途中关闭检查或忽略某版本，旧响应也要遵守新状态。
+function withCurrentPrefs(result, local) {
+  const prefs = readPrefs();
+  const base = { enabled: prefs.enabled, localVersion: local, page: RELEASE_PAGE };
+  if (!prefs.enabled) return Object.assign({}, base, { status: "disabled" });
+  return Object.assign({}, base, result, {
+    dismissed: result.status === "update-available" && prefs.dismissedTag === result.latestVersion
+  });
+}
+
+// force=true 时刷新普通缓存（进入更新页或手动点「立即检查」）。
 async function check(force) {
   const prefs = readPrefs();
   const local = localVersion();
@@ -243,16 +253,16 @@ async function check(force) {
 
   const now = Date.now();
   if (!force && cached && now - cached.at < (cached.error ? cached.backoffMs : CHECK_INTERVAL_MS)) {
-    return Object.assign({}, base, cached.result);
+    return withCurrentPrefs(cached.result, local);
   }
   // 撞了 GitHub 限额时，连 force 也要挡住：用户狂点「立即检查」只会让限额更久，
   // 而且每次都要等一个必然失败的往返。
   if (cached && cached.rateLimitedUntil && now < cached.rateLimitedUntil) {
-    return Object.assign({}, base, cached.result);
+    return withCurrentPrefs(cached.result, local);
   }
   if (inFlight) {
     // 已经有请求在飞，复用它，别并发打 GitHub
-    return Object.assign({}, base, await inFlight);
+    return withCurrentPrefs(await inFlight, local);
   }
 
   inFlight = (async () => {
@@ -261,14 +271,16 @@ async function check(force) {
       const backoffMs = latest.rateLimited && latest.retryAfterMs
         ? Math.max(latest.retryAfterMs, ERROR_BACKOFF_MS)
         : ERROR_BACKOFF_MS;
-      cached = {
+      const failure = {
         at: Date.now(),
         error: true,
         backoffMs: backoffMs,
         rateLimitedUntil: latest.rateLimited ? Date.now() + backoffMs : 0,
         result: { status: "error", detail: latest.error }
       };
-      return cached.result;
+      // 关闭期间只保留限额退避；普通缓存随开关关闭而清空。
+      cached = latest.rateLimited || readPrefs().enabled ? failure : null;
+      return failure.result;
     }
     const order = compareVersions(latest.tag, local);
     const status = !latest.assetsReady ? "release-incomplete"
@@ -283,16 +295,16 @@ async function check(force) {
       url: latest.url,
       publishedAt: latest.publishedAt,
       assetsReady: latest.assetsReady,
-      missingAssets: latest.missingAssets,
-      // 用户点过「不再提示这个版本」后，横幅不再弹，但设置页仍显示有新版
-      dismissed: status === "update-available" && prefs.dismissedTag === latest.tag
+      missingAssets: latest.missingAssets
     };
-    cached = { at: Date.now(), error: false, backoffMs: 0, rateLimitedUntil: 0, result: result };
+    cached = readPrefs().enabled
+      ? { at: Date.now(), error: false, backoffMs: 0, rateLimitedUntil: 0, result: result }
+      : null;
     return result;
   })();
 
   try {
-    return Object.assign({}, base, await inFlight);
+    return withCurrentPrefs(await inFlight, local);
   } finally {
     inFlight = null;
   }
@@ -309,8 +321,8 @@ function install(ipcMain) {
   ipcMain.handle("postman-zh:version-check:set", (event, value) => {
     const enabled = value !== false;
     writePrefs({ enabled: enabled });
-    if (!enabled) {
-      cached = null;   // 关掉时丢弃缓存，重新打开时立刻重查
+    if (!enabled && !(cached && cached.rateLimitedUntil > Date.now())) {
+      cached = null;   // 普通缓存清空；切换开关也要遵守 GitHub 限额退避
     }
     return enabled;
   });

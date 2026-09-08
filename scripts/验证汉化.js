@@ -7,6 +7,7 @@ const { execFileSync } = require("child_process");
 const { fileURLToPath } = require("url");
 const { sanitizeAuditReport } = require("./audit/审计安全.js");
 const { runVersionCheckTests } = require("./runtime/验证版本检查.js");
+const { runVersionCheckUiTests } = require("./runtime/验证版本检查界面.js");
 
 const POSTMAN_PAGE_URL_RE = /(?:^https:\/\/desktop\.postman\.com(?::\d+)?(?:[\/?#]|$)|^file:\/\/\/.*\/(?:requester|scratchpad)\.html(?:[?#]|$))/i;
 
@@ -666,6 +667,7 @@ async function waitForPostmanTarget(port, timeoutMs) {
 
 async function main() {
   const versionCheckRegression = await runVersionCheckTests();
+  const versionCheckUiRegression = await runVersionCheckUiTests();
   const timeoutMs = Number(argValue("--timeout-ms") || 30000);
   const explicitPostmanDir = argValue("--postman-dir");
   const expectUpdatesDisabled = hasFlag("--expect-updates-disabled");
@@ -1900,6 +1902,7 @@ async function main() {
     result.mainMenuPatch = inspectMainMenuPatch(patchSource);
     result.versionCheckPatch = inspectVersionCheckPatch(patchSource);
     result.versionCheckRegression = versionCheckRegression;
+    result.versionCheckUiRegression = versionCheckUiRegression;
 
     const failures = [];
     if (result.localized !== "true") {

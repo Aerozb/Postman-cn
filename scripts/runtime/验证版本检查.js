@@ -26,6 +26,7 @@ function runtime(source, options = {}) {
   const calls = [];
   const writes = [];
   const handlers = new Map();
+  const pendingReplies = [];
   let prefs = options.prefs;
   let reply = options.reply || { json: release() };
   let now = Date.parse("2026-09-07T06:00:00Z");
@@ -56,7 +57,7 @@ function runtime(source, options = {}) {
       if (current.fault === "throw") throw new Error("fixture network error");
       const req = new EventEmitter();
       req.destroy = () => { req.destroyed = true; };
-      queueMicrotask(() => {
+      const deliver = () => {
         if (current.fault === "timeout") { req.emit("timeout"); return; }
         if (current.fault === "request-error") { req.emit("error", new Error("fixture request error")); return; }
         const res = new EventEmitter();
@@ -70,7 +71,9 @@ function runtime(source, options = {}) {
         if (res.statusCode !== 200) return;
         res.emit("data", current.body === undefined ? JSON.stringify(current.json) : current.body);
         if (!req.destroyed) res.emit("end");
-      });
+      };
+      if (current.deferred) pendingReplies.push(deliver);
+      else queueMicrotask(deliver);
       return req;
     }
   };
@@ -93,6 +96,8 @@ function runtime(source, options = {}) {
   return {
     api, calls, writes,
     setReply(value) { reply = value; },
+    setPrefs(value) { prefs = value; },
+    deliver() { assert.ok(pendingReplies.length); pendingReplies.shift()(); },
     advance(ms) { now += ms; },
     invoke(name, value) { return handlers.get("postman-zh:version-check:" + name)({}, value); }
   };
@@ -169,11 +174,13 @@ async function runVersionCheckTests() {
     assert.equal(r.calls[0].settings.timeout, 10000);
     assert.deepEqual(Object.keys(r.calls[0].settings.headers).sort(), ["Accept", "User-Agent"]);
   });
-  await test("成功结果缓存六小时，强制检查可刷新", async () => {
+  await test("成功结果缓存一小时，到期立即重查，手动检查可刷新", async () => {
     const r = runtime(source); await r.api.check(false); await r.api.check(false);
     assert.equal(r.calls.length, 1);
-    await r.api.check(true); assert.equal(r.calls.length, 2);
-    r.advance(6 * 60 * 60 * 1000 + 1); await r.api.check(false);
+    r.advance(60 * 60 * 1000 - 1); await r.api.check(false);
+    assert.equal(r.calls.length, 1);
+    r.advance(1); await r.api.check(false); assert.equal(r.calls.length, 2);
+    await r.api.check(true);
     assert.equal(r.calls.length, 3);
   });
   await test("上传完成后强制刷新进入最新版", async () => {
@@ -210,6 +217,51 @@ async function runVersionCheckTests() {
     const r = runtime(source, { reply: { json: release("12.27.0") }, prefs: { enabled: true, dismissedTag: "v12.27.0" } });
     const result = await r.api.check(true);
     assert.equal(result.status, "update-available"); assert.equal(result.dismissed, true);
+  });
+  await test("检查中关闭开关，所有等待者都收到关闭状态", async () => {
+    const r = runtime(source, { reply: { json: release("12.27.0"), deferred: true } });
+    const first = r.api.check(true); const second = r.api.check(true);
+    r.invoke("set", false); r.deliver();
+    for (const result of await Promise.all([first, second])) {
+      assert.equal(result.status, "disabled"); assert.equal(result.enabled, false);
+    }
+    assert.equal(r.calls.length, 1);
+    r.invoke("set", true); r.setReply({ json: release() });
+    assert.equal((await r.api.check(false)).status, "latest");
+    assert.equal(r.calls.length, 2);
+  });
+  await test("命令行在请求中关闭偏好同样生效", async () => {
+    const r = runtime(source, { reply: { json: release(), deferred: true } });
+    const pending = r.api.check(true);
+    r.setPrefs({ enabled: false }); r.deliver();
+    assert.equal((await pending).status, "disabled"); assert.equal(r.writes.length, 0);
+  });
+  await test("请求中忽略版本，迟到的新版本结果保持静默", async () => {
+    const r = runtime(source, { reply: { json: release("12.27.0"), deferred: true } });
+    const pending = r.api.check(true);
+    r.invoke("dismiss", "v12.27.0"); r.deliver();
+    assert.equal((await pending).dismissed, true);
+    r.setPrefs({ enabled: true, dismissedTag: "" });
+    assert.equal((await r.api.check(false)).dismissed, false);
+    assert.equal(r.calls.length, 1);
+  });
+  await test("切换开关也保留限额退避", async () => {
+    const r = runtime(source, { reply: { code: 429 } });
+    await r.api.check(true); r.invoke("set", false); r.invoke("set", true);
+    assert.equal((await r.api.check(true)).status, "error"); assert.equal(r.calls.length, 1);
+    r.advance(30 * 60 * 1000); r.setReply({ json: release() });
+    assert.equal((await r.api.check(true)).status, "latest"); assert.equal(r.calls.length, 2);
+  });
+  await test("关闭期间收到限额响应，恢复开关后继续退避", async () => {
+    const r = runtime(source, { reply: { code: 403, deferred: true } });
+    const pending = r.api.check(true); r.invoke("set", false); r.deliver();
+    assert.equal((await pending).status, "disabled");
+    r.invoke("set", true); await r.api.check(true); assert.equal(r.calls.length, 1);
+  });
+  await test("普通网络故障后手动检查立即重试", async () => {
+    const r = runtime(source, { reply: { code: 500 } });
+    await r.api.check(false); r.setReply({ json: release() });
+    assert.equal((await r.api.check(true)).status, "latest"); assert.equal(r.calls.length, 2);
   });
   if (failures.length) {
     throw new Error("汉化版本检查回归失败：" + failures.map(f => f.name + "（" + f.error + "）").join("；"));

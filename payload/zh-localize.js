@@ -30863,6 +30863,7 @@
       // React 重渲染会抹掉外来节点，靠这轮轮询补回；同时把命令行改过的状态同步回按钮。
       // 切到别的设置页签后 Postman 不卸载旧页面，我们插的面板会滞留在共享容器里，
       // 所以先摘掉跑偏的，再决定要不要重新插（顺序反了会立刻插回去）。
+      startVersionCheck();
       if (!removeStrayUpdatePanels()) {
         installUpdateToggle(root);
         refreshUpdateToggle();
@@ -30877,7 +30878,7 @@
   // 页面本身不碰文件。取不到 ipcRenderer 就静默跳过，绝不影响翻译主流程。
   var updateToggleIpc;
   function getUpdateToggleIpc() {
-    if (updateToggleIpc !== undefined) {
+    if (updateToggleIpc) {
       return updateToggleIpc;
     }
     updateToggleIpc = null;
@@ -31208,16 +31209,36 @@
   var VERSION_CHECK_LABEL_ID = "postman-zh-version-check-label";
   var VERSION_CHECK_STATUS_ID = "postman-zh-version-check-status";
   var VERSION_CHECK_ACTION_ID = "postman-zh-version-check-action";
+  var VERSION_CHECK_NOW_ID = "postman-zh-version-check-now";
   var VERSION_BANNER_ID = "postman-zh-version-banner";
+  var VERSION_CHECK_INTERVAL_MS = 60 * 60 * 1000;
+  var versionCheckStarted = false;
+  var versionCheckTimer = null;
+  var versionCheckPending = null;
+  var versionCheckResult = null;
+  var versionCheckEnabled = true;
+  var versionCheckPreferenceRevision = 0;
+  var versionCheckSetting = false;
+  var versionCheckRefreshQueued = false;
 
   function renderVersionCheckState(button, enabled) {
     var on = enabled !== false;
+    if (versionCheckEnabled !== on) {
+      versionCheckPreferenceRevision += 1;
+      versionCheckResult = null;
+    }
+    versionCheckEnabled = on;
+    if (!on) {
+      versionCheckRefreshQueued = false;
+      removeVersionBanner();
+    }
     button.setAttribute("aria-checked", on ? "true" : "false");
     button.setAttribute("data-enabled", on ? "true" : "false");
     var label = document.getElementById(VERSION_CHECK_LABEL_ID);
     if (label) {
       label.textContent = on ? "已开启" : "已关闭";
     }
+    renderVersionCheckResult();
   }
 
   function describeVersionResult(result) {
@@ -31225,7 +31246,10 @@
       return "";
     }
     if (result.status === "disabled") {
-      return "检查已关闭。";
+      return "检查已关闭，开启后可手动检查。";
+    }
+    if (result.status === "checking") {
+      return "正在检查 GitHub 汉化发布版本…";
     }
     if (result.status === "error") {
       // 撞 GitHub 限额和真的断网，对用户的建议不一样：前者等一会儿自然恢复，
@@ -31251,9 +31275,26 @@
   }
 
   function renderVersionCheckResult(result) {
+    if (result) {
+      versionCheckResult = result;
+    }
+    if (typeof document.getElementById !== "function") {
+      return;
+    }
+    var busy = versionCheckEnabled && !!versionCheckPending;
+    result = !versionCheckEnabled ? { status: "disabled" }
+      : busy ? { status: "checking" } : versionCheckResult;
     var status = document.getElementById(VERSION_CHECK_STATUS_ID);
     if (status) {
-      status.textContent = describeVersionResult(result);
+      var description = describeVersionResult(result);
+      if (status.textContent !== description) status.textContent = description;
+      status.setAttribute("aria-busy", busy ? "true" : "false");
+    }
+    var checkNow = document.getElementById(VERSION_CHECK_NOW_ID);
+    if (checkNow) {
+      checkNow.disabled = !versionCheckEnabled || !!versionCheckPending || versionCheckSetting;
+      checkNow.textContent = busy ? "检查中…" : "立即检查";
+      checkNow.title = versionCheckEnabled ? "刷新 GitHub 汉化发布状态" : "请先开启汉化版本更新检查";
     }
     var action = document.getElementById(VERSION_CHECK_ACTION_ID);
     if (action) {
@@ -31264,7 +31305,63 @@
     }
   }
 
-  // 设置页那一栏：开关 + 状态文字 + 「打开发布页」按钮。
+  // 启动、进入更新页、手动和定时检查共用一个 Promise，避免并发点击重复请求。
+  function requestVersionCheck(force) {
+    if (versionCheckPending) {
+      return versionCheckPending;
+    }
+    var ipc = getUpdateToggleIpc();
+    if (!ipc) {
+      return Promise.resolve(null);
+    }
+    if (versionCheckTimer !== null) {
+      clearTimeout(versionCheckTimer);
+      versionCheckTimer = null;
+    }
+    var revision = versionCheckPreferenceRevision;
+    versionCheckPending = Promise.resolve().then(function () {
+      return ipc.invoke("postman-zh:version-check:check", force === true);
+    }).then(function (result) {
+      result = result || { status: "error" };
+      // 本地开关发生过变化时，以新状态为准，防止迟到的响应把开关拨回去。
+      if (revision === versionCheckPreferenceRevision && typeof result.enabled === "boolean") {
+        var button = typeof document.getElementById === "function" && document.getElementById(VERSION_CHECK_BUTTON_ID);
+        if (button) {
+          renderVersionCheckState(button, result.enabled);
+        } else {
+          versionCheckEnabled = result.enabled;
+        }
+      }
+      if (versionCheckEnabled && result.status === "update-available" && !result.dismissed) {
+        showVersionBanner(result);
+      } else {
+        removeVersionBanner();
+      }
+      return result;
+    })["catch"](function () {
+      return { status: "error" };
+    }).then(function (result) {
+      versionCheckPending = null;
+      renderVersionCheckResult(result);
+      if (versionCheckRefreshQueued && versionCheckEnabled) {
+        versionCheckRefreshQueued = false;
+        return requestVersionCheck(true);
+      }
+      // 完成后再计时一小时，避免固定 interval 比缓存到期早几毫秒而漏掉一轮。
+      // 手动检查也重置这个唯一的计时器；关闭状态只读主进程偏好，不请求 GitHub。
+      if (versionCheckStarted) {
+        versionCheckTimer = setTimeout(function () {
+          versionCheckTimer = null;
+          requestVersionCheck(false);
+        }, VERSION_CHECK_INTERVAL_MS);
+      }
+      return result;
+    });
+    renderVersionCheckResult();
+    return versionCheckPending;
+  }
+
+  // 设置页那一栏：开关 + 状态文字 + 手动检查 / 发布页按钮。
   // 插在 Postman 自动更新总闸下面，同属「更新」这一类。
   function installVersionCheckPanel(root) {
     if (typeof document.getElementById !== "function" || typeof document.createElement !== "function") {
@@ -31326,6 +31423,18 @@
     var status = document.createElement("div");
     status.id = VERSION_CHECK_STATUS_ID;
     status.className = "postman-zh-update-panel__description";
+    status.setAttribute("role", "status");
+    status.setAttribute("aria-live", "polite");
+
+    var actions = document.createElement("div");
+    actions.className = "postman-zh-update-panel__actions";
+
+    var checkNow = document.createElement("button");
+    checkNow.type = "button";
+    checkNow.id = VERSION_CHECK_NOW_ID;
+    checkNow.setAttribute("aria-describedby", VERSION_CHECK_STATUS_ID);
+    checkNow.setAttribute("data-postman-zh-audit-skip", "true");
+    checkNow.textContent = "立即检查";
 
     var action = document.createElement("button");
     action.type = "button";
@@ -31340,37 +31449,47 @@
     // 不提供应用内下载：汉化包的 Release 标签 == Postman 版本号，所以「汉化有新版」
     // 必然意味着 Postman 也换了版本，那份 app.asar 不能装到当前版本目录里
     // （和目录里的 Electron 二进制、.pak 资源是配套的）。详见 docs/更新守卫.md。
-    footer.textContent = "开启后每 6 小时查一次本汉化包的 GitHub 发布页，只提示不自动下载。新版通常对应新版 Postman，需要下载完整包重新安装。与上面的 Postman 自动更新无关。";
+    footer.textContent = "启动或进入本页时立即检查，此后每小时检查一次，也可手动检查。只提示，不自动下载或安装，与上面的 Postman 自动更新无关。";
 
     container.appendChild(header);
     container.appendChild(body);
     container.appendChild(footer);
     container.appendChild(status);
-    container.appendChild(action);
+    actions.appendChild(checkNow);
+    actions.appendChild(action);
+    container.appendChild(actions);
     box.appendChild(container);
     anchor.parentNode.insertBefore(box, anchor.nextSibling);
 
-    renderVersionCheckState(button, true);
+    renderVersionCheckState(button, versionCheckEnabled);
 
-    var busy = false;
     button.addEventListener("click", function () {
-      if (busy) {
+      if (versionCheckSetting) {
         return;
       }
-      busy = true;
+      versionCheckSetting = true;
+      versionCheckPreferenceRevision += 1;
+      button.disabled = true;
+      renderVersionCheckResult();
       var next = button.getAttribute("data-enabled") !== "true";
-      Promise.resolve(ipc.invoke("postman-zh:version-check:set", next)).then(function (value) {
+      Promise.resolve().then(function () {
+        return ipc.invoke("postman-zh:version-check:set", next);
+      }).then(function (value) {
         renderVersionCheckState(button, value);
-        return ipc.invoke("postman-zh:version-check:check", value === true);
-      }).then(function (result) {
-        renderVersionCheckResult(result);
-        if (result && result.status !== "update-available") {
-          removeVersionBanner();
+        if (value !== false) {
+          if (versionCheckPending) versionCheckRefreshQueued = true;
+          else requestVersionCheck(true);
         }
       })["catch"](function () {})
         .then(function () {
-          busy = false;
+          versionCheckSetting = false;
+          button.disabled = false;
+          renderVersionCheckResult();
         });
+    });
+
+    checkNow.addEventListener("click", function () {
+      if (!checkNow.disabled) requestVersionCheck(true);
     });
 
     action.addEventListener("click", function () {
@@ -31378,12 +31497,9 @@
       Promise.resolve(ipc.invoke("postman-zh:version-check:open"))["catch"](function () {});
     });
 
-    Promise.resolve(ipc.invoke("postman-zh:version-check:get")).then(function (value) {
-      renderVersionCheckState(button, value);
-      return ipc.invoke("postman-zh:version-check:check", false);
-    }).then(function (result) {
-      renderVersionCheckResult(result);
-    })["catch"](function () {});
+    refreshVersionCheckToggle();
+    // 每次真正进入更新页才刷新；已存在的面板和 900ms 状态巡检不会重查。
+    requestVersionCheck(true);
   }
 
   function removeVersionBanner() {
@@ -31398,21 +31514,24 @@
 
   // `postman-zh.bat zh-updates on|off` 直接写偏好文件，页面开关要跟着回正
   // ——和 refreshUpdateToggle 同一个道理。只同步开关状态、不重查版本
-  // （查询有 6 小时节流），所以这轮轮询不产生任何网络请求。
+  // （自动查询有一小时缓存），所以这轮轮询不产生任何网络请求。
   function refreshVersionCheckToggle() {
     if (typeof document.getElementById !== "function") {
       return;
     }
     var button = document.getElementById(VERSION_CHECK_BUTTON_ID);
-    if (!button) {
+    if (!button || versionCheckSetting) {
       return;
     }
     var ipc = getUpdateToggleIpc();
     if (!ipc) {
       return;
     }
+    var revision = versionCheckPreferenceRevision;
     Promise.resolve(ipc.invoke("postman-zh:version-check:get")).then(function (value) {
-      renderVersionCheckState(button, value);
+      if (!versionCheckSetting && revision === versionCheckPreferenceRevision) {
+        renderVersionCheckState(button, value);
+      }
     })["catch"](function () {});
   }
 
@@ -31422,7 +31541,11 @@
     if (typeof document.getElementById !== "function" || typeof document.createElement !== "function") {
       return;
     }
-    if (!document.body || document.getElementById(VERSION_BANNER_ID)) {
+    if (!document.body) {
+      return;
+    }
+    var existing = document.getElementById(VERSION_BANNER_ID);
+    if (existing && existing.getAttribute("data-version") === result.latestVersion) {
       return;
     }
     var ipc = getUpdateToggleIpc();
@@ -31430,8 +31553,10 @@
       return;
     }
 
+    removeVersionBanner();
     var banner = document.createElement("div");
     banner.id = VERSION_BANNER_ID;
+    banner.setAttribute("data-version", result.latestVersion || "");
     banner.setAttribute("role", "status");
     // 审计脚本别点它，也别把它的文字当漏翻候选
     banner.setAttribute("data-postman-zh-audit-skip", "true");
@@ -31485,25 +31610,17 @@
     document.body.appendChild(banner);
   }
 
-  // 启动后查一次。延迟 20 秒：让 Postman 自己的启动请求先走完，
-  // 别在最忙的时候插一脚，也避开启动期代理还没就绪的情况。
-  var versionCheckStarted = false;
+  // IPC 就绪后立即检查，随后每小时检查；重复 run() 只保留一个计时器。
   function startVersionCheck() {
     if (versionCheckStarted) {
       return;
     }
-    versionCheckStarted = true;
     var ipc = getUpdateToggleIpc();
     if (!ipc) {
       return;
     }
-    setTimeout(function () {
-      Promise.resolve(ipc.invoke("postman-zh:version-check:check", false)).then(function (result) {
-        if (result && result.status === "update-available" && !result.dismissed) {
-          showVersionBanner(result);
-        }
-      })["catch"](function () {});
-    }, 20000);
+    versionCheckStarted = true;
+    requestVersionCheck(false);
   }
 
   function injectStyle() {
@@ -31624,9 +31741,14 @@
       "html[data-postman-zh-localized='true'] #postman-zh-version-check-status:empty {",
       "  display: none;",
       "}",
-      "html[data-postman-zh-localized='true'] #postman-zh-version-check-action {",
+      "html[data-postman-zh-localized='true'] .postman-zh-update-panel__actions {",
       "  grid-column: 1 / -1;",
-      "  justify-self: start;",
+      "  display: flex;",
+      "  flex-wrap: wrap;",
+      "  align-items: center;",
+      "  gap: 8px;",
+      "}",
+      "html[data-postman-zh-localized='true'] .postman-zh-update-panel__actions button {",
       "  margin: 0;",
       "  padding: 4px 10px;",
       "  font-size: 12px;",
@@ -31635,6 +31757,14 @@
       "  background: transparent;",
       "  color: var(--content-color-primary, #212121);",
       "  cursor: pointer;",
+      "}",
+      "html[data-postman-zh-localized='true'] .postman-zh-update-panel__actions button:disabled {",
+      "  opacity: 0.55;",
+      "  cursor: default;",
+      "}",
+      "html[data-postman-zh-localized='true'] .postman-zh-update-panel__actions button:focus-visible {",
+      "  outline: 2px solid var(--base-color-brand, #ff6c37);",
+      "  outline-offset: 2px;",
       "}",
       // 新版提示条：右下角浮层，不挡工作区
       "html[data-postman-zh-localized='true'] #postman-zh-version-banner {",

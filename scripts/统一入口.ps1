@@ -297,7 +297,7 @@ Postman 中文汉化工具
   .\postman-zh.bat zh-updates        查看当前状态
   .\postman-zh.bat zh-updates on     开启检查（默认）
   .\postman-zh.bat zh-updates off    关闭检查，一个请求都不发
-  .\postman-zh.bat zh-updates check  忽略 6 小时节流，立即查一次
+  .\postman-zh.bat zh-updates check  刷新一小时普通缓存，立即查一次（保留限额退避）
 '@
 }
 
@@ -550,7 +550,7 @@ try {
 
       if ($action -eq '') {
         if (Get-ZhUpdatePreference -Path $prefPath) {
-          Write-Host '汉化版本检查：已开启（默认）。每 6 小时查一次 GitHub 发布页，只提示不自动下载。'
+          Write-Host '汉化版本检查：已开启（默认）。启动或进入更新页即检查，之后每小时检查，支持手动刷新；只提示不自动下载。'
         } else {
           Write-Host '汉化版本检查：已关闭。不会发出任何网络请求。'
         }

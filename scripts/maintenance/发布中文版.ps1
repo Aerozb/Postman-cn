@@ -618,10 +618,12 @@ Postman 中文汉化版 $version
 ## 下载说明
 
 - **Postman-cn-$version-win64.zip** — 完整绿色版，解压后直接运行 `Postman.exe`，开箱即中文
-- **app.asar** — 仅汉化后的核心包，已装同版本 Postman 的话，替换 `app-$version\resources\app.asar` 即可
+- **app.asar** — Windows x64 汉化核心包，已装同版本 Postman 的话，备份后替换 `app-$version\resources\app.asar` 即可
 
 ## 说明
 
+- 汉化检查在启动或进入更新页时立即执行，新增「立即检查」按钮，此后每小时自动检查；关闭开关后停止检查
+- 本次两个下载文件均用于 Windows x64；macOS / Linux 的目录和原生依赖不同，需分别适配，请勿跨系统替换
 - 汉化版本检查核对 GitHub 公开版本和两个完整附件；本机版本领先或附件尚未传齐时单独提示，不再误报最新版
 - 「设置 > 更新」的两个开关分行放在更新说明上方，避免挤压说明内容
 - 补齐本地 Git 工作流、外部保管库、云端静态 IP 性能测试、运行器和工具服务器等界面文案
