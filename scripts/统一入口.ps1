@@ -230,7 +230,7 @@ Postman 中文汉化工具
   .\postman-zh.bat <命令> [参数]
 
 常用命令：
-  install       安装汉化、关闭自动更新并验证（菜单里直接回车即为此项）
+  install       安装汉化、关闭自动更新并验证（菜单 1 / 回车会在成功后清理旧版）
   restore       还原英文原版
   updates       查看自动更新开关；updates on 允许更新，updates off 恢复拦截（默认）
   zh-updates    查看汉化版本检查开关；zh-updates on|off 切换（默认开启），zh-updates check 立即查一次
@@ -275,8 +275,14 @@ Postman 中文汉化工具
 
 安装示例：
   .\postman-zh.bat install
+  .\postman-zh.bat install -CleanOldVersions
   .\postman-zh.bat install -PostmanDir C:\Path\To\Postman\app-<版本> -NoVerify
   .\postman-zh.bat restore
+
+旧版本清理：
+  菜单 1 / 直接回车：安装验证成功后自动清理旧 app-*、旧 nupkg，并精简 RELEASES。
+  命令行 install 默认保留旧版本；需要清理时加 -CleanOldVersions。
+  保留当前版本及其英文原版备份；安装或验证失败时跳过旧版清理。
 
 自动更新开关：
   安装后默认拦截 Postman 自动更新，避免官方升级把汉化覆盖掉。
@@ -331,7 +337,7 @@ function Show-Menu {
   # 6 分钟），120 个根本跑不完，用户看到的就是「卡住不动」。--disk 读磁盘缓存
   # 约 40 秒扫完 820 个资源，是唯一适合放进菜单的走法。
   $items = @(
-    @{ Key = '1';  Command = 'install';     Label = '安装汉化';         Note = '打补丁、关闭自动更新并验证（最常用）' }
+    @{ Key = '1';  Command = 'install';     Label = '安装汉化';         Note = '打补丁、关闭更新并验证；成功后清理旧版' }
     @{ Key = '2';  Command = 'verify';      Label = '验证汉化状态';     Note = '只检查，不改动' }
     @{ Key = '3';  Command = 'restore';     Label = '还原英文原版';     Note = '撤销汉化，恢复官方英文界面' }
     @{ Key = '4';  Command = 'start';       Label = '启动 Postman';     Note = '启动并等待 CDP 调试端口' }
@@ -501,7 +507,9 @@ try {
       }
       if ($PostmanDir) { $params.PostmanDir = $PostmanDir }
       if ($NoRestart) { $params.NoRestart = $true }
-      if ($CleanOldVersions) { $params.CleanOldVersions = $true }
+      # 菜单 1（含直接回车）默认清理；命令行仍由显式参数选择。
+      # 通过命名参数交给安装器，在安装/验证成功后执行，避免提前删除旧版。
+      if ($CleanOldVersions -or $script:MenuMode) { $params.CleanOldVersions = $true }
       Invoke-PowerShellScript (Join-Path $internalRoot '安装汉化.ps1') $params
     }
 

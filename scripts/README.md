@@ -10,7 +10,7 @@
 
 | 序号 | TUI 操作 | 入口命令 |
 |---:|---|---|
-| `1` | 安装汉化 | `install` |
+| `1` | 安装汉化 | `install -CleanOldVersions` |
 | `2` | 验证汉化状态 | `verify` |
 | `3` | 还原英文原版 | `restore` |
 | `4` | 启动 Postman | `start` |
@@ -27,6 +27,8 @@
 | `0` / `q` | 退出 | 不执行命令 |
 
 直接回车等同于选择 `1`。深度审计子菜单输入 `0` 返回主菜单，输入 `q` 退出整个 TUI。`probe`、通用 `scan` 和 `zh-updates` 保留为维护者 CLI 命令，不放入普通用户菜单（汉化版本检查默认开启，普通用户在「设置 > 更新」页里就能切换，不需要再占一个菜单位）。
+
+**菜单第 1 项默认清理旧版本**：安装及默认验证成功后，删除同一 Squirrel 安装根目录中的旧 `app-*`、旧 `.nupkg`，并精简 `packages/RELEASES`。当前版本及其 `resources/app.asar.original`、用户数据和更新偏好均保留；安装或验证失败时跳过旧版清理。命令行直接运行 `install` 仍保留旧版，显式加 `-CleanOldVersions` 才清理。此开关由 `install` 分支作为 PowerShell 命名参数传给安装器，不放入菜单 `DefaultArgs`（该字段只进入透传参数）。
 
 `verify`、`collect`、`probe`、`scan`、全部审计，以及不加 `--disk` 的 `static-scan`，都要连 CDP，**Postman 必须在运行**，否则会报「没有找到 Postman 页面目标」。先 `start` 再跑。`install` 自己会重启 Postman，所以它内置的那次验证不受影响；`static-scan --disk` 读磁盘缓存，不需要 Postman 在运行。
 
@@ -75,7 +77,7 @@
 -PostmanDir <path>     指定 app-* 目录（不传则自动发现）
 -KeepUpdates           不注入禁止自动更新补丁（默认会禁用更新）
 -NoVerify              安装后不运行验证
--CleanOldVersions      打补丁成功后删除旧 app-* 目录、旧 nupkg、裁剪 RELEASES
+-CleanOldVersions      安装成功后删除旧 app-*、旧 nupkg、精简 RELEASES（菜单 1 默认启用）
 -NoRestart             安装后不重启
 ```
 
