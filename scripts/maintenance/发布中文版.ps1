@@ -5,7 +5,7 @@
   发布前会扫描入库文件，避免个人信息随仓库公开。
 
   做四件事：
-    1. 预检：git / gh / 登录状态 / token 权限 / 提交身份 / 磁盘空间
+    1. 预检：git / gh / 当前账号 / 仓库权限 / 提交身份 / 磁盘空间
     2. 推送仓库代码到 GitHub（默认普通推送，-Force 才覆盖远程）
     3. 打包 Postman 完整绿色版 + 单独的 app.asar，发布到 Releases
     4. 确认资产上传成功后，删除本地打包产物（_release，约 280MB）
@@ -22,6 +22,8 @@
 param(
   # 只跑预检，不做任何改动
   [switch]$CheckOnly,
+  # 只运行隔离回归，不连接 GitHub，也不操作仓库或发布文件
+  [switch]$TestOnly,
   # 跳过 git 推送
   [switch]$SkipPush,
   # 跳过打包与 Release
@@ -68,6 +70,144 @@ function Invoke-Native {
   } finally { $ErrorActionPreference = $prev }
 }
 
+# 只使用明确的 HTTP/连接错误分类；gh auth status 的非零退出码还可能来自
+# 网络故障、其他账号或其他主机，退出码与当前账号的登录状态须分别判断。
+function Get-GitHubFailureKind {
+  param([int]$Code, [string]$Message)
+  if ($Code -eq 0) { return 'None' }
+  if ($Message -match '(?i)rate.?limit|abuse detection|HTTP\s+429|retry-after') { return 'RateLimit' }
+  if ($Message -match '(?i)HTTP\s+401|bad credentials') { return 'Credentials' }
+  if ($Code -eq 4 -or $Message -match '(?i)not logged into any GitHub hosts|please run:\s*gh auth login|authentication required') { return 'LoginRequired' }
+  if ($Message -match '(?i)HTTP\s+403|resource not accessible by') { return 'Permission' }
+  if ($Message -match '(?i)HTTP\s+404|release not found|no release found') { return 'NotFound' }
+  if ($Message -match '(?i)HTTP\s+5\d\d') { return 'Service' }
+  if ($Message -match '(?i)\bEOF\b|TLS|SSL|x509|certificate|timed?\s*out|timeout|deadline exceeded|no such host|resolve host|connection|connectex|dial tcp|network is unreachable|proxyconnect') { return 'Network' }
+  return 'Unknown'
+}
+
+function Get-GitHubFailureMessage {
+  param([string]$Kind)
+  switch ($Kind) {
+    'LoginRequired' { return 'GitHub.com 尚未配置登录，请执行 gh auth login --hostname github.com。' }
+    'Credentials' { return 'GitHub 返回 401，当前凭据已失效；请检查 GH_TOKEN/GITHUB_TOKEN，或执行 gh auth login --hostname github.com。' }
+    'RateLimit' { return 'GitHub 请求额度受限，请等待额度恢复后重试；这不表示账号退出登录。' }
+    'Permission' { return 'GitHub 返回访问权限错误，请检查仓库权限、组织 SSO 和 token 的资源授权。' }
+    'NotFound' { return 'GitHub 目标未找到或对当前凭据不可见，请检查目标与访问权限。' }
+    'Network' { return 'GitHub 连接异常，请检查网络或代理后重试；网络失败不代表登录失效。' }
+    'Service' { return 'GitHub 服务暂时异常，请稍后重试。' }
+    default { return 'GitHub 检查失败，检查结果尚未确认，请稍后重试。' }
+  }
+}
+
+function Invoke-GitHubRead {
+  param([string[]]$Arguments, [ValidateRange(1, 3)][int]$MaxAttempts = 3)
+  # 仅供只读查询使用。写操作不自动重试，避免重复创建/删除 Release。
+  for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
+    $result = Invoke-Native gh $Arguments
+    $kind = Get-GitHubFailureKind -Code $result.Code -Message $result.Out
+    if ($kind -notin @('Network', 'Service') -or $attempt -eq $MaxAttempts) {
+      return [pscustomobject]@{ Code = $result.Code; Out = $result.Out; Kind = $kind; Attempts = $attempt }
+    }
+    if ($attempt -eq 1) { Write-Info "GitHub 连接暂时异常，正在重试（最多 $MaxAttempts 次）。" }
+    Start-Sleep -Milliseconds (600 * $attempt)
+  }
+}
+
+function Read-GitHubJson {
+  param([string[]]$Arguments, [string]$Action)
+  $result = Invoke-GitHubRead -Arguments $Arguments
+  if ($result.Code -ne 0) { throw ("${Action}：" + (Get-GitHubFailureMessage $result.Kind)) }
+  try { $value = $result.Out | ConvertFrom-Json -ErrorAction Stop }
+  catch { throw "${Action}：GitHub 返回格式异常，已停止本次检查。" }
+  if ($null -eq $value) { throw "${Action}：GitHub 返回空结果，已停止本次检查。" }
+  return $value
+}
+
+function Get-PublishGitHubIdentity {
+  # 直接核验 GitHub.com 当前活动凭据，不读取或打印 token，也不检查无关账号。
+  $identity = Read-GitHubJson -Action '校验 GitHub 登录' -Arguments @('api', '--hostname', 'github.com', 'user', '--jq', '{login,id}')
+  if ($identity.login -notmatch '^[A-Za-z0-9][A-Za-z0-9-]{0,38}$' -or
+      ($identity.id -isnot [int] -and $identity.id -isnot [long]) -or $identity.id -le 0) {
+    throw 'GitHub 账号信息不完整，已停止本次检查。'
+  }
+  return $identity
+}
+
+function Get-PublishGitHubRepository {
+  $repo = Read-GitHubJson -Action '检查远程仓库' -Arguments @('api', '--hostname', 'github.com', "repos/$($script:ExpectedRepo)", '--jq', '{full_name,private,default_branch,permissions}')
+  if ($repo.full_name -ine $script:ExpectedRepo -or -not $repo.default_branch -or $repo.private -isnot [bool] -or $null -eq $repo.permissions) {
+    throw 'GitHub 仓库信息不完整，已停止本次检查。'
+  }
+  # 按目标仓库的实际权限检查，兼容 public_repo 和细粒度 token；
+  # 不再把缺少文本形式的 Token scopes 当作“具有 repo 权限”。
+  if ($repo.permissions.push -isnot [bool] -or -not $repo.permissions.push) {
+    throw '当前 GitHub 凭据对目标仓库没有写权限；请检查账号、仓库授权及 token 的 Contents 读写权限。'
+  }
+  return $repo
+}
+
+function Get-PublishSystemProxy {
+  param([object]$Settings)
+  if ($null -eq $Settings -or $Settings.ProxyEnable -ne 1 -or -not $Settings.ProxyServer) { return $null }
+  $server = ([string]$Settings.ProxyServer).Trim()
+  $addresses = @{}
+  if ($server.Contains('=')) {
+    foreach ($part in ($server -split ';')) {
+      if ($part -match '^\s*(https?)\s*=\s*(.+?)\s*$') { $addresses[$Matches[1].ToLowerInvariant()] = $Matches[2] }
+    }
+  } else {
+    $addresses.https = $server
+    $addresses.http = $server
+  }
+  # 只有 http= 的按协议代理并不代理 GitHub HTTPS，保持 Windows 的原意。
+  if (-not $addresses.https) { return $null }
+  foreach ($protocol in @($addresses.Keys)) {
+    $address = [string]$addresses[$protocol]
+    if ($address -notmatch '^[a-z][a-z0-9+.-]*://') { $address = 'http://' + $address }
+    $uri = $null
+    if (-not [Uri]::TryCreate($address, [UriKind]::Absolute, [ref]$uri) -or $uri.Scheme -notin @('http', 'https') -or -not $uri.Host -or $uri.Query -or $uri.Fragment -or $uri.AbsolutePath -ne '/') { return $null }
+    $addresses[$protocol] = $uri.AbsoluteUri.TrimEnd('/')
+  }
+  # 排除表也随静态系统代理继承；显式 NO_PROXY 在调用处保持优先。
+  $bypass = @()
+  foreach ($entry in (([string]$Settings.ProxyOverride) -split ';')) {
+    $entry = $entry.Trim()
+    if (-not $entry) { continue }
+    if ($entry -eq '<local>') { $bypass += @('localhost', '127.0.0.1', '::1') }
+    else { $bypass += $entry }
+  }
+  return [pscustomobject]@{ Https = $addresses.https; Http = $addresses.http; NoProxy = ($bypass -join ',') }
+}
+
+function Initialize-PublishNetwork {
+  # 双击 bat 的新进程没有维护终端里临时设置的 HTTPS_PROXY；仅在没有显式
+  # 代理环境变量时沿用 Windows 已启用的静态代理，不写注册表或全局 Git 配置。
+  foreach ($name in @('HTTPS_PROXY', 'HTTP_PROXY', 'ALL_PROXY')) {
+    if (-not [string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name, 'Process'))) { return }
+  }
+  try {
+    $settings = Get-ItemProperty -LiteralPath 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings' -ErrorAction Stop
+    $proxy = Get-PublishSystemProxy $settings
+    if ($null -eq $proxy) { return }
+    $env:HTTPS_PROXY = $proxy.Https
+    if ($proxy.Http) { $env:HTTP_PROXY = $proxy.Http }
+    if (-not $env:NO_PROXY -and $proxy.NoProxy) { $env:NO_PROXY = $proxy.NoProxy }
+    Write-Info '已沿用 Windows 系统代理（仅本次发布生效）。'
+  } catch {
+    Write-Warn2 '读取系统代理失败，继续使用当前网络设置。'
+  }
+}
+
+if ($TestOnly) {
+  try {
+    & (Join-Path $PSScriptRoot '验证发布预检.ps1')
+    exit 0
+  } catch {
+    Write-Bad $_.Exception.Message
+    exit 1
+  }
+}
+
 # 发布附件必须按文件名、大小和 GitHub 返回的 SHA-256 与本机产物逐一对应。
 # 只数 uploaded 的数量会把漏传、错传同名旧包等情况误当成功。
 function Assert-ReleaseAssets {
@@ -92,14 +232,12 @@ function Assert-ReleaseAssets {
 function Get-ReleaseMetadata {
   param([string]$ReleaseTag)
   # /releases/tags 面向已发布版本；先由 gh 定位草稿/正式版，再按 ID 读取含 digest 的 REST 数据。
-  $lookup = Invoke-Native gh @('release', 'view', $ReleaseTag, '--repo', $script:ExpectedRepo, '--json', 'databaseId', '--jq', '.databaseId')
+  $lookup = Invoke-GitHubRead -Arguments @('release', 'view', $ReleaseTag, '--repo', "github.com/$($script:ExpectedRepo)", '--json', 'databaseId', '--jq', '.databaseId')
   $releaseId = $lookup.Out.Trim()
   if ($lookup.Code -ne 0 -or $releaseId -notmatch '^\d+$') {
     throw '定位 GitHub Release 失败，保留本地产物供重试。'
   }
-  $response = Invoke-Native gh @('api', "repos/$($script:ExpectedRepo)/releases/$releaseId")
-  if ($response.Code -ne 0) { throw '读取 GitHub Release 元数据失败，保留本地产物供重试。' }
-  return ($response.Out | ConvertFrom-Json)
+  return (Read-GitHubJson -Action '读取 Release 元数据' -Arguments @('api', '--hostname', 'github.com', "repos/$($script:ExpectedRepo)/releases/$releaseId"))
 }
 
 # 发布前只允许把正常的项目源码/文档加入提交。不要等 git add/commit
@@ -232,6 +370,7 @@ $outDir      = Join-Path $workspaceRoot '_release'          # 产物始终放仓
 $problems = New-Object System.Collections.Generic.List[string]
 
 Write-Head '1. 环境预检'
+Initialize-PublishNetwork
 
 # --- git ---
 $gitCmd = Get-Command git -ErrorAction SilentlyContinue
@@ -251,27 +390,17 @@ if (-not $ghCmd) {
   Write-Ok "gh $(((gh --version) -split "`n")[0] -replace '^gh version ','')"
 }
 
-# --- gh 登录状态 + token 权限 ---
+# --- GitHub.com 当前活动凭据 ---
 $ghUser = $null
+$ghIdentity = $null
 if ($ghCmd) {
-  $authRes = Invoke-Native gh @('auth','status')
-  $authOut = $authRes.Out
-  if ($authRes.Code -ne 0) {
-    Write-Bad 'gh 未登录。请执行：gh auth login  （选 GitHub.com → HTTPS → 浏览器授权）'
-    $problems.Add('gh 未登录')
-  } else {
-    try { $ghUser = (gh api user --jq .login 2>$null) } catch { }
-    if ($ghUser) { Write-Ok "已登录 GitHub 账号：$ghUser" } else { Write-Ok '已登录 GitHub' }
-
-    # token 必须含 repo 权限才能推送私有内容 / 建 Release
-    $scopeLine = ($authOut -split "`n" | Where-Object { $_ -match 'Token scopes' }) -join ''
-    if ($scopeLine -and $scopeLine -notmatch "'repo'") {
-      Write-Bad "token 缺少 repo 权限（当前：$($scopeLine.Trim())）"
-      Write-Info '修复：gh auth refresh -h github.com -s repo,workflow'
-      $problems.Add('token 缺少 repo 权限')
-    } else {
-      Write-Ok 'token 权限含 repo（可推送 + 可建 Release）'
-    }
+  try {
+    $ghIdentity = Get-PublishGitHubIdentity
+    $ghUser = $ghIdentity.login
+    Write-Ok "已登录 GitHub.com 账号：$ghUser"
+  } catch {
+    Write-Bad $_.Exception.Message
+    $problems.Add($_.Exception.Message)
   }
 }
 
@@ -281,8 +410,7 @@ $gitEmail = (git config --get user.email) 2>$null
 if (-not $gitName -or -not $gitEmail) {
   Write-Bad 'git 提交身份未配置（user.name / user.email 为空），提交会失败'
   $suggestName = if ($ghUser) { $ghUser } else { '你的用户名' }
-  $uid = $null
-  if ($ghCmd -and $ghUser) { try { $uid = (gh api user --jq .id 2>$null) } catch { } }
+  $uid = if ($ghIdentity) { $ghIdentity.id } else { $null }
   $suggestMail = if ($uid -and $ghUser) { "$uid+$ghUser@users.noreply.github.com" } else { '你的ID+你的用户名@users.noreply.github.com' }
   Write-Info '建议这样设置（noreply 邮箱不暴露真实邮箱，且能正常关联贡献图）：'
   Write-Info "  git config --global user.name  `"$suggestName`""
@@ -328,19 +456,13 @@ if (Test-Path -LiteralPath $agentsMd) {
 # --- 远程仓库可写 ---
 if ($ghCmd -and $ghUser) {
   try {
-    $repoJson = (gh repo view $script:ExpectedRepo --json name,visibility,defaultBranchRef,viewerPermission 2>$null) | ConvertFrom-Json
-    if ($repoJson) {
-      $perm = $repoJson.viewerPermission
-      if ($perm -in @('ADMIN','MAINTAIN','WRITE')) {
-        Write-Ok "远程仓库 $($script:ExpectedRepo)（$($repoJson.visibility)，默认分支 $($repoJson.defaultBranchRef.name)，权限 $perm）"
-      } else {
-        Write-Bad "对 $($script:ExpectedRepo) 只有 $perm 权限，无法推送"
-        $problems.Add('远程仓库无写权限')
-      }
-    }
+    $repoJson = Get-PublishGitHubRepository
+    $visibility = if ($repoJson.private) { 'PRIVATE' } else { 'PUBLIC' }
+    $perm = if ($repoJson.permissions.admin) { 'ADMIN' } elseif ($repoJson.permissions.maintain) { 'MAINTAIN' } else { 'WRITE' }
+    Write-Ok "远程仓库 $($script:ExpectedRepo)（$visibility，默认分支 $($repoJson.default_branch)，权限 $perm）"
   } catch {
-    Write-Bad "无法访问远程仓库 $($script:ExpectedRepo)：$($_.Exception.Message)"
-    $problems.Add('远程仓库不可访问')
+    Write-Bad $_.Exception.Message
+    $problems.Add($_.Exception.Message)
   }
 }
 
@@ -579,7 +701,13 @@ Write-Ok "app.asar  $([math]::Round((Get-Item $asarOut).Length/1MB,1)) MB"
 
 # --- 建 Release ---
 Write-Head "4. 发布 Release $Tag"
-$exists = ((Invoke-Native gh @('release','view',$Tag,'--repo',$script:ExpectedRepo)).Code -eq 0)
+$existingRelease = Invoke-GitHubRead -Arguments @('release','view',$Tag,'--repo',"github.com/$($script:ExpectedRepo)",'--json','tagName')
+if ($existingRelease.Code -ne 0 -and $existingRelease.Kind -ne 'NotFound') {
+  Write-Bad (Get-GitHubFailureMessage $existingRelease.Kind)
+  Write-Info "Release 状态尚未确认，已停止创建；本地产物保留在：$outDir"
+  exit 1
+}
+$exists = ($existingRelease.Code -eq 0)
 
 if ($exists) {
   if (-not $ReplaceRelease) {
@@ -588,7 +716,8 @@ if ($exists) {
     exit 1
   }
   if (-not (Confirm-Step "将删除并重建 Release $Tag（含其现有资产）？")) { Write-Info '已取消'; exit 0 }
-  Invoke-Native gh @('release','delete',$Tag,'--repo',$script:ExpectedRepo,'--yes','--cleanup-tag') | Out-Null
+  $deleted = Invoke-Native gh @('release','delete',$Tag,'--repo',"github.com/$($script:ExpectedRepo)",'--yes','--cleanup-tag')
+  if ($deleted.Code -ne 0) { Write-Bad '删除旧 Release 未确认成功，已停止重建并保留本地产物。'; exit 1 }
   Write-Info "已删除旧 Release $Tag"
 }
 
@@ -647,7 +776,7 @@ $releaseCommit = (git -C $repoDir rev-parse HEAD).Trim()
 # 先建草稿、上传并校验，再公开。上传途中不进入 /releases/latest，
 # 版本检查也就不会把空标签或只传了一半的包展示成已发布版本。
 $createArgs = @('release','create',$Tag) + $assets + @(
-  '--repo',$script:ExpectedRepo,
+  '--repo',"github.com/$($script:ExpectedRepo)",
   '--title',"Postman 中文版 $version",
   '--notes-file',$notesFile,
   '--draft', '--target', $releaseCommit
@@ -663,7 +792,7 @@ try {
   }
   Assert-ReleaseAssets -Release $rel -AssetPaths $assets
   Write-Ok '草稿的两个附件已通过名称、大小和 SHA-256 校验。'
-  $publish = Invoke-Native gh @('release','edit',$Tag,'--repo',$script:ExpectedRepo,'--draft=false','--latest')
+  $publish = Invoke-Native gh @('release','edit',$Tag,'--repo',"github.com/$($script:ExpectedRepo)",'--draft=false','--latest')
   if ($publish.Code -ne 0) { throw '公开 Release 失败，附件保留在草稿中，可核对后重试。' }
   $rel = Get-ReleaseMetadata $Tag
   if ($rel.draft -ne $false -or $rel.prerelease -ne $false -or -not $rel.published_at -or $rel.tag_name -cne $Tag) {

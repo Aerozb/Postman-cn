@@ -298,6 +298,11 @@ Postman 中文汉化工具
   .\postman-zh.bat zh-updates on     开启检查（默认）
   .\postman-zh.bat zh-updates off    关闭检查，一个请求都不发
   .\postman-zh.bat zh-updates check  刷新一小时普通缓存，立即查一次（保留限额退避）
+
+发布预检：
+  .\postman-zh.bat publish -CheckOnly  实际核验 GitHub 登录、仓库权限和发布环境，不推送或上传
+  .\postman-zh.bat publish -TestOnly   只跑隔离回归，不连接 GitHub，不读取凭据
+  网络异常与登录失效分别提示；未设置代理环境变量时沿用 Windows 已启用的静态代理。
 '@
 }
 

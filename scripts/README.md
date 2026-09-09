@@ -81,6 +81,19 @@
 -NoRestart             安装后不重启
 ```
 
+### 发布预检（PowerShell）
+
+菜单第 `12` 项和 CLI `publish` 复用 `maintenance/发布中文版.ps1`：通过 `gh api --hostname github.com user` 核验当前活动凭据，再读取目标仓库的实际写权限。网络异常、GitHub 限额、401 凭据失效、权限不足分别提示；网络/5xx 只读查询最多尝试 3 次，限额和写操作不自动重试。旧版把 `gh auth status` 的任意非零退出码都当成未登录，网络波动或其他账号异常就会误报。
+
+未设置 `HTTPS_PROXY` / `HTTP_PROXY` / `ALL_PROXY` 时，仅在当前发布进程中继承 Windows 已启用的静态 HTTP(S) 代理和排除表；已有代理环境变量及 `NO_PROXY` 保持优先，不修改系统设置、Git 全局配置或 gh 凭据。仅 PAC 或 SOCKS 等配置请通过显式环境变量设置。
+
+```powershell
+.\postman-zh.bat publish -CheckOnly # 真实预检，不推送、不打包、不发布
+.\postman-zh.bat publish -TestOnly  # 隔离回归，不连网络、不读凭据
+```
+
+`maintenance/验证发布预检.ps1` 由 `publish -TestOnly` 调用，覆盖错误分类、只读重试、账号/仓库响应缺失、写权限以及系统/显式代理优先级。只加载被测函数并使用内存响应；不执行发布流程。
+
 ### 汉化维护（Node）
 
 | 脚本 | 作用 |
