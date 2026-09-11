@@ -101,6 +101,12 @@
     "Unable to connect to our servers": "连接服务器失败",
     "Go To Scratchpad": "前往草稿区",
     "Go to Lightweight API Client": "前往轻量 API 客户端",
+    // 顶部 Git 推广横幅：加粗前缀与正文可能同节点或被拆开，两种形态都要覆盖。
+    "Work locally with Git: Open your working directory in Postman to keep your API artifacts in sync with your codebase.": "使用 Git 在本地工作：在 Postman 中打开工作目录，让 API 产物与代码库保持同步。",
+    "Work locally with Git:": "使用 Git 在本地工作：",
+    ": Open your working directory in Postman to keep your API artifacts in sync with your codebase.": "：在 Postman 中打开工作目录，让 API 产物与代码库保持同步。",
+    "Open your working directory in Postman to keep your API artifacts in sync with your codebase.": "在 Postman 中打开工作目录，让 API 产物与代码库保持同步。",
+    "Try Native Git": "试用原生 Git",
     /* === batch-translated (auto-merged) === */
     "Work locally with Git": "使用 Git 在本地工作",
     "Open your working directory on Postman to build your APIs locally and keep the changes in sync with your codebase.": "在 Postman 中打开工作目录，在本地构建 API，并让更改与代码库保持同步。",
