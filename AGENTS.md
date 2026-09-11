@@ -73,7 +73,7 @@ Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（
 改入口时的硬约束：
 
 - 默认输出必须是简洁中文，不要打印 Postman/Electron/npm 内部日志或大段 JSON；完整诊断只在显式 `--details` 时输出。
-- 收尾走 `Stop-WithCode`（打印中文结果 + 倒计时几秒自动关闭），**禁止用 `Read-Host`、`pause` 等阻塞式按键等待**——双击窗口会看起来卡死。菜单选择本身可以用 `Read-Host`。
+- 收尾走 `Stop-WithCode`（打印中文结果 + **等用户按回车**再关闭）。菜单模式下**刻意使用阻塞式 `Read-Host`**：2026-09-11 用户明确要求「执行完不要自动退出，搞成手动退出，不要倒计时啥的」。此前的规则相反（禁止 `Read-Host`，怕窗口看起来卡死），实践中倒计时读不完整屏输出的问题更严重（`stats` 为此被迫放宽到 60 秒），已推翻。命令行模式（`postman-zh.bat <命令>`）不等待，自动化不受影响。
 - 实现按用途归档在 `scripts/` 下，不要在根目录再加 `.bat` 或转发用 `.ps1`。
 
 审计脚本（Node，走 CDP，需 Postman 带 `--remote-debugging-port=0` 启动）另有三条硬约束：

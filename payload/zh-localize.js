@@ -8,6 +8,28 @@
 
   var EXACT = {
     /* === batch-translated (auto-merged) === */
+    "Work with Git": "使用 Git",
+    "Open your working directory to bring in your local files and work locally with Git.": "打开工作目录，导入本地文件并在本地配合 Git 工作。",
+    "Why use Git on Postman?": "为什么要在 Postman 里用 Git？",
+    "Set up Git to work on this project with your teammates.": "配置 Git，与团队成员一起协作开发这个项目。",
+    "Track API changes and keep them in sync with your codebase.": "跟踪 API 变更，并与你的代码库保持同步。",
+    "Connected to": "已连接到",
+    "Failed to switch to Cloud View": "切换到云端视图失败",
+    "About routing options": "关于路由选项",
+    "Simulate": "模拟",
+    "Choose how requests reach each mock when you run locally or after deploy. Header mode sends x-mock-slug; path mode prefixes the URL with each mock's routing token.": "选择本地运行或部署后请求到达各个 Mock 的方式。请求头模式发送 x-mock-slug；路径模式在 URL 前面加上每个 Mock 的路由令牌。",
+    "Choose how requests reach each mock when you run locally or after deploy. Header mode sends x-mock-slug; path mode prefixes the URL with each mock’s routing token.": "选择本地运行或部署后请求到达各个 Mock 的方式。请求头模式发送 x-mock-slug；路径模式在 URL 前面加上每个 Mock 的路由令牌。",
+    "Getting started? Start with a sample source.": "刚上手？可以先从示例数据源开始。",
+    "Couldn't add this sample source. Try again.": "无法添加该示例数据源，请重试。",
+    "Couldn’t add this sample source. Try again.": "无法添加该示例数据源，请重试。",
+    "Another source is still being added. Wait for it to finish, then try again.": "还有一个数据源正在添加中，等它完成后再试。",
+    "Configure error diagnosis": "配置错误诊断",
+    "Show error diagnosis": "显示错误诊断",
+    "View what caused the error and suggested fixes along with the error messages.": "查看错误成因和修复建议，以及错误信息本身。",
+    "Applied to": "应用于",
+    "Bundle secret (POSTMAN_PPROXY_BUNDLE_SECRET)": "捆绑包密钥（POSTMAN_PPROXY_BUNDLE_SECRET）",
+    "Format": "格式",
+    /* === batch-translated (auto-merged) === */
     "Teammates can now join your team quickly and seamlessly.": "团队成员现在可以快速、顺畅地加入你的团队。",
     "Set request timeout (in seconds)": "设置请求超时时间（秒）",
     "MultiSelect is focused ,type to refine list, press Down to open the menu, press left to focus selected values": "多选框已获得焦点。输入可筛选列表，按向下方向键打开菜单，按向左方向键聚焦已选值。",

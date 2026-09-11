@@ -30,35 +30,28 @@ try {
   [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 } catch {}
 
-# 菜单模式（双击 bat、未带命令）下，任务结束后窗口会随进程退出而消失。
-# 直接退出的话用户根本来不及看结果（会被当成"闪退"），所以这里倒计时几秒再退。
-# 但**不要用 Read-Host / pause 等阻塞式按键等待**：那会让双击窗口看起来卡住。
-# 倒计时期间按任意键可以立即关闭。
+# 菜单模式（双击 bat、未带命令）下，任务结束后窗口会随进程退出而消失，
+# 用户来不及看结果（会被当成"闪退"）。
+#
+# 这里**刻意使用阻塞式等待**：改为手动按回车退出，不再倒计时自动关闭
+# （2026-09-11 用户明确要求「执行完不要自动退出，搞成手动退出，不要倒计时啥的」）。
+# 早先的注释禁止 Read-Host，理由是"双击窗口会看起来卡死"；实践中相反的问题更严重
+# ——倒计时几秒关不够读整屏输出（stats 命令为此已被迫放宽到 60 秒），
+# 用户宁愿自己按键。窗口里有明确的中文提示，不会真被误认为卡死。
+#
+# 只在菜单模式下阻塞：`postman-zh.bat <命令>` 走命令行模式，
+# 直接 exit 不等待，自动化调用不受影响。
 $script:MenuMode = $false
-# 成功后倒计时秒数。默认 8 秒够看一行结论；stats 那种整屏表格要更久，
-# 在分发到该命令前改成 60。
-$script:CloseDelaySeconds = 8
 
 function Wait-BeforeClose {
-  param([int]$Seconds = 8)
-
-  for ($i = $Seconds; $i -gt 0; $i--) {
-    Write-Host ("`r窗口将在 {0,2} 秒后自动关闭（按任意键立即关闭）… " -f $i) -NoNewline -ForegroundColor DarkGray
-    # 分成 5 段轮询按键，既能及时响应又不阻塞。
-    for ($tick = 0; $tick -lt 5; $tick++) {
-      Start-Sleep -Milliseconds 200
-      try {
-        if ([Console]::KeyAvailable) {
-          [Console]::ReadKey($true) | Out-Null
-          Write-Host ''
-          return
-        }
-      } catch {
-        # stdin 被重定向（自动化调用）时 KeyAvailable 会抛异常，忽略即可。
-      }
-    }
+  Write-Host '按回车键关闭窗口… ' -NoNewline -ForegroundColor DarkGray
+  try {
+    Read-Host | Out-Null
+  } catch {
+    # stdin 被重定向（自动化调用意外进了菜单模式）时 Read-Host 会抛异常，
+    # 此时不该无限阻塞，直接返回让进程退出。
+    Write-Host ''
   }
-  Write-Host ''
 }
 
 function Stop-WithCode {
@@ -67,15 +60,10 @@ function Stop-WithCode {
     Write-Host ''
     if ($Code -eq 0) {
       Write-Host '操作完成。' -ForegroundColor Green
-      # 纯查看型命令（stats）成功后要留久一点：输出是给人读的表格，
-      # 8 秒读不完（2026-09-04 用户报「查看完数据咋闪退了」）。
-      # 其余命令只需看一眼「验证通过」之类的结论，8 秒够。
-      Wait-BeforeClose -Seconds $script:CloseDelaySeconds
     } else {
       Write-Host "操作失败（退出码 $Code）。上面的中文提示说明了原因。" -ForegroundColor Yellow
-      # 失败时多留一会儿，让用户看清报错。
-      Wait-BeforeClose -Seconds 25
     }
+    Wait-BeforeClose
   }
   exit $Code
 }
@@ -712,8 +700,7 @@ m.check(true).then((r) => {
 
     'stats' {
       # 只读 GitHub 公开数据 + 本仓库流量，走 gh CLI（认证由 gh 管，脚本里不出现令牌）
-      # 输出是整屏表格，倒计时放宽到 60 秒；随时按任意键可立即关闭。
-      $script:CloseDelaySeconds = 60
+      # 输出是整屏表格，靠 Stop-WithCode 的手动等待留给用户读完。
       Invoke-NodeScript (Join-Path $maintenanceRoot '查看项目数据.js') @($RemainingArguments)
     }
   }
