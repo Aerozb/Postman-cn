@@ -215,6 +215,12 @@ function Assert-PayloadFiles {
   }
   Assert-JavaScriptSyntax -PathValue $versionCheck -Name "zh-version-check-main.js"
 
+  $oopifInject = Join-Path (Split-Path -Parent $Payload) "zh-oopif-inject-main.js"
+  if (-not (Test-Path -LiteralPath $oopifInject)) {
+    throw "找不到跨站子帧注入文件：$oopifInject"
+  }
+  Assert-JavaScriptSyntax -PathValue $oopifInject -Name "zh-oopif-inject-main.js"
+
   $payloadContent = Read-Utf8 $Payload
   $required = @(
     "__POSTMAN_ZH_LOCALIZER__",
@@ -259,7 +265,7 @@ function Assert-OriginalTree {
 
   $markerFiles = @($mainJs, $desktopPreload, $utilityPreload)
   foreach ($markerFile in $markerFiles) {
-    if ((Read-Utf8 $markerFile) -match 'postman-zh-localizer|postmanZhLocalizeMenuTemplate|postmanZhPatchOpenExternalQuotes|postman-zh:update-guard|postman-zh:version-check|updates disabled by postman-zh|update restart blocked by postman-zh') {
+    if ((Read-Utf8 $markerFile) -match 'postman-zh-localizer|postmanZhLocalizeMenuTemplate|postmanZhPatchOpenExternalQuotes|postman-zh:update-guard|postman-zh:version-check|postman-zh:oopif-inject|updates disabled by postman-zh|update restart blocked by postman-zh') {
       throw "app.asar.original 已含汉化标记，不是干净的英文原版：$markerFile"
     }
   }
@@ -268,6 +274,9 @@ function Assert-OriginalTree {
   }
   if (Test-Path -LiteralPath (Join-Path $UnpackedDir "js\zh-version-check-main.js")) {
     throw "app.asar.original 已包含 js\zh-version-check-main.js，不是干净的英文原版。"
+  }
+  if (Test-Path -LiteralPath (Join-Path $UnpackedDir "js\zh-oopif-inject-main.js")) {
+    throw "app.asar.original 已包含 js\zh-oopif-inject-main.js，不是干净的英文原版。"
   }
   Write-Step "英文原版备份的版本和完整性验证通过。"
 }
@@ -283,10 +292,11 @@ function Assert-PatchedTree {
   $localizedPayload = Join-Path $UnpackedDir "js\zh-localize.js"
   $localizedAuthPayload = Join-Path $UnpackedDir "js\zh-auth-webview-preload.js"
   $localizedVersionCheck = Join-Path $UnpackedDir "js\zh-version-check-main.js"
+  $localizedOopifInject = Join-Path $UnpackedDir "js\zh-oopif-inject-main.js"
   $desktopPreload = Join-Path $UnpackedDir "preload_desktop.js"
   $utilityPreload = Join-Path $UnpackedDir "js\preload.js"
   $mainJs = Join-Path $UnpackedDir "main.js"
-  foreach ($requiredFile in @($localizedPayload, $localizedAuthPayload, $localizedVersionCheck, $desktopPreload, $utilityPreload, $mainJs)) {
+  foreach ($requiredFile in @($localizedPayload, $localizedAuthPayload, $localizedVersionCheck, $localizedOopifInject, $desktopPreload, $utilityPreload, $mainJs)) {
     if (-not (Test-Path -LiteralPath $requiredFile)) {
       throw "补丁目录缺少文件：$requiredFile"
     }
@@ -302,6 +312,10 @@ function Assert-PatchedTree {
   if ((Get-Sha256 $localizedVersionCheck) -ne (Get-Sha256 $versionCheckSource)) {
     throw "打包目录中的版本检查脚本与 zh-version-check-main.js 不一致。"
   }
+  $oopifInjectSource = Join-Path (Split-Path -Parent $Payload) "zh-oopif-inject-main.js"
+  if ((Get-Sha256 $localizedOopifInject) -ne (Get-Sha256 $oopifInjectSource)) {
+    throw "打包目录中的跨站子帧注入脚本与 zh-oopif-inject-main.js 不一致。"
+  }
 
   $desktopContent = Read-Utf8 $desktopPreload
   $utilityContent = Read-Utf8 $utilityPreload
@@ -312,7 +326,8 @@ function Assert-PatchedTree {
     @($utilityContent, "postman-zh-localizer:auth-webview-preload"),
     @($mainContent, "postmanZhLocalizeMenuTemplate"),
     @($mainContent, "postmanZhPatchOpenExternalQuotes"),
-    @($mainContent, "postman-zh:version-check")
+    @($mainContent, "postman-zh:version-check"),
+    @($mainContent, "postman-zh:oopif-inject")
   )
   foreach ($entry in $requiredMarkers) {
     if (-not ([string]$entry[0]).Contains([string]$entry[1])) {
@@ -655,6 +670,54 @@ function Patch-VersionCheck {
   Write-Step "已安装汉化版本更新检查（默认开启，只提示不自动下载）。"
 }
 
+function Patch-OopifInjection {
+  param([string]$UnpackedDir, [string]$Payload)
+
+  # 跨站 iframe（OOPIF）汉化。为什么必须走主进程，而不是像别的界面那样靠 preload：
+  #   2026-09-11 在 Electron 37.10.3（与 Postman 12.27.5 同版本）实测，
+  #   webPreferences.preload **不会**在跨站子帧里运行——子帧独立进程，标记读回为 null。
+  #   同一轮实测里 webFrameMain.executeJavaScript 能进去，真实 payload 注进去后
+  #   文本节点、title、aria-label 以及子帧内部异步插入的文案全部翻成中文。
+  #
+  # 为什么不用 CDP（debugger + Target.setAutoAttach）那条路：
+  #   同轮实测它也能注入成功，但 Electron 同时只允许一个 debugger 客户端，
+  #   会和本项目 11 个 CDP 审计脚本抢占；而且主 target 的 Page.enable 实测超时。
+  #
+  # 逻辑放独立文件而不是压成 main.js 单行 IIFE：它有事件订阅、frame 树递归和
+  # 注入去重，压一行没法维护。走 Patch-VersionCheck 已验证过的
+  # 「独立文件 + main.js 里 require」路子。
+  $payloadDir = Split-Path -Parent $Payload
+  $injectPayload = Join-Path $payloadDir "zh-oopif-inject-main.js"
+  if (-not (Test-Path -LiteralPath $injectPayload)) {
+    throw "payload 目录中缺少 zh-oopif-inject-main.js。"
+  }
+  Assert-JavaScriptSyntax -PathValue $injectPayload -Name "zh-oopif-inject-main.js"
+
+  $jsDir = Join-Path $UnpackedDir "js"
+  New-Item -ItemType Directory -Force -Path $jsDir | Out-Null
+  Copy-Item -LiteralPath $injectPayload -Destination (Join-Path $jsDir "zh-oopif-inject-main.js") -Force
+
+  $mainJs = Join-Path $UnpackedDir "main.js"
+  if (-not (Test-Path -LiteralPath $mainJs)) {
+    throw "未找到 main.js，无法安装跨站 iframe 汉化。"
+  }
+
+  $content = Read-Utf8 $mainJs
+  $marker = 'postman-zh:oopif-inject'
+  if ($content.Contains($marker)) {
+    Write-Step "跨站 iframe 汉化补丁已经安装。"
+    return
+  }
+
+  # require 失败只记一行 warn，绝不影响 Postman 启动和主界面汉化
+  $hook = @'
+;(()=>{try{/* postman-zh:oopif-inject */const E=require("electron");if(E&&E.app&&!globalThis.__postmanZhOopifInject){require("./js/zh-oopif-inject-main.js").install(E);}}catch(e){try{console.warn("Postman zh oopif inject failed",e);}catch(_){}}})();
+'@
+
+  Write-Utf8 $mainJs ($hook.TrimEnd() + "`r`n" + $content)
+  Write-Step "已安装跨站 iframe 汉化（主进程注入，覆盖 preload 到不了的独立进程子帧）。"
+}
+
 function Patch-DisableUpdates {
   param([string]$UnpackedDir)
 
@@ -836,6 +899,7 @@ try {
   Patch-MainMenuLocalization -UnpackedDir $unpackedDir
   Patch-ExternalUrlOpening -UnpackedDir $unpackedDir
   Patch-VersionCheck -UnpackedDir $unpackedDir -Payload $payloadFull
+  Patch-OopifInjection -UnpackedDir $unpackedDir -Payload $payloadFull
   if ($DisableUpdates) {
     Patch-DisableUpdates -UnpackedDir $unpackedDir
   } else {

@@ -174,7 +174,7 @@ createElement(Button, {type:"primary"}, "Restart and Install Update")
 
 5. **词典重复键**：`EXACT` 是 JS 对象字面量，重复键后者覆盖前者。`合并译文.js` 把机器批量词条插到**头部**，所以文件靠后的人工词条自动优先。
 
-6. **收集/扫描边界**：运行时翻译器已覆盖文本节点、全部翻译属性、shadow DOM、`document.title`、原生菜单、auth webview、同源 iframe。它仍不能直接进入任意跨域 iframe，也不能翻译 canvas 绘制文本；`audit all-targets` 可以通过 CDP 单独审计可附加的跨域/OOPIF 目标，但这不等于运行时翻译器能向其中注入译文。
+6. **收集/扫描边界**：运行时翻译器已覆盖文本节点、全部翻译属性、shadow DOM、`document.title`、原生菜单、auth webview、同源 iframe。**跨站 iframe（OOPIF）自 2026-09-11 起也覆盖了**，但走的是另一条路——主进程 `webFrameMain.executeJavaScript`，不是 preload（实测 preload 进不去独立进程子帧），正文见 [docs/跨站子帧汉化.md](./docs/跨站子帧汉化.md)。仍然不能翻译 canvas 绘制文本。`audit all-targets` 通过 CDP 单独审计可附加的跨域/OOPIF 目标，那是审计手段，与注入是两件事。
 
    两条管线的字符串长度上限**不一样**，排查"某条超长文案两边都收集不到"时要分别看：静态扫描是 600 字符（`scripts/data/提取界面文案.js` 里的 `text.length > 600`，另有"不超过 90 个词"的限制），运行时收集器是 1200 字符（`payload/zh-localize.js` 的 `shouldRecordMiss`，另有最多攒 2000 条的上限）。两者都曾经是 200，导致超长悬浮提示两条管线都收集不到，已分别放宽。
 

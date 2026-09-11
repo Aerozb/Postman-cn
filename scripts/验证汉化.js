@@ -8,6 +8,7 @@ const { fileURLToPath } = require("url");
 const { sanitizeAuditReport } = require("./audit/审计安全.js");
 const { runVersionCheckTests } = require("./runtime/验证版本检查.js");
 const { runVersionCheckUiTests } = require("./runtime/验证版本检查界面.js");
+const { runOopifInjectTests } = require("./runtime/验证跨帧注入.js");
 
 const POSTMAN_PAGE_URL_RE = /(?:^https:\/\/desktop\.postman\.com(?::\d+)?(?:[\/?#]|$)|^file:\/\/\/.*\/(?:requester|scratchpad)\.html(?:[?#]|$))/i;
 
@@ -45,6 +46,15 @@ const VERSION_CHECK_IPC_MARKERS = [
   "postman-zh:version-check:check",
   "postman-zh:version-check:open"
 ];
+// 跨站 iframe（OOPIF）汉化。为什么它必须是独立于 preload 的一条补丁：
+// 2026-09-11 在 Electron 37.10.3（与 Postman 12.27.5 同版本）实测，
+// webPreferences.preload 不会在独立进程的跨站子帧里运行（标记读回 null），
+// 只有主进程侧 webFrameMain.executeJavaScript 能注进去。
+// 这两条标记都出现在 main.js 的 require 钩子里，所以可以参与交叉比对。
+const OOPIF_INJECT_PATCH_MARKERS = [
+  "postman-zh:oopif-inject",
+  "zh-oopif-inject-main.js"
+];
 // main.js 里应当出现的标记。安装阶段的临时 main.js 与 app.asar 互相比对时只能用这批
 // ——见下面 MAIN_JS_PATCH_MARKERS 的说明。
 const ALL_PATCH_MARKERS = Array.from(new Set([
@@ -52,7 +62,8 @@ const ALL_PATCH_MARKERS = Array.from(new Set([
   ...EXTERNAL_URL_PATCH_MARKERS,
   ...MAIN_MENU_PATCH_MARKERS,
   ...VERSION_CHECK_PATCH_MARKERS,
-  ...VERSION_CHECK_IPC_MARKERS
+  ...VERSION_CHECK_IPC_MARKERS,
+  ...OOPIF_INJECT_PATCH_MARKERS
 ]));
 // 交叉比对专用子集：VERSION_CHECK_IPC_MARKERS 在 js\zh-version-check-main.js 里，
 // 那个文件打进 app.asar 但**不在** main.js 里。若把它们算进交叉比对，
@@ -61,7 +72,8 @@ const MAIN_JS_PATCH_MARKERS = Array.from(new Set([
   ...UPDATE_PATCH_MARKERS,
   ...EXTERNAL_URL_PATCH_MARKERS,
   ...MAIN_MENU_PATCH_MARKERS,
-  ...VERSION_CHECK_PATCH_MARKERS
+  ...VERSION_CHECK_PATCH_MARKERS,
+  ...OOPIF_INJECT_PATCH_MARKERS
 ]));
 
 function argValue(name) {
@@ -562,6 +574,18 @@ function inspectVersionCheckPatch(source) {
   return { checked: true, source: source.source, installed: missing.length === 0, missing };
 }
 
+// 跨站 iframe（OOPIF）汉化：main.js 的 require 钩子 + 被 require 的实现文件名。
+// 两条标记都在 main.js 里，所以能参与临时 main.js 与 app.asar 的交叉比对。
+// 只查「装没装」。这条补丁存在的理由见 OOPIF_INJECT_PATCH_MARKERS 上方注释：
+// preload 进不去独立进程的跨站子帧，只有主进程侧注入能覆盖。
+function inspectOopifInjectPatch(source) {
+  if (!source.checked) {
+    return { checked: false, installed: false, missing: [source.reason] };
+  }
+  const missing = OOPIF_INJECT_PATCH_MARKERS.filter((needle) => !source.includes(needle));
+  return { checked: true, source: source.source, installed: missing.length === 0, missing };
+}
+
 async function connectCdp(wsUrl) {
   let nextId = 1;
   const pending = new Map();
@@ -668,6 +692,7 @@ async function waitForPostmanTarget(port, timeoutMs) {
 async function main() {
   const versionCheckRegression = await runVersionCheckTests();
   const versionCheckUiRegression = await runVersionCheckUiTests();
+  const oopifInjectRegression = await runOopifInjectTests();
   const timeoutMs = Number(argValue("--timeout-ms") || 30000);
   const explicitPostmanDir = argValue("--postman-dir");
   const expectUpdatesDisabled = hasFlag("--expect-updates-disabled");
@@ -1901,8 +1926,10 @@ async function main() {
     result.externalUrlPatch = inspectExternalUrlPatch(patchSource);
     result.mainMenuPatch = inspectMainMenuPatch(patchSource);
     result.versionCheckPatch = inspectVersionCheckPatch(patchSource);
+    result.oopifInjectPatch = inspectOopifInjectPatch(patchSource);
     result.versionCheckRegression = versionCheckRegression;
     result.versionCheckUiRegression = versionCheckUiRegression;
+    result.oopifInjectRegression = oopifInjectRegression;
 
     const failures = [];
     if (result.localized !== "true") {
@@ -1968,6 +1995,10 @@ async function main() {
       const versionCheckDetails = SHOW_DETAILS ? `：${JSON.stringify(sanitizeAuditReport(result.versionCheckPatch))}` : "";
       failures.push(`汉化版本检查补丁未安装${versionCheckDetails}`);
     }
+    if (!result.oopifInjectPatch || !result.oopifInjectPatch.installed) {
+      const oopifDetails = SHOW_DETAILS ? `：${JSON.stringify(sanitizeAuditReport(result.oopifInjectPatch))}` : "";
+      failures.push(`跨站 iframe 汉化补丁未安装${oopifDetails}`);
+    }
 
     if (SHOW_DETAILS) {
       console.log("汉化验证详情：");
@@ -2011,6 +2042,7 @@ module.exports = {
   inspectMainMenuPatch,
   inspectUpdatePatch,
   inspectVersionCheckPatch,
+  inspectOopifInjectPatch,
   resolvePostmanDir,
   resolvePostmanDirFromProcess,
   targetDesktopVersion,
