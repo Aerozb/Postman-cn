@@ -223,7 +223,7 @@ createElement(Button, {type:"primary"}, "Restart and Install Update")
 - `ATTRS` — 需要翻译的元素属性名列表（含 `data-placeholder`）
 - `I18N_TERMS` + `i18nTerm()` — 供生成规则递归翻译实体名/类型名用（见规则 15）
 
-对外只挂这五个方法在 `window.__POSTMAN_ZH_LOCALIZER__` 上：`run`、`translate`、`walk`、`getMisses`、`clearMisses`。其中 **`translate` 是最重要的测试钩子**——所有沙箱脚本和 `_generated/regress-i18n.js` 都靠它在 Node 里离线跑整条翻译链路，不用重装。收集器的写入端 `recordMiss` 是内部函数，不对外暴露。
+对外只挂这五个方法在 `window.__POSTMAN_ZH_LOCALIZER__` 上：`run`、`translate`、`walk`、`getMisses`、`clearMisses`。其中 **`translate` 是最重要的测试钩子**——所有沙箱脚本和 `_generated` 里的全量语料回归都靠它在 Node 里离线跑整条翻译链路，不用重装。收集器的写入端 `recordMiss` 是内部函数，不对外暴露。
 
 补词条决策：固定完整句 → `EXACT`；可复用片段 → `PHRASES`；含变量 → `RULES`；输入框默认值 → 同时看 `EDITABLE_EXACT`；**页面内**右键/下拉菜单项 → `MENU_ITEM_EXACT`；**原生** Electron 菜单（应用顶栏、托盘）→ 改 `scripts/internal/安装汉化.ps1` 里的 `Menu.buildFromTemplate` 包装器词典。
 
