@@ -22,9 +22,7 @@
 //
 // 选 webFrameMain.executeJavaScript（第二条），不用 CDP（第四条），两个原因：
 //   1. CDP 路径实测不稳：主 target 的 Page.enable 会超时。
-//   2. 更要紧的是 wc.debugger 同时只允许一个客户端 attach。占用它会直接和
-//      scripts/audit/ 下那 11 个 CDP 审计脚本冲突——审计是本项目发现漏翻的
-//      主要手段，不能为了横幅把它废掉。
+//   2. 无需占用 wc.debugger 附加会话，避免给用户 DevTools 和按需诊断增加耦合。
 //
 // 第二轮实测（真实 payload 2.3 MB 注入跨站子帧）确认端到端可用：
 //   文本节点、title、aria-label 属性全部翻译；子帧内部 600ms / 1800ms 后
@@ -54,6 +52,8 @@ const ALLOWED_HOST_RE = /(?:^|\.)(?:postman\.com|postman\.co|getpostman\.com|pst
 
 let payloadSource = null;
 let payloadError = null;
+const frameInjections = new WeakMap();
+const LOCALIZER_PROBE = "Boolean(window.__POSTMAN_ZH_LOCALIZER__)";
 
 function loadPayload() {
   if (payloadSource !== null || payloadError !== null) {
@@ -101,7 +101,7 @@ function isOutOfProcess(frame, mainFrame) {
   }
 }
 
-function injectInto(frame, mainFrame) {
+function injectInto(frame, mainFrame, verifyDocument = false) {
   if (!frame) {
     return;
   }
@@ -114,25 +114,51 @@ function injectInto(frame, mainFrame) {
   if (!shouldInject(url) || !isOutOfProcess(frame, mainFrame)) {
     return;
   }
-  const source = loadPayload();
-  if (!source) {
+  const previous = frameInjections.get(frame);
+  if (!verifyDocument && previous && previous.url === url) {
+    // 同文档已完成或仍在注入；frame-created 的兜底不再重复传送整份词典。
     return;
   }
-  try {
-    // 末尾补 ;true 避免把 IIFE 的返回值序列化回主进程
-    const p = frame.executeJavaScript(source + "\n;true");
-    if (p && typeof p.catch === "function") {
-      p.catch((e) => warn("向 OOPIF 注入失败 " + url, e));
+  const state = { url };
+  frameInjections.set(frame, state);
+  const current = () => frameInjections.get(frame) === state;
+  const failed = (error) => {
+    // 导航期间旧文档的迟到 Promise 不干扰新文档状态；失败仍允许后续兜底重试。
+    if (current()) frameInjections.delete(frame);
+    warn("向 OOPIF 注入失败 " + url, error);
+  };
+  const executePayload = () => {
+    if (!current()) return;
+    const source = loadPayload();
+    if (!source) {
+      frameInjections.delete(frame);
+      return;
     }
-  } catch (e) {
-    warn("向 OOPIF 注入异常 " + url, e);
+    try {
+      // 末尾补 ;true 避免把 IIFE 的返回值序列化回主进程。
+      Promise.resolve(frame.executeJavaScript(source + "\n;true")).catch(failed);
+    } catch (error) {
+      failed(error);
+    }
+  };
+  if (verifyDocument) {
+    // 旧版事件若未给出 frame 标识，逐帧做短探测：既识别同址刷新，也免于重传已就绪的兄弟帧。
+    try {
+      Promise.resolve(frame.executeJavaScript(LOCALIZER_PROBE)).then((localized) => {
+        if (!localized) executePayload();
+      }).catch(failed);
+    } catch (error) {
+      failed(error);
+    }
+  } else {
+    executePayload();
   }
 }
 
 // 遍历整棵 frame 树补注入。用于两种情形：
 //   1. 补上在钩子安装之前就已经导航完成的 frame
 //   2. did-frame-navigate 给的 frame 标识拿不到对象时的兜底
-function injectAll(webContents) {
+function injectAll(webContents, verifyDocument = false) {
   let mainFrame = null;
   try {
     mainFrame = webContents.mainFrame;
@@ -145,7 +171,7 @@ function injectAll(webContents) {
   const stack = [mainFrame];
   while (stack.length) {
     const frame = stack.pop();
-    injectInto(frame, mainFrame);
+    injectInto(frame, mainFrame, verifyDocument);
     let kids = [];
     try {
       kids = frame.frames || [];
@@ -158,6 +184,21 @@ function injectAll(webContents) {
   }
 }
 
+function navigatedFrame(event, processId, routingId) {
+  try {
+    if (event && event.frame) return event.frame;
+  } catch (e) {}
+  if (Number.isInteger(processId) && Number.isInteger(routingId)) {
+    try {
+      const { webFrameMain } = require("electron");
+      if (webFrameMain && typeof webFrameMain.fromId === "function") {
+        return webFrameMain.fromId(processId, routingId);
+      }
+    } catch (e) {}
+  }
+  return null;
+}
+
 function attach(webContents) {
   if (!webContents || webContents.__postmanZhOopifHooked) {
     return;
@@ -166,35 +207,39 @@ function attach(webContents) {
 
   // did-frame-navigate 是关键事件：它对**子 frame** 也触发，而 dom-ready 只管主 frame。
   // 实测每次子帧导航（含刷新）都会触发，注入时机足够早——首屏文案就已是中文。
-  webContents.on("did-frame-navigate", (event, url, httpResponseCode, httpStatusText, isMainFrame) => {
+  webContents.on("did-frame-navigate", (event, url, httpResponseCode, httpStatusText, isMainFrame, processId, routingId) => {
     if (isMainFrame) {
       return; // 主 frame 由 preload 负责
     }
-    let frame = null;
-    try {
-      frame = event && event.frame ? event.frame : null;
-    } catch (e) {
-      frame = null;
-    }
+    const frame = navigatedFrame(event, processId, routingId);
     if (frame) {
+      // 以导航事件而非 URL 标识新文档；同一地址刷新也应重新注入。
+      frameInjections.delete(frame);
       let mainFrame = null;
       try {
         mainFrame = webContents.mainFrame;
       } catch (e) {}
       injectInto(frame, mainFrame);
     } else {
-      injectAll(webContents);
+      injectAll(webContents, true);
     }
   });
 
   // frame-created 时 frame 往往还没导航（实测 url 为空），不能直接注入；
   // 真正的注入交给上面的 did-frame-navigate。这里只兜住「创建后不再导航」的情况。
-  webContents.on("frame-created", (event, details) => {
-    setTimeout(() => {
+  let sweepTimer = null;
+  webContents.on("frame-created", () => {
+    if (sweepTimer !== null) return;
+    sweepTimer = setTimeout(() => {
+      sweepTimer = null;
       try {
         injectAll(webContents);
       } catch (e) {}
     }, 400);
+  });
+  webContents.once("destroyed", () => {
+    if (sweepTimer !== null) clearTimeout(sweepTimer);
+    sweepTimer = null;
   });
 }
 

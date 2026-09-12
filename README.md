@@ -44,3 +44,7 @@
 两者互相独立；灰色表示关闭，橙色表示开启。
 
 ![设置页中的 Postman 自动更新与汉化版本更新检查开关](assets/screenshots/02-update-toggles-cn.png)
+
+## 维护与命令
+
+[命令说明](scripts/README.md) · [维护指南](docs/维护指南.md) · [升级与发布](docs/升级与发布.md)

@@ -363,24 +363,6 @@ function Assert-OriginalAsarBackup {
   }
 }
 
-function Stop-PostmanCompletely {
-  $stopScript = Join-Path $scriptRoot "关闭程序.ps1"
-  if (-not (Test-Path -LiteralPath $stopScript -PathType Leaf)) {
-    throw "找不到关闭程序脚本：$stopScript"
-  }
-
-  $powershellExe = Join-Path $PSHOME "powershell.exe"
-  & $powershellExe -NoProfile -ExecutionPolicy Bypass -File $stopScript -MaxRounds 20 -SleepMs 500 -StableChecks 3
-  if ($LASTEXITCODE -ne 0) {
-    throw "无法彻底关闭 Postman，安装已中止。"
-  }
-  $remaining = @(Get-Process -Name Postman -ErrorAction SilentlyContinue)
-  if ($remaining.Count -gt 0) {
-    $ids = ($remaining | Select-Object -ExpandProperty Id | Sort-Object) -join ", "
-    throw "关闭检查后 Postman 又重新启动（PID：$ids），安装已中止。"
-  }
-}
-
 function New-OriginalAsarBackup {
   param([string]$SourceAsar, [string]$BackupAsar)
 
@@ -918,23 +900,18 @@ try {
   Write-Step "中文汉化已安装。"
 
   if (-not $NoRestart) {
-    $args = @()
     if ($Verify) {
-      $portFile = Join-Path $env:APPDATA "Postman\DevToolsActivePort"
-      if (Test-Path -LiteralPath $portFile) {
-        Remove-Item -LiteralPath $portFile -Force
-      }
-      $args += "--remote-debugging-port=0"
+      Start-PostmanDebugSession -FilePath (Join-Path $appDir "Postman.exe")
+    } else {
+      Write-Step "正在启动 Postman。"
+      Start-PostmanDetached -FilePath (Join-Path $appDir "Postman.exe")
     }
-    Write-Step "正在启动 Postman。"
-    Start-PostmanDetached -FilePath (Join-Path $appDir "Postman.exe") -ArgumentList $args
   }
 
   if ($Verify) {
     if ($NoRestart) {
       Write-Step "由于使用了 -NoRestart，已跳过运行时验证。"
     } else {
-      Start-Sleep -Seconds 18
       $verifyScript = Join-Path $scriptsRoot "验证汉化.js"
       if (Test-Path -LiteralPath $verifyScript) {
         $verifyArgs = @("--postman-dir", $appDir)

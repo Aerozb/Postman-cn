@@ -24,12 +24,16 @@ function makeFrame(options = {}) {
     processId: options.processId === undefined ? 1 : options.processId,
     frames: options.frames || [],
     executed: [],
+    localized: false,
+    reject: !!options.reject,
   };
   frame.executeJavaScript = (source) => {
     frame.executed.push(source);
-    if (options.reject) {
+    if (frame.reject) {
       return Promise.reject(new Error("fixture inject failure"));
     }
+    if (source === "Boolean(window.__POSTMAN_ZH_LOCALIZER__)") return Promise.resolve(frame.localized);
+    frame.localized = true;
     return Promise.resolve(true);
   };
   if (options.urlThrows) {
@@ -64,6 +68,9 @@ class FakeWebContents extends EventEmitter {
 function load(options = {}) {
   const source = fs.readFileSync(MODULE_PATH, "utf8");
   const warnings = [];
+  const timers = new Map();
+  let time = 0;
+  let serial = 0;
   const payloadStub = options.payload === undefined ? "/*payload*/" : options.payload;
   const fsStub = {
     readFileSync(file) {
@@ -79,11 +86,12 @@ function load(options = {}) {
     require(name) {
       if (name === "fs") return fsStub;
       if (name === "path") return path;
+      if (name === "electron" && options.electron) return options.electron;
       throw new Error("unexpected require: " + name);
     },
     console: { warn: (...args) => warnings.push(args.map(String).join(" ")) },
-    setTimeout,
-    clearTimeout,
+    setTimeout(fn, delay) { const id = ++serial; timers.set(id, { fn, at: time + delay }); return id; },
+    clearTimeout(id) { timers.delete(id); },
     URL,
     globalThis: {},
     Promise,
@@ -93,10 +101,22 @@ function load(options = {}) {
   sandbox.globalThis = sandbox;
   vm.createContext(sandbox);
   vm.runInContext(source, sandbox, { filename: MODULE_PATH });
-  return { api: sandbox.module.exports, warnings, sandbox };
+  return {
+    api: sandbox.module.exports, warnings, sandbox, timers,
+    async advance(ms) {
+      const until = time + ms;
+      for (;;) {
+        const next = [...timers].sort((a, b) => a[1].at - b[1].at)[0];
+        if (!next || next[1].at > until) break;
+        time = next[1].at; timers.delete(next[0]); next[1].fn(); await flush();
+      }
+      time = until; await flush();
+    }
+  };
 }
 
 const flush = () => new Promise((resolve) => setImmediate(resolve));
+const payloadExecutions = frame => frame.executed.filter(source => source !== "Boolean(window.__POSTMAN_ZH_LOCALIZER__)");
 
 async function runOopifInjectTests() {
   const failures = [];
@@ -256,7 +276,8 @@ async function runOopifInjectTests() {
     // 没有 event.frame，应走 injectAll 兜底
     wc.emit("did-frame-navigate", {}, child.url, 200, "OK", false);
     await flush();
-    assert.equal(child.executed.length, 1);
+    assert.equal(payloadExecutions(child).length, 1);
+    assert.equal(child.executed[0], "Boolean(window.__POSTMAN_ZH_LOCALIZER__)");
   });
 
   await test("子帧刷新后再注入一次", async () => {
@@ -296,6 +317,108 @@ async function runOopifInjectTests() {
     api.install(app);
     api.install(app);
     assert.equal(app.listenerCount("web-contents-created"), 1);
+  });
+
+  await test("同文档重复兜底只传送一次 payload", async () => {
+    const { api } = load();
+    const child = makeFrame({ processId: 2 });
+    const wc = new FakeWebContents(makeFrame({ frames: [child] }));
+    api.injectAll(wc); api.injectAll(wc); await flush(); api.injectAll(wc);
+    assert.equal(payloadExecutions(child).length, 1);
+  });
+
+  await test("五个子帧创建加导航只保留一个兜底计时器和五次注入", async () => {
+    const r = load();
+    const children = Array.from({ length: 5 }, (_, index) => makeFrame({ processId: index + 2 }));
+    const wc = new FakeWebContents(makeFrame({ frames: children }));
+    const app = new EventEmitter(); r.api.install(app); app.emit("web-contents-created", {}, wc);
+    for (const child of children) {
+      wc.emit("frame-created", {}, { frame: child });
+      wc.emit("did-frame-navigate", { frame: child }, child.url, 200, "OK", false);
+    }
+    assert.equal(r.timers.size, 1);
+    await r.advance(400);
+    assert.equal(r.timers.size, 0);
+    assert.equal(children.reduce((count, child) => count + payloadExecutions(child).length, 0), 5);
+  });
+
+  await test("没有导航事件的子帧仍由创建兜底注入", async () => {
+    const r = load(); const child = makeFrame({ processId: 2 });
+    const wc = new FakeWebContents(makeFrame({ frames: [child] }));
+    const app = new EventEmitter(); r.api.install(app); app.emit("web-contents-created", {}, wc);
+    wc.emit("frame-created", {}, { frame: child });
+    assert.equal(child.executed.length, 0); await r.advance(400);
+    assert.equal(payloadExecutions(child).length, 1);
+  });
+
+  await test("在途注入不被创建兜底再次发送", async () => {
+    const r = load(); const child = makeFrame({ processId: 2 }); let finish;
+    child.executeJavaScript = source => { child.executed.push(source); return new Promise(resolve => { finish = resolve; }); };
+    const wc = new FakeWebContents(makeFrame({ frames: [child] }));
+    const app = new EventEmitter(); r.api.install(app); app.emit("web-contents-created", {}, wc);
+    wc.emit("did-frame-navigate", { frame: child }, child.url, 200, "OK", false);
+    wc.emit("frame-created", {}, { frame: child }); await r.advance(400);
+    assert.equal(payloadExecutions(child).length, 1); finish(true); await flush();
+  });
+
+  await test("失败注入不会永久占用去重状态", async () => {
+    const r = load(); const child = makeFrame({ processId: 2, reject: true });
+    const wc = new FakeWebContents(makeFrame({ frames: [child] }));
+    r.api.injectAll(wc); await flush(); child.reject = false; r.api.injectAll(wc); await flush();
+    assert.equal(payloadExecutions(child).length, 2); assert.equal(child.localized, true);
+  });
+
+  await test("旧文档的迟到失败不清掉新文档去重状态", async () => {
+    const r = load(); const child = makeFrame({ processId: 2 }); let rejectOld;
+    child.executeJavaScript = source => {
+      child.executed.push(source);
+      return child.executed.length === 1 ? new Promise((_resolve, reject) => { rejectOld = reject; }) : Promise.resolve(true);
+    };
+    const wc = new FakeWebContents(makeFrame({ frames: [child] }));
+    const app = new EventEmitter(); r.api.install(app); app.emit("web-contents-created", {}, wc);
+    wc.emit("did-frame-navigate", { frame: child }, child.url, 200, "OK", false);
+    wc.emit("did-frame-navigate", { frame: child }, child.url, 200, "OK", false);
+    rejectOld(new Error("old document destroyed")); await flush(); r.api.injectAll(wc);
+    assert.equal(payloadExecutions(child).length, 2);
+  });
+
+  await test("processId 与 routingId 可定位缺少 event.frame 的导航", async () => {
+    const child = makeFrame({ processId: 2 });
+    const r = load({ electron: { webFrameMain: { fromId(processId, routingId) { assert.equal(processId, 2); assert.equal(routingId, 7); return child; } } } });
+    const wc = new FakeWebContents(makeFrame({ frames: [child] }));
+    const app = new EventEmitter(); r.api.install(app); app.emit("web-contents-created", {}, wc);
+    wc.emit("did-frame-navigate", {}, child.url, 200, "OK", false, 2, 7); await flush();
+    assert.equal(child.executed.length, 1); assert.equal(payloadExecutions(child).length, 1);
+  });
+
+  await test("缺少所有 frame 标识时短探测识别同址刷新并跳过已就绪兄弟帧", async () => {
+    const r = load(); const child = makeFrame({ processId: 2 }); const sibling = makeFrame({ processId: 3 });
+    const wc = new FakeWebContents(makeFrame({ frames: [child, sibling] }));
+    const app = new EventEmitter(); r.api.install(app); app.emit("web-contents-created", {}, wc);
+    r.api.injectAll(wc); await flush(); child.localized = false;
+    wc.emit("did-frame-navigate", {}, child.url, 200, "OK", false); await flush();
+    assert.equal(payloadExecutions(child).length, 2); assert.equal(payloadExecutions(sibling).length, 1);
+  });
+
+  await test("迟到的旧文档探测不向新文档重复发送 payload", async () => {
+    const r = load(); const child = makeFrame({ processId: 2 }); let finishProbe;
+    child.executeJavaScript = source => {
+      child.executed.push(source);
+      return source === "Boolean(window.__POSTMAN_ZH_LOCALIZER__)" ? new Promise(resolve => { finishProbe = resolve; }) : Promise.resolve(true);
+    };
+    const wc = new FakeWebContents(makeFrame({ frames: [child] }));
+    const app = new EventEmitter(); r.api.install(app); app.emit("web-contents-created", {}, wc);
+    wc.emit("did-frame-navigate", {}, child.url, 200, "OK", false);
+    wc.emit("did-frame-navigate", { frame: child }, child.url, 200, "OK", false);
+    finishProbe(false); await flush(); assert.equal(payloadExecutions(child).length, 1);
+  });
+
+  await test("webContents 销毁时清理创建兜底计时器", async () => {
+    const r = load(); const child = makeFrame({ processId: 2 });
+    const wc = new FakeWebContents(makeFrame({ frames: [child] }));
+    const app = new EventEmitter(); r.api.install(app); app.emit("web-contents-created", {}, wc);
+    wc.emit("frame-created", {}, { frame: child }); assert.equal(r.timers.size, 1);
+    wc.emit("destroyed"); assert.equal(r.timers.size, 0); await r.advance(400); assert.equal(child.executed.length, 0);
   });
 
   await test("install 传入空值不抛异常", () => {

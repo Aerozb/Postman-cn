@@ -1,63 +1,30 @@
 ---
 name: postman-zh-deep-audit
-description: 审计并修复本仓库的 Postman 中文汉化。用于检查实际桌面界面的 DOM 文案、属性、菜单、弹窗和授权 webview，选择受控 CDP 审计，维护 payload/zh-localize.js 或 app.asar 注入逻辑，并完成安装验证；不用于普通 Postman API 调试或其他仓库的翻译任务。
+description: 维护本仓库的 Postman 中文汉化。用于从当前官方 i18n 补译、按用户截图定点修复，以及修改运行时翻译或 app.asar 注入并完成验证；不用于普通 Postman API 调试或其他仓库的翻译任务。
 ---
 
-# Postman 深度汉化审计
+# Postman 汉化维护
 
-## 开始前
+先读仓库根目录 [AGENTS.md](../../../AGENTS.md)。唯一词典是 `payload/zh-localize.js`；命令和菜单收尾以 [脚本说明](../../../scripts/README.md) 为准。
 
-1. 在项目根目录工作，并完整阅读 `AGENTS.md`。
-2. 确认权威汉化主体只有 `payload/zh-localize.js`，不要维护第二份 payload。
-3. 只通过根目录 `postman-zh.bat` 调用安装、启动、验证和审计能力，不要绕过统一入口。菜单序号与命令的对应、审计名与各档位秒数上限见 `scripts/README.md`（唯一副本）；`probe` 和通用 `scan` 只是维护者 CLI 命令，不在普通用户菜单里。
-4. 将报告、截图和临时文件写入项目同级 `_generated`，不要放进项目根目录或 `scripts`；输出路径只能使用该目录下的文件名。
-5. 默认输出保持简洁中文；只有显式使用 `--details` 时才打印完整诊断，禁止向普通用户输出大段 JSON 或 Postman/Electron/npm 内部日志。
-6. 审计报告必须通过 `scripts/audit/审计安全.js` 的 `writeAuditReport` 写入；不要把原始 CDP 目标、URL 参数、WebSocket 地址、请求/响应正文、输入值或令牌写入 `_generated`。它返回写盘那份脱敏结果，**摘要计数一律按返回值算**（`written.hits` / `written.summary`），不要用本地的原始数组——脱敏会剔除身份噪声，用原始数组会报出报告里根本没有的条数。
-7. 截图默认关闭，只有一部分命令支持 `--screenshot`（名单见 `scripts/README.md`），并必须通过 `writeAuditScreenshot` 写入；PNG 像素不会经过 JSON 脱敏，可能包含当前可见的工作区或请求内容。
-8. 无参数 TUI 使用 `Read-Host` 接收主菜单和审计子菜单选择；每次选中并完成一项任务后应直接退出，禁止增加用于收尾的 `Read-Host`、`pause` 或其他按键等待。
-9. 通用审计不得点击文件、文件夹、上传、浏览或选择文件等会打开 Windows 原生文件选择器的入口。导入界面只用 `audit import` 从 Postman 页面侧审计；不选择本机文件或目录，结束前清理脚本打开的弹窗和菜单。
-10. 跳过带 `data-postman-zh-audit-skip="true"` 的元素（更新页那个自动更新开关就是这样标记的）。
+## 选择工作范围
 
-## 漏翻修复流程
+- 截图反馈：定位对应界面，必要时定点读取真实 DOM 文本、属性和码位，先测已有 `translate()`，再按 AGENTS 的词典分类修复。不要凭截图猜原串或顺带遍历所有界面。
+- 批量补译、版本升级：从当前官方 i18n 重新取材，见 [i18n 说明](../../../docs/官方i18n清单与生成规则.md)。它提供原文，不直接替换官方语言包。
+- 半译、隐形字符、源码补查：看 [维护指南](../../../docs/维护指南.md)。仅当官方资源与反馈未覆盖时检查本地 asar / 缓存 bundle，不恢复固定扫描渠道。
+- 自动更新或版本检查：先读 [更新守卫](../../../docs/更新守卫.md)，分清两个独立开关。
+- 跨站 iframe：先读 [跨站子帧汉化](../../../docs/跨站子帧汉化.md)，区分 CDP 可读取与生产注入生效。
 
-1. 从截图、DOM、属性或审计报告中确认准确英文原文和具体界面路径。
-2. 先在 `payload/zh-localize.js` 搜索现有词条和可能的半翻译变体。
-3. 按 `AGENTS.md` 第 7 节的词典规则修改 `EXACT`、`PHRASES`、`RULES`、`EDITABLE_EXACT` 或 `MENU_ITEM_EXACT`（页面内 `[role='menuitem']` 菜单项走这一个）；登录授权页面才修改 `payload/zh-auth-webview-preload.js`；原生 Electron 菜单改 `scripts/internal/安装汉化.ps1` 里的包装器词典。
-4. 对含弯撇号、非断行空格或先前部分替换的文本补齐真实 DOM 变体。
-5. 运行 `.\postman-zh.bat install`，确认安装器和验证器均成功。
-6. 重走用户报告的界面路径，再运行最贴近该页面的定向审计。
-7. 最后运行轻量广扫，确认没有真实英文短语残留。
+## 执行边界
 
-## 审计选择
+固定操作通过根目录 `postman-zh.bat` 调用。需要 CDP 时复用公共客户端，连接前重新读取端口。报告和临时文件写同级 `_generated`；JSON 使用 `scripts/lib/诊断输出.js` 的 `writeDiagnosticReport`，摘要按最终结果计数。截图按需使用 `writeDiagnosticScreenshot`，PNG 像素未脱敏。
 
-- 快速巡检：`.\postman-zh.bat audit lightweight`
-- 新建请求：`.\postman-zh.bat audit new-request`
-- 新建集合：`.\postman-zh.bat audit new-collection`
-- 导入界面：`.\postman-zh.bat audit import`
-- 导航与设置：`.\postman-zh.bat audit navigation`
-- 深层界面：`.\postman-zh.bat audit deep-areas`
-- 易漏交互面：`.\postman-zh.bat audit targeted-surfaces`
-- 入口弹窗：`.\postman-zh.bat audit entry-modals`
-- 分阶段审计：`.\postman-zh.bat audit phased`
-- 固定区域：`.\postman-zh.bat audit targeted`
-- 全部调试目标：`.\postman-zh.bat audit all-targets`
+定点诊断跳过原生文件选择器和 `data-postman-zh-audit-skip="true"`。保留用户数据、代码、HTTP 字段和技术名称；避免发送、保存、删除用户数据或退出账号，结束前清理自有节点、弹窗和菜单。
 
-默认档就是受控档，TUI 不加 `--thorough`。哪些审计名支持 `--thorough`、时间参数是 `--budget-ms` 还是 `--audit-budget-ms`、各档位的具体秒数上限、内部中文脚本名，全部见 `scripts/README.md`（唯一副本）。达到预算会保存部分报告并返回退出码 `2`，**不要把部分报告当成完整覆盖**。`phased` 要逐个审计所有已打开请求标签必须另加 `--all-tabs`（与 `--thorough` 无关）。
+自动巡检、缓存扫词、页面探测和漏翻收集已退役；历史漏翻数据保持原样。DOM 监听、延迟重试和跨帧注入是实际汉化路径，应继续保留。
 
-需要 Postman 运行时，先执行 `.\postman-zh.bat start`，不要复用上一次的 CDP 端口。查看全部命令和中文说明时执行 `.\postman-zh.bat help`。
+## 验证
 
-## 判定规则
+源码重构先运行 `test`；涉及注入或翻译行为时再 `install`、`verify`，重走对应界面。纯只读代码审查不要求安装或操纵页面；临时诊断的部分结果不作完整通过结论。
 
-- 完整英文短语、混合未翻译片段、输入框占位符、菜单项和悬浮提示属于问题。
-- 该保留英文的技术标识按 `AGENTS.md` 规则 9 判断（HTTP 状态短语与请求头名、品牌与模型名、代码标识符、快捷键、`API`/`Git`/`JSON` 等技术词）。
-- 不要为了清零计数而翻译示例数据、协议字段、模型名或产品名。
-- 避免点击删除、发送、发布、退出登录等破坏性操作；仅展开、悬浮、滚动或打开可安全关闭的菜单和弹窗。
-
-## 完成条件
-
-- 用户指出的文本已在实际界面显示为中文。
-- 对应定向审计已完整结束，候选已人工复核，没有真实英文残留；退出码 `2` 的部分报告不算完成。
-- `.\postman-zh.bat verify` 显示“验证通过”。
-- `.\postman-zh.bat install` 完整成功，且安装后的 `app.asar` 哈希验证通过。
-- 所有改过的 JavaScript 和 PowerShell 脚本通过语法检查。
-- `git diff --check` 通过，且没有把 `_generated`、`app.asar`、截图或用户数据加入 Git。
+批量词条或翻译重构按维护指南比较真实 `translate()` 输出。发布按 [升级与发布](../../../docs/升级与发布.md) 执行，检查差异并排除临时产物与用户数据。

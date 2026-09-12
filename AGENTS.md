@@ -1,243 +1,108 @@
 # AGENTS.md — Postman 汉化工具链维护指南
 
-> 本文件是本项目对 AI 助手（Claude Code、Codex 等）的**权威说明**。任何自动化助手打开本项目都应先读本文件。
-> `CLAUDE.md` 通过 `@AGENTS.md` 导入本文件，内容以本文件为准。面向普通人类用户的使用说明见 `README.md`。
+本文件是自动化助手的项目约定；`CLAUDE.md` 导入本文件。普通用户看 [README](./README.md)，维护流程看 [维护指南](./docs/维护指南.md)。
 
----
+## 1. 项目与边界
 
-## 1. 这个项目是什么
+为 Windows x64 Postman Desktop 12.x 注入运行时汉化：解包原版 `resources/app.asar`，加入 payload，再打包。保留英文备份，不改用户请求、环境变量或账号数据。
 
-给 **Windows 版 Postman 桌面端**做中文汉化的补丁工具链。做法：解包 Postman 的 `resources/app.asar` → 注入运行时汉化脚本 `zh-localize.js` → 重新打包，不修改用户数据。
+`payload/zh-localize.js` 是唯一词典数据源。官方 i18n 文件用于取材，并非直接替换 Postman 的语言包；实际界面仍由 DOM、属性和菜单等运行时接口翻译。请求编辑器从 `desktop.postman.com` 远程加载，文案会独立更新，按官方资源和用户截图反馈补齐。
 
-汉化是**运行时 DOM 翻译**：`zh-localize.js` 在页面里用 `MutationObserver` 监听 DOM，把英文文本节点和属性按词典替换成中文。不是改源码字符串，因此对 Postman 版本升级有较好的兼容性。
+## 2. 目录与产物
 
-**关键事实**：Postman 的请求编辑器等界面从 `desktop.postman.com` **远程加载**，服务端会随时下发新的英文文案。因此**没有一劳永逸的 100% 覆盖**——必须周期性审计、补词条。这个工具链的核心价值就是让这个"发现漏翻 → 补词条 → 验证"的闭环尽量自动化。
-
----
-
-## 2. 目录布局
-
-```
-Desktop\Postman\                     ← Postman 官方 Squirrel 安装目录（勿动其官方文件）
-  Postman.exe  Update.exe
-  app-12.27.0\                        ← 当前版本；resources\app.asar 是补丁目标
-    resources\app.asar.original       ← 首次安装时自动备份的英文原版
-  packages\                           ← 官方安装包 + RELEASES
-  postman-zh-workspace\               ← 所有非官方内容都在这里
-    Postman-cn\             ← 本工具链（= 本项目根）
-      payload\
-        zh-localize.js                ← 汉化主体：词典 + 翻译逻辑 + 收集器（唯一的"数据源"）
-        zh-auth-webview-preload.js    ← 登录/授权 webview 的预加载汉化
-        zh-version-check-main.js      ← 汉化版本更新检查（主进程侧，走 IPC）
-      scripts\
-        统一入口.ps1                   ← 命令分发器（唯一实现入口）
-        internal\                     ← 安装、启动、停止等内部 PowerShell 实现
-        audit\                        ← 点击、悬停、右键等 CDP 审计
-        runtime\                      ← 运行时收集和页面探测
-        data\                         ← 静态扫描和译文合并
-        maintenance\                 ← 发布脚本
-      .agents\skills\                ← skill 正文（`.agents/skills/` 是 Codex 的约定位置）
-      .claude\skills\                ← 同名薄指针，只为让 Claude Code 也能发现该 skill；
-                                        正文不复制，改 description 时两处要同步
-      docs\                           ← 汉化教程、维护指南，以及第 8 节索引里的三份正文
-      AGENTS.md  CLAUDE.md  README.md
-      postman-zh.bat                  ← 普通用户唯一入口（双击）
-    _generated\                       ← 审计、扫描和翻译临时产物（可再生，可被随时删除）
-    _release\                         ← `publish` 生成的正式发布包（跑过 publish 才出现）
+```text
+Postman/                         官方 Squirrel 安装根目录
+  app-<版本>/resources/
+    app.asar                     当前汉化目标
+    app.asar.original            对应版本的英文备份
+  postman-zh-workspace/
+    Postman-cn/                  本仓库
+      payload/                   汉化主体、授权 preload、版本检查、OOPIF 注入
+      scripts/统一入口.ps1        命令分发与唯一收尾
+      scripts/lib/               CDP、离线汉化沙箱、诊断输出脱敏
+      scripts/internal/          安装、启动、停止、进程工具
+      scripts/runtime/           离线回归与共享翻译样例
+      scripts/data/              译文合并、词典统计
+      scripts/maintenance/       发布、项目数据、PowerShell 回归
+      .agents/skills/            skill 正文
+      .claude/skills/            同名薄指针
+      docs/                      按主题维护的说明
+      postman-zh.bat              唯一操作入口
+    _generated/                  可删除、可重建的语料与临时诊断
+    _release/                    发布产物
 ```
 
-**重要**：`_generated` 必须与 `Postman-cn` **同级**，所有扫描产物默认写在那里，且入口会拒绝把报告写到项目外。它里面全是可再生产物，词典本体在 `payload/zh-localize.js`，不受影响。若装了清理工具，建议把 `Desktop\Postman` 加白名单。
+`_generated` 与仓库同级。诊断报告和临时脚本放这里，不加入 Git；公共输出工具只接受该目录内的文件名。不要手改安装器的解包目录，它会在下一次安装时重建。
 
----
+## 3. 环境
 
-## 3. 环境要求
+Windows 10/11、Postman Desktop 12.x、Node.js 22+、PowerShell 5+。asar 解包/打包使用 `npx --yes @electron/asar`；CDP 使用 Node 内置 WebSocket 和 fetch。
 
-- Windows 10/11，Postman Desktop 12.x
-- Node.js 22+（脚本用 `npx --yes @electron/asar` 解包/打包；CDP 相关脚本使用 Node 内置 `WebSocket` 和 `fetch`）
-- PowerShell 5+
+## 4. 操作入口
 
----
+固定操作从根目录 `postman-zh.bat` 调用。命令、菜单和参数的唯一清单是 [scripts/README.md](./scripts/README.md)。不要另加根目录 `.bat` 或转发 `.ps1`。
 
-## 4. 脚本清单（统一入口）
+- 默认仅显示简洁中文摘要；`--details` 才输出完整诊断，页面数据先脱敏。
+- 菜单模式只执行一次，最终由 `Stop-WithCode` 等用户手动按回车关闭；CLI 模式直接返回退出码，不等待、不倒计时。
+- `test` 是离线回归；`verify` 检查已运行的安装实例，两者互补。改翻译或注入后执行 `install`、`verify`，并重走受影响界面。
+- 没有固定的自动巡检、缓存扫词、页面探测或漏翻收集命令；按需诊断不应恢复成每轮必跑的全界面任务。
+- 临时 CDP 诊断复用公共客户端，报告使用 `writeDiagnosticReport`，截图使用 `writeDiagnosticScreenshot`，均来自 `scripts/lib/诊断输出.js`。截图按需显式采集，PNG 像素不做脱敏。
+- 定点检查避免发送、删除、保存用户数据，跳过原生文件选择器和更新开关；结束时清理自己创建的测试节点和临时菜单。达到诊断上限时明确标记部分结果。
 
-唯一入口是根目录 `postman-zh.bat`：普通用户双击走中文 TUI，维护者和自动化把子命令传给同一个入口，不要直接调内部脚本。
+## 5. 汉化维护闭环
 
-```powershell
-.\postman-zh.bat help
-.\postman-zh.bat install
-.\postman-zh.bat restore
-```
+固定流程：发现准确原文 → 补词条 → 离线回归 → 安装验证 → 重走界面。按任务选择取材，不要求每次全跑：
 
-**菜单序号与命令的对应、内部 PowerShell / Node 脚本清单、`install` 的常用参数、审计名与各档位秒数上限，全部以 [`scripts/README.md`](./scripts/README.md) 为准**——那是唯一副本，别在本文件里再抄。`probe` 和通用 `scan` 是维护者 CLI 命令，不放入 TUI。
+- **使用反馈**：按用户截图定位具体界面，必要时通过 CDP 读取准确文本、属性、空白及撇号码位，不凭截图猜原串。
+- **当前官方 i18n**：批量补齐和版本升级时重新抓取，覆盖官方登记的文案。
 
-改入口时的硬约束：
+**按需源码补查**：前两者未覆盖或升级涉及本地页面时，再检查缓存 bundle 或原版 asar。提取方法与扫描盲区见 [维护指南](./docs/维护指南.md)。
 
-- 默认输出必须是简洁中文，不要打印 Postman/Electron/npm 内部日志或大段 JSON；完整诊断只在显式 `--details` 时输出。
-- 收尾走 `Stop-WithCode`（打印中文结果 + **等用户按回车**再关闭）。菜单模式下**刻意使用阻塞式 `Read-Host`**：2026-09-11 用户明确要求「执行完不要自动退出，搞成手动退出，不要倒计时啥的」。此前的规则相反（禁止 `Read-Host`，怕窗口看起来卡死），实践中倒计时读不完整屏输出的问题更严重（`stats` 为此被迫放宽到 60 秒），已推翻。命令行模式（`postman-zh.bat <命令>`）不等待，自动化不受影响。
-- 实现按用途归档在 `scripts/` 下，不要在根目录再加 `.bat` 或转发用 `.ps1`。
+候选先经过真实 `translate()` 再人工筛选。只补完整标题、标签和句子；通用单词或半句碎片不要批量入库，组合段落交给 `fixCompositeTextBlocks`。界面上泄露的 `namespace:a.b.c` 等未解析 i18next 键也按漏翻处理。
 
-审计脚本（Node，走 CDP，需 Postman 带 `--remote-debugging-port=0` 启动）另有三条硬约束：
+半截翻译按反馈页面和本轮语料核对，方法见维护指南。翻译器不再自动收集或持久化漏翻；DOM 变化监听仍是实时汉化的必要部分。
 
-- 报告必须经 `scripts/audit/审计安全.js` 的 `writeAuditReport` 写出（它裁剪本机路径、URL 查询参数、WebSocket 地址、请求/响应正文、输入值和令牌），不得直接 `JSON.stringify` 原始 CDP 数据。截图走 `writeAuditScreenshot`，默认关闭，且**不脱敏 PNG 像素**。
-- 不得点击会唤起 Windows 原生文件选择器的入口（“文件”“文件夹”“上传”“浏览”“选择文件”“打开文件夹”及其英文标签）。只有 `audit import` 从 Postman 页面侧打开应用内导入弹窗，它不选本机文件，并在结束前关掉自己开的弹窗和临时菜单。
-- 达到时间或扫描上限时脚本会写出部分报告并返回退出码 `2`——可供排查，但**不算完整覆盖**。TUI 不会自动加 `--thorough`。
+## 6. 修改前必须守住的规则
 
----
+1. **动词规则保守兜底**：`Add/Delete/Create/...` 递归翻译剩余部分；翻不完整时保留整句英文，别退化成无条件“添加 $1”。
+2. **保留 `data-placeholder`**：它属于 `ATTRS`，富文本评论框依靠它显示占位。
+3. **两个更新开关独立**：官方更新默认关闭，偏好缺失即关闭；汉化版本检查默认开启。`-KeepUpdates` 表示不装官方更新守卫，守卫不改 `isUpdateEnabled`。定点诊断跳过 `data-postman-zh-audit-skip="true"`。改动前读 [更新守卫](./docs/更新守卫.md)。
+4. **原生菜单全局包装**：在 `main.js` prepend `Menu.buildFromTemplate` 包装器，不依赖压缩变量名；嵌入脚本的中文使用 `\u` 转义。
+5. **词典后写优先**：初始 `EXACT` 与后续 `Object.assign(EXACT, ...)` 同属精确词典；后面的人工词条优先。批量合并仍插在初始对象头部，保持该语义。
+6. **保留实际翻译路径**：同源 iframe 和 shadow DOM 由运行时遍历；OOPIF 由主进程 `webFrameMain.executeJavaScript` 注入同一 payload，详见 [跨站子帧汉化](./docs/跨站子帧汉化.md)。Canvas 2D 已挂接 fillText/strokeText/measureText；位图、WebGL 等绘制路径不在此覆盖范围。移除辅助探测不等于移除 DOM 监听、延迟重试或跨帧注入。
+7. **设置菜单使用真实键盘事件**：齿轮后用 `ArrowDown`、`Enter`；合成 click 对部分菜单无效。
+8. **人工复核候选**：中文里保留 RBAC、API 等技术缩写是正常译文。诊断摘要按最终脱敏后的结果计算，不把部分检查说成全部覆盖。
+9. **数据区保持原样**：HTTP 状态短语、请求头、请求/响应数据、变量值、代码标识、快捷键、品牌、模型名和技术参考资料不作普通 UI 翻译。特殊修补也必须复用文本或属性的数据保护判断，别绕过主路径。
+10. **按运行时归一形态入库**：`normalize()` 去零宽字符、把 NBSP 转为空格、压缩空白并 trim；无需另存 NBSP 变体。直撇号和弯撇号仍有区别，按真实文案补齐。定位时检查码位，不凭肉眼判断。
+11. **共享词典读取与实际回读**：合并、统计和离线测试使用 `scripts/lib/汉化沙箱.js` 获取最终词典，别用正则或括号切片另算一套。仅 EXACT 键参与合并查重，术语表同名不应屏蔽 UI 词条。合并后用 `rg -F` 确认落盘，`merge --check` 确认幂等，并通过真实 `translate()` 回读。
+12. **连接前重新读端口文件**：`--remote-debugging-port=0` 每次重启分配新端口。读取 `%APPDATA%/Postman/DevToolsActivePort` 第一行，再查询 `/json/list`；主页面匹配 `desktop.postman.com` 或本地 requester/scratchpad，不选 helper frame。CDP 传输复用公共客户端，目标选择由各工具负责。
+13. **统一进程控制**：通过 `postman-zh.bat stop` 关闭；公共停止函数最多 20 轮、每轮 500ms，并连续 3 次确认进程为零。启动与安装复用端口/页面就绪轮询，别恢复固定时长等待或单次 taskkill。
+14. **保留半截翻译闸门**：`looksHalfTranslated` 只管 PHRASES 兜底；先剔除代码片段，再检查普通英文残留。新增技术词放入 `TECHNICAL_WORDS`，别放宽闸门。EXACT/RULES 的手工译文仍需自行检查。
+15. **官方资源每次重新取材**：URL 形态和命名空间随版本改变，以当前实际资源为准，不假定必带哈希。含插值文案按展开后的形态写 RULES；合并值必须含中文。详见 [官方 i18n 清单与生成规则](./docs/官方i18n清单与生成规则.md)。
 
-## 5. 核心维护闭环（最重要）
+## 7. 词典与测试接口
 
-### A. 发现并补齐漏翻（治本，批量）
-```powershell
-# 1. 静态扫描出未翻译候选（覆盖全部界面，含没打开过的）
-.\postman-zh.bat static-scan --disk
-#    → _generated/zh-static-candidates.json（按出现频率排序）
-
-# 2. 从候选里筛出"该翻的"，翻译成 _generated/trans-*.json
-#    格式：{ "English source": "中文译文", ... }
-#    大批量时可派并行子代理各翻一段（该跳过什么见本节末尾和规则 9）
-
-# 只检查可合并数量，不修改词典
-.\postman-zh.bat merge --check
-
-# 3. 合并进词典
-.\postman-zh.bat merge
-
-# 4. 重装 + 验证
-.\postman-zh.bat install
-```
-
-**`static-scan` 有一块固定盲区，别只靠它（2026-08-27 定位）**：它只抽 `uiKey:"value"` 这种**属性形式**的字符串，而 React 有大量界面文字放在 `createElement` 的**位置参数（children）**里：
-
-```js
-createElement(ModalHeader, null, "RESTART AND INSTALL UPDATE")
-createElement(Button, {type:"primary"}, "Restart and Install Update")
-```
-
-这种写法属性形式一条都抽不到；更糟的是弹窗标题常是**全大写**，`static-scan` 里"必须含小写字母"的启发式还会额外排除掉它们。用户报的"重启并安装更新"弹窗就是这样连续漏了好几轮。
-
-补法是加一条取材路径：**按 `createElement(组件, props, "文字")` 的第 3 个及以后字符串参数抽取**，另外把 JSX 自动运行时的 `children:"…"` 也一并抽（`static-scan` 虽然认 `children` 这个键，但把它归进 `WEAK_KEYS`，单个词的值会被"至少两个词"的规则丢掉，所以按钮上的单词标签会漏）。这条路径精度很高——本地 `app.asar` 抽出约 1700 条候选，噪声主要是通用单词和半句碎片。一次性脚本可写在 `_generated` 里。
-
-五条取材路径互补，缺一不可：
-
-| 路径 | 覆盖 | 盲区 |
-|---|---|---|
-| `static-scan --disk` | 属性形式 `uiKey:"value"` | createElement children、全大写标题、单词 children |
-| `collect` | 用户实际触发过的界面 | 没走到的分支 |
-| createElement/JSX children 抽取 | 弹窗标题、按钮文字、表头 | 远程 bundle 里改名过的 JSX 工厂函数 |
-| 官方 i18n 资源包（见规则 15，**每次都要重新拉，别用旧快照**） | 官方登记的全部界面文案，权威、带命名空间 | 未走 i18next 的老代码、canvas 文本 |
-| `app.asar` 里的**本地兜底页**（`html/*.html` + 对应 `js/*.js`） | 网络/启动出问题时才出现的界面 | 只有这批页面 |
-
-最后那条 2026-09-01 补上：`html/desktop-offline.html`（离线兜底）、`html/loader.html`（启动画面）、`html/auth/error.html`、`html/proxyAuth.html`、`html/no-scratchpad.html` 等页面打包在本地、**不随服务端更新**，而且恰好是"出问题时用户盯着看"的界面，前四条路径都覆盖不到：它们不走 i18next，HTML 里是纯文本而非属性形式，`collect` 也只有用户真撞上才记。抽取用 `npx --yes @electron/asar extract-file <asar> html/xxx.html`；文案多在配套 `js/*.js` 的 JSX `children:"…"`／`text:"…"` 位置（含 `text:cond?"A":"B"` 这种三元，正则要能吃到）。当时查出 11 条漏翻，其中 5 条是 `aria-label` 直接**泄露了未解析的 i18next 原始键**（`app-header:window_controls.close_win_tooltip`）——离线页没加载资源包所以键没被替换，把这些键本身写进 `EXACT` 即可。
-
-**界面上出现 `namespace:a.b.c` 或 `a.b.c` 形态的字符串，就是 i18next 没解析出来的原始键，一律当漏翻处理**，把键本身写进 `EXACT`。除上面那 5 条外，2026-09-03 又在数据集界面撞到 `source_type_tooltip.jdbc`：官方清单里同组有 file/local/cloud/remote/mysql/postgres/sqlserver 七条，**独缺 jdbc**——Postman 新加 JDBC 数据源时忘了配文案，i18next 找不到就把键吐到 tooltip 上。这类是官方的疏漏，只能我们兜。
-
-**翻的时候只翻完整的标题/标签/句子**，通用单词（`error`/`import`/`share`）和半句碎片（`Make sure the`、`or create a collection`）一律跳过——碎片由 `fixCompositeTextBlocks` 负责整句拼装，单独翻会破坏整句结果并触发 `验证汉化.js` 的守卫（本轮返工过一次）。
-
-### B. 兜底：运行时收集用户实际遇到的漏翻
-```powershell
-.\postman-zh.bat collect          # 导出 _generated/zh-misses.json
-.\postman-zh.bat collect -Clear   # 清空，重新开始攒
-```
-用户正常使用 Postman，界面上凡是翻译器没命中的英文会自动记进 localStorage。适合捕获服务端新下发的动态文案。
-
-### C. 手工补单条词条
-直接编辑 `payload/zh-localize.js`（见第 7 节词典结构），重装即可。**不要**直接改 `app.asar.unpacked.zh`——每次安装都会从 `app.asar.original` 重新解包覆盖。
-
-### D. 冒烟测试单条译文（不重装）
-连 CDP 后插入一个隐藏 div 写入英文，等约 1.2s 让 MutationObserver 处理，再读回它的文本看是否变中文。比重装快。
-
-### E. 排查"半截翻译"（中英混杂，比漏翻更显眼）
-纯漏翻用户还能忍，`Validate 请求 correctness and test results` 这种一眼就看出来。它不属于"没翻"，所以 `static-scan` 和 `collect` 都不会报——必须单独查。见规则 14。
-
-两条互补的查法：
-
-1. **离线全量**：把磁盘缓存（`%APPDATA%\Postman\Partitions`，gzip/brotli 压缩）和 `app.asar.original` 里所有像界面文案的英文串抽出来，逐个过 `translate()`，输出里**同时含中文和残留英文词**的就是半截。剔除代码上下文和技术词后再判定，否则误报极多。
-2. **实时页面**：走 CDP 遍历活页面的全部文本节点（含 shadow DOM）和翻译属性，挑出中英混杂的。离线抽取拿不到运行时拼装的文案（运行器的运行类型说明就是这样漏掉的），只能从活页面取。
-
-查出来后分两类修：走 `PHRASES` 兜底的补整句 `EXACT` 词条；走 `EXACT`/`RULES` 的直接改词典里那条的值。用 `git show HEAD:payload/zh-localize.js` 和工作区版本各建一个沙箱对比 `translate()` 输出，能精确列出"因闸门而退回英文"的条目，那批就是该补译文的对象。
-
-一次性脚本可以写在 `_generated` 里，但别当成项目固定入口。
-
----
-
-## 6. 关键规则与陷阱（改代码前必读）
-
-1. **动词兜底规则不能退化成无条件 `$1`**。`RULES` 里 `Add/Delete/Create/...` 这类规则必须"递归翻译剩余部分，翻不出中文则整句保留英文"。若改回无条件 `"添加 $1"` 会重现 `添加 a new comment` 式半截混合文本。
-
-2. **`data-placeholder` 必须在 `ATTRS` 列表里**。评论框等富文本编辑器用它渲染占位符，漏了评论面板占位符就不翻译。
-
-3. **更新守卫是开关，不是墙**（正文见 [docs/更新守卫.md](./docs/更新守卫.md)，改这块前必读）：`-KeepUpdates` = 不装守卫；默认装守卫即拦截，偏好文件不存在视为关闭。装守卫时**不要**改 `isUpdateEnabled`（会让"设置>更新"页报连接错误）。找不到可确认的源码锚点时应报错，不要假装成功。更新页那个开关带 `data-postman-zh-audit-skip="true"`，**审计脚本必须跳过带这个属性的元素**，别用合成点击去点它。
-
-   **「设置 > 更新」页里有两个开关，别混**：上面那个是 Postman 官方升级（默认**关闭**，偏好文件 `postman-zh-updates.json`，不存在即关闭）；下面那个是汉化包自己的版本检查（默认**开启**，偏好文件 `postman-zh-version-check.json`，不存在即开启，只查 GitHub 有没有新版、只提示不下载）。两份状态独立，命令分别是 `updates on|off` 和 `zh-updates on|off|check`。
-
-4. **菜单汉化用全局 `Menu.buildFromTemplate` 包装器**（prepend 到 `main.js`），不依赖压缩后的变量名锚点，跨版本稳定。若要加原生菜单词条，改这个包装器里的词典，且**只能用 `\u` 转义**中文，避免打包后 `main.js` 编码问题。
-
-5. **词典重复键**：`EXACT` 是 JS 对象字面量，重复键后者覆盖前者。`合并译文.js` 把机器批量词条插到**头部**，所以文件靠后的人工词条自动优先。
-
-6. **收集/扫描边界**：运行时翻译器已覆盖文本节点、全部翻译属性、shadow DOM、`document.title`、原生菜单、auth webview、同源 iframe。**跨站 iframe（OOPIF）自 2026-09-11 起也覆盖了**，但走的是另一条路——主进程 `webFrameMain.executeJavaScript`，不是 preload（实测 preload 进不去独立进程子帧），正文见 [docs/跨站子帧汉化.md](./docs/跨站子帧汉化.md)。仍然不能翻译 canvas 绘制文本。`audit all-targets` 通过 CDP 单独审计可附加的跨域/OOPIF 目标，那是审计手段，与注入是两件事。
-
-   两条管线的字符串长度上限**不一样**，排查"某条超长文案两边都收集不到"时要分别看：静态扫描是 600 字符（`scripts/data/提取界面文案.js` 里的 `text.length > 600`，另有"不超过 90 个词"的限制），运行时收集器是 1200 字符（`payload/zh-localize.js` 的 `shouldRecordMiss`，另有最多攒 2000 条的上限）。两者都曾经是 200，导致超长悬浮提示两条管线都收集不到，已分别放宽。
-
-7. **审计脚本的交互**：设置对话框要用 CDP **真实键盘事件**（齿轮点击后 `ArrowDown`+`Enter`），合成 click 对某些菜单无效。
-
-8. **词典误报**：`基础版基于角色的访问控制（RBAC）` 这类"中文里含英文缩写"的会被审计误报为残留英文，可忽略。
-
-9. **哪些刻意保留英文**（翻译时应跳过）：HTTP 状态短语（`404 Not Found`）、HTTP 请求头名、产品/品牌名（HashiCorp Vault、New Relic）、模型名（GPT-4o）、Flow 查询语言关键字、JSON Schema 元模式、CSS/字体/protobuf 技术参考文档、示例 API 数据（Streetlights、spacecraft）、代码标识符、快捷键（`Ctrl+K`）、`API`/`Git`/`Postman`/`HTTP`/`JSON` 等技术词。
-
-10. **隐形字符陷阱（2026-07-22 定位，改词条前必读）**：`EXACT` 是整串精确匹配，页面渲染的文本里有两类"看不见的字符差异"会让匹配悄悄失败、整句翻不出：
-    - **弯撇号 U+2019（`’`）vs ASCII 直撇号 U+0027（`'`）**：Postman 界面里 `don't`/`isn't`/`it's`/`you'd` 的撇号是**弯撇号**。若词条键用直撇号，`translate()` 匹配失败。
-    - **不间断空格 U+00A0（`&nbsp;`）vs 普通空格 U+0020**：**带链接样式的行内文字**（如 `creating a variable`、`sharing and persisting variables`）单词间的空格是 `&nbsp;`。若词条键用普通空格，匹配失败。
-    - **修复**：凡含撇号或属于"链接文字"的英文键，除标准版本外**必须再补一份弯撇号/`&nbsp;` 变体**（值相同）。少量词条直接写入译文 JSON；批量处理时可在 `_generated` 中编写一次性辅助脚本，但不要把临时脚本当作项目固定入口。
-    - **排查手法**：用 CDP 取页面该文本的 `charCodeAt` 逐字符码位确认（`8217`=弯撇号，`160`=`&nbsp;`），再对比词条键。
-
-11. **合并后必须用 `rg` 验证持久化，不能只信合并数量**：`合并译文.js` 与早期校验脚本对含撇号或特殊字符的键可能处理不一致。合并后应直接执行 `rg -F "中文译文片段" payload/zh-localize.js`，确认词条确实写入权威 payload。不要用 `node -e` 内联脚本检查含特殊字符的词条。**"合并 N 条"只说明脚本认为有 N 条可合，不等于 N 条都生效**——还要用沙箱 `translate()` 逐条回读（2026-09-01 就是这样查出下面那条边界 bug 的）。
-
-    `合并译文.js` 判断"键是否已在 `EXACT`"时，**切片只能取 `EXACT` 这一个对象**（按括号深度扫到配对的 `}`，扫描时跳过字符串里的括号）。曾经是从 `var EXACT = {` 一路切到文件末尾，于是 `EDITABLE_EXACT`、`MENU_ITEM_EXACT`、`I18N_TERMS` 和函数内对象字面量的键（多算 2515 个）全被当成"已在 EXACT"，新词条被静默跳过。`I18N_TERMS` 是给生成规则做术语递归的表，语义和界面词条本就不同（`"group": "组"` 是术语，界面标签该是"群组"），**撞名属正常，不该互相屏蔽**。
-
-12. **CDP 调试端口每次重启都会变，必须每次重读端口文件（2026-07-22，反复踩坑）**：Postman 用 `--remote-debugging-port=0` 启动，`0`=系统随机分配端口，**每次重启（进程真正退出再拉起）都换一个新端口**，写进 `%APPDATA%\Postman\DevToolsActivePort` 文件第一行。Postman 不重启则端口不变。**任何要连 CDP 的脚本，都必须在连接前重新读端口文件当前内容取端口，绝不能用上一次记住的旧端口**——这是"重装后验证一直连不上/`ECONNREFUSED`"的根源。注意端口文件第 2 行是 `/devtools/browser/...` 路径，只取第 1 行数字。拿到端口后用 `http://127.0.0.1:<port>/json/list` 取目标，找 `desktop.postman.com` 主页面（不是 `about:blank` 等 helper frame）。
-
-13. **杀 Postman 用 `.\postman-zh.bat stop`，别用 `taskkill`（2026-07-22）**：Postman 有守护/子进程会互相拉起，`taskkill /F /IM Postman.exe` 单次执行后常残留 5 个进程（PID 还在变）。`scripts/internal/关闭程序.ps1` 的做法是最多 20 轮、每轮 `Stop-Process` 后等 500ms，且要**连续 3 次**确认进程为零才算成功。重装前务必确认清零，否则 `app.asar` 被占用锁定、写入失败。
-
-14. **半截翻译闸门 `looksHalfTranslated`（2026-08-24 加入，改 PHRASES 前必读）**：`PHRASES` 是**子串**替换。一句话没进 `EXACT`、但句中某个词命中 `PHRASES` 时，会产出 `Validate 请求 correctness and test results` 这种中英混杂的半截文本——比纯英文更难看，且用户一眼就能发现。
-
-    `translate()` 末尾的闸门负责兜底：短语替换结果里若还残留**英文虚词/高频动词**（`the`/`of`/`while`/`are`…，见 `HALF_TRANSLATION_STOPWORDS`），或残留**全小写的普通英文词**（≥3 字母，且不在 `TECHNICAL_WORDS` 里），就判定为半截，**整句退回英文**。这与规则 1 对 `RULES` 的原则一致：翻不干净就别翻。退回后运行时收集器会把它记成漏翻，正好进入第 5 节的补词条闭环。
-
-    判定前会先用 `stripCodeSpans()` 剔除代码上下文（反引号/中英文引号里的字面量、点号标识符、camelCase、`:required`、`/path`、含数字 token、`foo(`），否则 `未通过 i18next.use 添加后端`、`可以是 'user'、'group' 或 'team'` 这类正常译文会被误判。**新增技术词请加进 `TECHNICAL_WORDS`，不要放宽闸门**。
-
-    注意：闸门只管 `PHRASES` 兜底那条路径。走 `EXACT`/`RULES` 的结果是手工写的，视为可信、不过闸门——所以**手工词条本身写成半截也不会被拦**，改词条时要自己看清楚（本轮就修了一条 `The :local-link CSS 伪类…` 开头残留 `The` 的）。
-
-    排查手法见第 5 节 E。
-
-15. **官方 i18n 清单是第四条取材路径，写词条有三个静默失效陷阱**（正文见 [docs/官方i18n清单与生成规则.md](./docs/官方i18n清单与生成规则.md)，升级新版、批量补词条、改 `RULES` 生成规则区前必读）：官方 `en-US` 资源包是最权威的取材路径，但 URL 带内容哈希，**每次都要重新抓，不能用 `_generated` 里的旧快照**（12.24→12.25.7 新增 348 条）。三个让词条静默失效的坑：键必须是 `normalize()` 后的形态（首尾空白去掉、连续空白压成一个空格），`合并译文.js` 现在会在入口自动归一并报告归一条数，但**手改 payload 时仍要自己守**（2026-09-01 在 `EXACT` 里查出 34 条这样的死词条）；`合并译文.js` 会静默丢弃不含中文的译文；含 `{count}` 这类插值的文案原串永不出现在 DOM 里，**不能进 `EXACT`**，必须写 `RULES`。
-
----
-
-## 7. `payload/zh-localize.js` 词典结构
-
-单文件，运行时 IIFE。主要数据结构：
-- `EXACT` — 完整文案精确匹配（最常用）。对象，`{ "English": "中文" }`
-- `PHRASES` — 数组，可组合的子串替换片段
-- `RULES` — 数组，带变量（数字/时间/名称）的正则规则，`[/正则/, "替换" 或 函数]`；数组顺序即优先级，首个命中即返回
-- `EDITABLE_EXACT` — 输入框真实 value（如 `New Environment`）
-- `MENU_ITEM_EXACT` — **页面内**菜单项（`[role='menuitem']` 里的文字）专用精确词典，只在该祖先存在时生效
-- `ATTRS` — 需要翻译的元素属性名列表（含 `data-placeholder`）
-- `I18N_TERMS` + `i18nTerm()` — 供生成规则递归翻译实体名/类型名用（见规则 15）
-
-对外只挂这五个方法在 `window.__POSTMAN_ZH_LOCALIZER__` 上：`run`、`translate`、`walk`、`getMisses`、`clearMisses`。其中 **`translate` 是最重要的测试钩子**——所有沙箱脚本和 `_generated` 里的全量语料回归都靠它在 Node 里离线跑整条翻译链路，不用重装。收集器的写入端 `recordMiss` 是内部函数，不对外暴露。
-
-补词条决策：固定完整句 → `EXACT`；可复用片段 → `PHRASES`；含变量 → `RULES`；输入框默认值 → 同时看 `EDITABLE_EXACT`；**页面内**右键/下拉菜单项 → `MENU_ITEM_EXACT`；**原生** Electron 菜单（应用顶栏、托盘）→ 改 `scripts/internal/安装汉化.ps1` 里的 `Menu.buildFromTemplate` 包装器词典。
-
----
-
-## 8. 更长的内容在哪（按任务查，动手前先读对应文件）
-
-本文件只留「一句话说完、违反就直接出 bug」的规则。成段的操作步骤都在下面这些文件里，**做对应的事之前必须先完整读完**：
-
-| 你要做的事 | 先读 |
+| 结构 | 用途 |
 |---|---|
-| 升级 Postman 到新版本 / 发布 / 提交 | [docs/升级与发布.md](./docs/升级与发布.md) |
-| 抓官方 i18n 清单、批量补词条、改 `RULES` 生成规则区 | [docs/官方i18n清单与生成规则.md](./docs/官方i18n清单与生成规则.md) |
-| 改自动更新拦截、更新页开关 | [docs/更新守卫.md](./docs/更新守卫.md) |
-| 改统一入口 / 菜单 / 加子命令 / 查审计档位和秒数 | [scripts/README.md](./scripts/README.md) |
+| `EXACT` | 固定完整文案 |
+| `PHRASES` | 可组合子串替换，受半译闸门保护 |
+| `RULES` | 含变量的正则规则，先具体后通用，首个命中生效 |
+| `EDITABLE_EXACT` | 受控输入框默认值，不是任意用户 value |
+| `MENU_ITEM_EXACT` | 页面内菜单项 |
+| `I18N_TERMS` / `i18nTerm()` | 生成规则里的实体、类型术语 |
+| `ATTRS` | 翻译属性名单 |
 
-**本文件必须保持在 32 KiB 以内**：Codex 默认只读 `AGENTS.md` 的前 32 KiB（`project_doc_max_bytes`），超出部分静默截断、不报错，而 Claude Code 那边是全文——两个助手看到的规则会不一致。新增长篇内容一律放 `docs/` 并在此加一行；指针写成普通 Markdown 链接，**不要写成 `@docs/...`**（那是 Claude Code 的导入语法，会让 Claude Code 内联全文而 Codex 只看到一行字面量，等于重新制造不一致）。`publish` 的预检会检查这个大小。
+生产环境仅公开 `window.__POSTMAN_ZH_LOCALIZER__` 的 `run`、`translate`、`walk`。离线沙箱只在内存副本读取词典，不添加生产接口，也不启动 DOM、计时器或网络。共享回归样例是测试数据，不是第二份词典。
+
+## 8. 按任务阅读
+
+| 工作 | 先读 |
+|---|---|
+| 日常补词条、半译排查、测试 | [维护指南](./docs/维护指南.md) |
+| 升级、提交、发布 | [升级与发布](./docs/升级与发布.md) |
+| 官方语料、批量词条、生成 RULES | [官方 i18n 清单与生成规则](./docs/官方i18n清单与生成规则.md) |
+| 更新守卫与页面开关 | [更新守卫](./docs/更新守卫.md) |
+| OOPIF 注入与验证 | [跨站子帧汉化](./docs/跨站子帧汉化.md) |
+| 命令、菜单、安装参数 | [脚本说明](./scripts/README.md) |
+
+本文件保持在 **32 KiB** 内；长步骤按主题放到 docs 并留普通 Markdown 链接，避免不同助手读取范围不一致。skill 正文仅维护在 `.agents/skills`，`.claude/skills` 保留薄指针，frontmatter 同步。

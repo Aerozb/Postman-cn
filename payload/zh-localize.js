@@ -28881,6 +28881,7 @@
     "aria-valuetext",
     "aria-roledescription"
   ];
+  var ATTRIBUTE_SELECTOR = ATTRS.map(function (attr) { return "[" + attr + "]"; }).join(",");
 
   var SKIP_SELECTOR = [
     "script",
@@ -29015,6 +29016,9 @@
     }
 
     for (var j = 0; j < nodes.length; j += 1) {
+      if (!canRewriteCompositeText(nodes[j])) {
+        continue;
+      }
       var text = normalize(nodes[j].innerText || nodes[j].textContent || "");
       var count = text.match(/^(\d+)/);
       if (count && /\btabs have\b/i.test(text) && /\bif you\b/i.test(text) && /\bthese tabs\b/i.test(text)) {
@@ -29049,7 +29053,7 @@
     }
 
     for (var j = 0; j < nodes.length; j += 1) {
-      if (!nodes[j] || shouldSkipElement(nodes[j]) || isVolatileDropdownElement(nodes[j]) || containsKeyValueDataElement(nodes[j])) {
+      if (!canRewriteCompositeText(nodes[j]) || isVolatileDropdownElement(nodes[j])) {
         continue;
       }
       var text = normalize(nodes[j].innerText || nodes[j].textContent || "");
@@ -29141,15 +29145,10 @@
         continue;
       }
 
-      var teamMatch = text.match(/^Team Members are part of (.+?) team$/i);
+      // 分片文本可能已经分别命中 EXACT；四种中英文组合共用同一整句修补。
+      var teamMatch = text.match(/^(?:Team Members|团队成员)\s+(?:are part of|属于)\s+(.+?)\s+(?:team|团队)$/i);
       if (teamMatch) {
         nodes[j].textContent = "团队成员属于 " + teamMatch[1] + " 团队";
-        continue;
-      }
-
-      var teamMixedMatch = text.match(/^(?:团队成员\s+are part of|Team Members\s+属于)\s+(.+?)\s+(?:team|团队)$/i);
-      if (teamMixedMatch) {
-        nodes[j].textContent = "团队成员属于 " + teamMixedMatch[1] + " 团队";
         continue;
       }
 
@@ -29302,7 +29301,7 @@
       while (walker.nextNode()) {
         var node = walker.currentNode;
         var parent = node.parentElement;
-        if (!normalize(node.nodeValue || "")) {
+        if (!canTranslateTextNode(node) || !normalize(node.nodeValue || "")) {
           continue;
         }
         if (parent && parent.closest && parent.closest("svg,[role='tooltip'],[data-tippy-root],[aria-hidden='true']")) {
@@ -29321,7 +29320,7 @@
 
     for (var j = 0; j < nodes.length; j += 1) {
       var el = nodes[j];
-      if (!el || shouldSkipElement(el) || isVolatileDropdownElement(el) || containsKeyValueDataElement(el)) {
+      if (!canRewriteCompositeText(el) || isVolatileDropdownElement(el)) {
         continue;
       }
       var current = normalize(el.innerText || el.textContent || "");
@@ -29455,124 +29454,6 @@
     ,
     ["format, as specified in the API Client Authentication section of the Akamai Developer Portal.", "，如 Akamai 开发者门户的 API 客户端认证部分所述。"]
   ]);
-
-  var MISS_STORAGE_KEY = "postman-zh-misses-v1";
-  var missMap = null;
-  var missSaveTimer = null;
-
-  function loadMisses() {
-    if (missMap) {
-      return missMap;
-    }
-    missMap = {};
-    try {
-      var raw = window.localStorage && window.localStorage.getItem(MISS_STORAGE_KEY);
-      if (raw) {
-        var parsed = JSON.parse(raw);
-        if (parsed && typeof parsed === "object") {
-          missMap = parsed;
-        }
-      }
-    } catch (e) {}
-    return missMap;
-  }
-
-  function scheduleMissSave() {
-    if (missSaveTimer) {
-      return;
-    }
-    missSaveTimer = setTimeout(function () {
-      missSaveTimer = null;
-      try {
-        window.localStorage.setItem(MISS_STORAGE_KEY, JSON.stringify(missMap));
-      } catch (e) {}
-    }, 2000);
-  }
-
-  function shouldRecordMiss(text) {
-    if (!text || text.length < 2 || text.length > 1200) {
-      return false;
-    }
-    if (!/[A-Za-z]{2}/.test(text)) {
-      return false;
-    }
-    if (TECHNICAL_EXACT.test(text) || LOOKS_LIKE_DATA.test(text)) {
-      return false;
-    }
-    if (/^(https?:\/\/|www\.)/i.test(text) || /[{}<>[\]]/.test(text)) {
-      return false;
-    }
-    if (/^(Ctrl|Alt|Shift|Cmd|Meta|Win)(\s*\+\s*\S+)+$/i.test(text) || text === "Postman") {
-      return false;
-    }
-    var animatedGreeting = "Hi there! 👋 Tell me what you're working on and I'll help you get started with Postman. I can help create requests, debug calls, generate tests, and more.";
-    if (animatedGreeting.indexOf(text) === 0 && text !== animatedGreeting) {
-      return false;
-    }
-    var hasChinese = /[\u3400-\u9fff]/.test(text);
-    if (hasChinese) {
-      var mixedWords = text.match(/[A-Za-z][A-Za-z'-]*/g) || [];
-      if (!mixedWords.some(function (word) {
-        return word.length >= 2 && !/^(API|APIs|URL|URI|HTTP|HTTPS|JSON|XML|OAuth|JWT|AWS|GraphQL|gRPC|WebSocket|Cookie|Cookies|SDK|AI|Git|MCP|MQTT|RBAC|GET|POST|PUT|PATCH|DELETE|HTML|PDF|CPU|VU|P90|P95|P99|ms|Postman|Ctrl|Alt|Shift|Cmd|Meta|Win|Left|Right|Up|Down|Enter|Escape|Tab)$/i.test(word);
-      })) {
-        return false;
-      }
-      if (/^(?:[A-Za-z0-9._-]+\s+)?(?:的头像|团队标志|图标)$/.test(text)) {
-        return false;
-      }
-      return true;
-    }
-    var letters = text.replace(/[^A-Za-z]/g, "").length;
-    if (letters / text.length < 0.5) {
-      return false;
-    }
-    return true;
-  }
-
-  function recordMiss(text, context) {
-    try {
-      var t = normalize(text);
-      if (!shouldRecordMiss(t)) {
-        return;
-      }
-      var map = loadMisses();
-      if (!Object.prototype.hasOwnProperty.call(map, t)) {
-        if (Object.keys(map).length >= 2000) {
-          return;
-        }
-        map[t] = { count: 0, where: String(context || "").slice(0, 80) };
-      }
-      map[t].count += 1;
-      scheduleMissSave();
-    } catch (e) {}
-  }
-
-  function getMisses() {
-    var map = loadMisses();
-    return Object.keys(map).map(function (key) {
-      return { text: key, count: map[key].count, where: map[key].where };
-    }).sort(function (a, b) {
-      return b.count - a.count || a.text.localeCompare(b.text);
-    });
-  }
-
-  function clearMisses() {
-    missMap = {};
-    try {
-      window.localStorage.removeItem(MISS_STORAGE_KEY);
-    } catch (e) {}
-  }
-
-  function missContextOf(el) {
-    if (!el || !el.tagName) {
-      return "";
-    }
-    var cls = "";
-    try {
-      cls = String(el.getAttribute("class") || "").split(/\s+/)[0];
-    } catch (e) {}
-    return el.tagName.toLowerCase() + (cls ? "." + cls : "");
-  }
 
   // 英文虚词/高频动词表。这些词一旦和中文同时出现在同一句里，说明这句话
   // 只被 PHRASES 换掉了个别词、整体仍是英文——也就是
@@ -29931,11 +29812,28 @@
     }, 250);
   }
 
+  // closest() 不穿过 ShadowRoot；数据保护仍需继承宿主所在的编辑器边界。
+  function closestTranslationAncestor(el, selector) {
+    while (el && el.nodeType === 1) {
+      var found = el.closest && el.closest(selector);
+      if (found) {
+        return found;
+      }
+      var root = el.getRootNode && el.getRootNode();
+      el = root && root.host;
+    }
+    return null;
+  }
+
+  function textContextElement(node) {
+    return node && (node.parentElement || (node.parentNode && node.parentNode.host));
+  }
+
   function shouldSkipElement(el) {
     if (!el || el.nodeType !== 1) {
       return false;
     }
-    return !!(el.closest && el.closest(SKIP_SELECTOR));
+    return !!closestTranslationAncestor(el, SKIP_SELECTOR);
   }
 
   function isVolatileDropdownElement(el) {
@@ -29950,7 +29848,7 @@
     if (!el || el.nodeType !== 1 || !el.closest) {
       return false;
     }
-    return !!el.closest(".key-value-form-row,.key-value-cell,.key-value-form-column,.key-value-form-editor-sortable,.auto-suggest-group");
+    return !!closestTranslationAncestor(el, ".key-value-form-row,.key-value-cell,.key-value-form-column,.key-value-form-editor-sortable,.auto-suggest-group");
   }
 
   function containsKeyValueEditorElement(el) {
@@ -29992,10 +29890,42 @@
     if (!isKeyValueEditorElement(el)) {
       return false;
     }
-    if (el.closest(".header-row,.key-value-form-header-row,.key-value-cell__placeholder,.goto-bulk-editor,.bulk-editor-preset__controls")) {
+    if (closestTranslationAncestor(el, ".header-row,.key-value-form-header-row,.key-value-cell__placeholder,.goto-bulk-editor,.bulk-editor-preset__controls")) {
       return false;
     }
-    return !el.closest(".requester-tabs,.requester-tab,.request-url,.requester-builder-tabs,[role='tablist'],[role='tab'],[role='menu'],[role='menuitem'],[role='tooltip']");
+    return !closestTranslationAncestor(el, ".requester-tabs,.requester-tab,.request-url,.requester-builder-tabs,[role='tablist'],[role='tab'],[role='menu'],[role='menuitem'],[role='tooltip']");
+  }
+
+  // 文本和属性有意分开：编辑器正文保留原样，输入框的 placeholder 等界面属性仍翻译。
+  // 特殊文案修补与普通翻译共用这些判断，避免绕过键值数据区保护。
+  function canTranslateTextNode(node) {
+    if (!node || node.nodeType !== 3) {
+      return false;
+    }
+    var el = textContextElement(node);
+    // textarea 的子文本也是 defaultValue；编辑器内的白名单命中也应服从 value 保护。
+    if (el && el.matches && el.matches("input,textarea") && !canTranslateEditableValue(el)) {
+      return false;
+    }
+    return !isKeyValueDataElement(el) && (!shouldSkipElement(el) ||
+      Object.prototype.hasOwnProperty.call(EDITABLE_EXACT, normalize(node.nodeValue || "")));
+  }
+
+  function canTranslateAttributes(el) {
+    return !!el && el.nodeType === 1 && !isKeyValueDataElement(el);
+  }
+
+  function canTranslateEditableValue(el) {
+    // 输入框自身属于 SKIP_SELECTOR，默认名称仍可翻；代码/响应编辑器等祖先中的 value 是数据。
+    return canTranslateAttributes(el) && !shouldSkipElement(textContextElement(el));
+  }
+
+  function canRewriteCompositeText(el) {
+    if (!el || el.nodeType !== 1 || shouldSkipElement(el) || containsKeyValueDataElement(el)) {
+      return false;
+    }
+    // 整块替换会删除子节点；含代码、输入框等受保护后代的容器也保留原样。
+    return !(el.querySelector && el.querySelector(SKIP_SELECTOR));
   }
 
   function restoreFixedHeaderDataToken(el, text) {
@@ -30057,21 +29987,15 @@
     if (!node || node.nodeType !== 3 || !node.nodeValue) {
       return;
     }
-    var restoredHeaderToken = restoreFixedHeaderDataToken(node.parentElement, node.nodeValue);
+    var restoredHeaderToken = restoreFixedHeaderDataToken(textContextElement(node), node.nodeValue);
     if (restoredHeaderToken !== null) {
       if (restoredHeaderToken !== node.nodeValue) {
         node.nodeValue = restoredHeaderToken;
       }
       return;
     }
-    if (isKeyValueDataElement(node.parentElement)) {
+    if (!canTranslateTextNode(node)) {
       return;
-    }
-    if (shouldSkipElement(node.parentElement)) {
-      var skippedText = normalize(node.nodeValue);
-      if (!Object.prototype.hasOwnProperty.call(EDITABLE_EXACT, skippedText)) {
-        return;
-      }
     }
     if (
       normalize(node.nodeValue).toLowerCase() === "hidden" &&
@@ -30100,21 +30024,12 @@
     }
     var translated = translate(node.nodeValue);
     if (translated !== node.nodeValue) {
-      if (shouldRecordMiss(translated)) {
-        recordMiss(node.nodeValue, "partial-source:text " + missContextOf(node.parentElement));
-        recordMiss(translated, "partial-result:text " + missContextOf(node.parentElement));
-      }
       node.nodeValue = translated;
-    } else {
-      recordMiss(node.nodeValue, "text " + missContextOf(node.parentElement));
     }
   }
 
   function translateAttributes(el) {
-    if (!el || el.nodeType !== 1) {
-      return;
-    }
-    if (isKeyValueDataElement(el)) {
+    if (!canTranslateAttributes(el)) {
       return;
     }
     for (var i = 0; i < ATTRS.length; i += 1) {
@@ -30151,13 +30066,7 @@
       }
       var translated = translate(value);
       if (translated !== value) {
-        if (shouldRecordMiss(translated)) {
-          recordMiss(value, "partial-source:attr:" + attr + " " + missContextOf(el));
-          recordMiss(translated, "partial-result:attr:" + attr + " " + missContextOf(el));
-        }
         el.setAttribute(attr, translated);
-      } else {
-        recordMiss(value, "attr:" + attr + " " + missContextOf(el));
       }
     }
   }
@@ -30196,6 +30105,9 @@
 
     for (var i = 0; i < fields.length; i += 1) {
       var field = fields[i];
+      if (!canTranslateEditableValue(field)) {
+        continue;
+      }
       var current = normalize(field.value);
       var generated = translateGeneratedEditableValue(field.value);
       if (generated !== field.value) {
@@ -30212,15 +30124,153 @@
     }
   }
 
-  var editableValueSweepTimer = null;
-  function scheduleEditableValueSweep(root) {
-    if (editableValueSweepTimer) {
-      clearTimeout(editableValueSweepTimer);
+  function containsTranslationRoot(parent, child) {
+    return parent === child || !!(parent && parent.contains && parent.contains(child));
+  }
+
+  function connectedTranslationRoot(root) {
+    if (!root || root.isConnected === false) {
+      return false;
     }
-    editableValueSweepTimer = setTimeout(function () {
-      editableValueSweepTimer = null;
-      translateEditableValues(root || document.documentElement);
-    }, 60);
+    try {
+      var doc = root.nodeType === 9 ? root : root.ownerDocument;
+      var frame = doc && doc.defaultView && doc.defaultView.frameElement;
+      if (frame && frame.isConnected === false) {
+        return false;
+      }
+    } catch (e) {}
+    return true;
+  }
+
+  function minimalTranslationRoots(roots) {
+    var result = [];
+    roots.forEach(function (root) {
+      if (!connectedTranslationRoot(root)) {
+        return;
+      }
+      for (var parent = root.parentNode; parent; parent = parent.parentNode) {
+        if (roots.has(parent)) {
+          return;
+        }
+      }
+      result.push(root);
+    });
+    return result;
+  }
+
+  function createTranslationPhase(delay, apply) {
+    return { delay: delay, apply: apply, roots: new Map(), timer: null, timerAt: 0, flushing: false };
+  }
+
+  function mergeTranslationPhaseRoot(phase, root, due, trailingDue) {
+    // 不越过 ShadowRoot 合并：父页面 walk 可发现 open root，但 closed root 依赖独立队列。
+    for (var parent = root; parent; parent = parent.parentNode) {
+      var ancestor = phase.roots.get(parent);
+      if (ancestor) {
+        ancestor.due = Math.min(ancestor.due, due);
+        ancestor.trailingDue = Math.max(ancestor.trailingDue, trailingDue);
+        return;
+      }
+    }
+    phase.roots.forEach(function (entry, child) {
+      if (containsTranslationRoot(root, child)) {
+        due = Math.min(due, entry.due);
+        trailingDue = Math.max(trailingDue, entry.trailingDue);
+        phase.roots.delete(child);
+      }
+    });
+    phase.roots.set(root, { due: due, trailingDue: trailingDue });
+  }
+
+  function armTranslationPhase(phase) {
+    if (phase.flushing) {
+      return;
+    }
+    var at = Infinity;
+    phase.roots.forEach(function (entry) { at = Math.min(at, entry.due); });
+    if (phase.timer !== null && phase.timerAt === at) {
+      return;
+    }
+    if (phase.timer !== null) {
+      clearTimeout(phase.timer);
+      phase.timer = null;
+    }
+    if (at === Infinity) {
+      return;
+    }
+    phase.timerAt = at;
+    phase.timer = setTimeout(function () {
+      phase.timer = null;
+      phase.flushing = true;
+      var pending = phase.roots;
+      phase.roots = new Map();
+      var now = Date.now();
+      try {
+        pending.forEach(function (entry, root) {
+          if (!connectedTranslationRoot(root)) {
+            return;
+          }
+          if (entry.due > now) {
+            mergeTranslationPhaseRoot(phase, root, entry.due, entry.trailingDue);
+            return;
+          }
+          // 第一轮按原期限执行；晚加入或重入的修改仍保留自己的完整重试窗口。
+          if (entry.trailingDue > now) {
+            mergeTranslationPhaseRoot(phase, root, entry.trailingDue, entry.trailingDue);
+          }
+          try { phase.apply(root); } catch (e) {}
+        });
+      } finally {
+        phase.flushing = false;
+        armTranslationPhase(phase);
+      }
+    }, Math.max(0, at - Date.now()));
+  }
+
+  function scheduleTranslationPhase(phase, root) {
+    if (!root || (root.nodeType !== 1 && root.nodeType !== 9 && root.nodeType !== 11)) {
+      return;
+    }
+    var due = Date.now() + phase.delay;
+    mergeTranslationPhaseRoot(phase, root, due, due);
+    armTranslationPhase(phase);
+  }
+
+  function repairRequestAndSearchText(root) {
+    forceRequestTypeSpecialText(root);
+    forceGlobalSearchSpecialText(root);
+  }
+
+  // 阶段沿用原有 React 重试时机；同一阶段只保留一个计时器，而非每个节点一个。
+  var editableValueSweepPhase = createTranslationPhase(60, translateEditableValues);
+  var walkRetryPhases = [
+    createTranslationPhase(80, fixPerformanceCompositeText),
+    createTranslationPhase(160, translateEditableValues),
+    createTranslationPhase(180, repairRequestAndSearchText),
+    createTranslationPhase(260, fixPerformanceCompositeText),
+    createTranslationPhase(500, translateEditableValues),
+    createTranslationPhase(520, repairRequestAndSearchText),
+    createTranslationPhase(700, fixPerformanceCompositeText)
+  ];
+  var activeEditableValuePhases = [
+    createTranslationPhase(80, translateEditableValues),
+    createTranslationPhase(240, translateEditableValues)
+  ];
+  var activeEditableCheckPhases = [
+    createTranslationPhase(80, translateActiveEditableValue),
+    createTranslationPhase(240, translateActiveEditableValue),
+    createTranslationPhase(500, translateActiveEditableValue)
+  ];
+
+  function scheduleEditableValueSweep(root) {
+    scheduleTranslationPhase(editableValueSweepPhase, root || document.documentElement);
+  }
+
+  function scheduleWalkRetries(root) {
+    scheduleEditableValueSweep(root);
+    for (var i = 0; i < walkRetryPhases.length; i += 1) {
+      scheduleTranslationPhase(walkRetryPhases[i], root);
+    }
   }
 
   function translateActiveEditableValue() {
@@ -30228,8 +30278,9 @@
       var active = document.activeElement;
       if (active && active.matches && active.matches("input,textarea")) {
         translateEditableValues(active);
-        setTimeout(function () { translateEditableValues(active); }, 80);
-        setTimeout(function () { translateEditableValues(active); }, 240);
+        for (var i = 0; i < activeEditableValuePhases.length; i += 1) {
+          scheduleTranslationPhase(activeEditableValuePhases[i], active);
+        }
       }
     } catch (e) {}
   }
@@ -30242,15 +30293,16 @@
     editableValueListenersInstalled = true;
     document.addEventListener("focusin", translateActiveEditableValue, true);
     document.addEventListener("click", function () {
-      setTimeout(translateActiveEditableValue, 80);
-      setTimeout(translateActiveEditableValue, 240);
-      setTimeout(translateActiveEditableValue, 500);
+      for (var i = 0; i < activeEditableCheckPhases.length; i += 1) {
+        scheduleTranslationPhase(activeEditableCheckPhases[i], document.documentElement);
+      }
     }, true);
     document.addEventListener("input", translateActiveEditableValue, true);
   }
 
-  function maybeTranslateEditableValue(value) {
-    if (!value || typeof value !== "string") {
+  function maybeTranslateEditableValue(value, el) {
+    // React 常先设置 value 再挂载；落位前保留原值，交给插入后的扫描判断数据区上下文。
+    if (!value || typeof value !== "string" || (el && (el.isConnected === false || !canTranslateEditableValue(el)))) {
       return value;
     }
     var generated = translateGeneratedEditableValue(value);
@@ -30278,7 +30330,7 @@
         return descriptor.get.call(this);
       },
       set: function (value) {
-        descriptor.set.call(this, maybeTranslateEditableValue(value));
+        descriptor.set.call(this, maybeTranslateEditableValue(value, this));
       }
     });
     proto.__postmanZhValuePatched = true;
@@ -30391,7 +30443,7 @@
     var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     while (walker.nextNode()) {
       var node = walker.currentNode;
-      if (isKeyValueDataElement(node.parentElement)) {
+      if (!canTranslateTextNode(node)) {
         continue;
       }
       var value = node.nodeValue || "";
@@ -30412,7 +30464,7 @@
     var elements = root.querySelectorAll("div,span,button,[role='tooltip'],[role='option'],[role='menuitem']");
     for (var j = 0; j < elements.length; j += 1) {
       var el = elements[j];
-      if (isKeyValueDataElement(el) || containsKeyValueDataElement(el)) {
+      if (!canRewriteCompositeText(el)) {
         continue;
       }
       var text = normalize(el.textContent || el.innerText || "");
@@ -30472,6 +30524,9 @@
     var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     while (walker.nextNode()) {
       var node = walker.currentNode;
+      if (!canTranslateTextNode(node)) {
+        continue;
+      }
       var nextValue = replaceValue(node.nodeValue || "");
       if (nextValue !== node.nodeValue) {
         node.nodeValue = nextValue;
@@ -30482,19 +30537,15 @@
       return;
     }
 
-    var selector = ATTRS.map(function (attr) {
-      return "[" + attr + "]";
-    }).join(",");
-    var fields = Array.prototype.slice.call(root.querySelectorAll("input,textarea"));
-    var attrNodes = selector ? Array.prototype.slice.call(root.querySelectorAll(selector)) : [];
-    var nodes = fields.concat(attrNodes);
+    // 这里只处理属性；额外枚举 input/textarea 会让带 placeholder 的节点重复进入队列。
+    var nodes = Array.prototype.slice.call(root.querySelectorAll(ATTRIBUTE_SELECTOR));
     if (root.nodeType === 1) {
       nodes.push(root);
     }
 
     for (var j = 0; j < nodes.length; j += 1) {
       var el = nodes[j];
-      if (!el || !el.getAttribute) {
+      if (!canTranslateAttributes(el) || !el.getAttribute) {
         continue;
       }
       for (var k = 0; k < ATTRS.length; k += 1) {
@@ -30527,10 +30578,7 @@
       return;
     }
 
-    var selector = ATTRS.map(function (attr) {
-      return "[" + attr + "]";
-    }).join(",");
-    var nodes = root.querySelectorAll(selector);
+    var nodes = root.querySelectorAll(ATTRIBUTE_SELECTOR);
     for (var i = 0; i < nodes.length; i += 1) {
       translateAttributes(nodes[i]);
     }
@@ -30612,7 +30660,7 @@
 
     for (var i = 0; i < images.length; i += 1) {
       var img = images[i];
-      if (!img.src || img.src.indexOf("runtime-assets.pstmn.io/onboarding/postman-screenshot.png") === -1) {
+      if (!canTranslateAttributes(img) || shouldSkipElement(img) || !img.src || img.src.indexOf("runtime-assets.pstmn.io/onboarding/postman-screenshot.png") === -1) {
         continue;
       }
       img.removeAttribute("srcset");
@@ -30641,16 +30689,7 @@
     forceRequestTypeSpecialText(root);
     forceGlobalSearchSpecialText(root);
     fixPerformanceCompositeText(root);
-    scheduleEditableValueSweep(root);
-    setTimeout(function () { translateEditableValues(root); }, 160);
-    setTimeout(function () { translateEditableValues(root); }, 500);
-    setTimeout(function () { forceRequestTypeSpecialText(root); }, 180);
-    setTimeout(function () { forceRequestTypeSpecialText(root); }, 520);
-    setTimeout(function () { forceGlobalSearchSpecialText(root); }, 180);
-    setTimeout(function () { forceGlobalSearchSpecialText(root); }, 520);
-    setTimeout(function () { fixPerformanceCompositeText(root); }, 80);
-    setTimeout(function () { fixPerformanceCompositeText(root); }, 260);
-    setTimeout(function () { fixPerformanceCompositeText(root); }, 700);
+    scheduleWalkRetries(root);
 
     if (root.nodeType === 1) {
       if (shouldSkipElement(root)) {
@@ -31870,32 +31909,65 @@
 
   var observer = null;
   function handleMutations(mutations) {
+    var addedRoots = new Set();
+    var textNodes = new Set();
+    var attributeNodes = new Set();
+    var repairRoots = new Set();
     for (var i = 0; i < mutations.length; i += 1) {
       var mutation = mutations[i];
       if (mutation.type === "characterData") {
-        translateTextNode(mutation.target);
-        fixForceCloseConfirmParagraphs(mutation.target);
-        fixCompositeTextBlocks(mutation.target);
-        forceRequestTypeSpecialText(mutation.target.parentElement || document.body || document.documentElement);
-        forceGlobalSearchSpecialText(mutation.target.parentElement || document.body || document.documentElement);
+        textNodes.add(mutation.target);
+        repairRoots.add(mutation.target.parentNode);
         continue;
       }
       if (mutation.type === "attributes") {
-        translateAttributes(mutation.target);
-        translateEditableValues(mutation.target);
-        scheduleEditableValueSweep(mutation.target);
-        fixForceCloseConfirmParagraphs(mutation.target);
-        fixCompositeTextBlocks(mutation.target);
-        forceRequestTypeSpecialText(mutation.target);
-        forceGlobalSearchSpecialText(mutation.target);
+        attributeNodes.add(mutation.target);
+        repairRoots.add(mutation.target);
         continue;
       }
       for (var j = 0; j < mutation.addedNodes.length; j += 1) {
-        walk(mutation.addedNodes[j]);
-        scheduleEditableValueSweep(mutation.addedNodes[j]);
-        fixForceCloseConfirmParagraphs(mutation.addedNodes[j]);
-        fixCompositeTextBlocks(mutation.addedNodes[j]);
-        forceGlobalSearchSpecialText(mutation.addedNodes[j]);
+        var added = mutation.addedNodes[j];
+        if (added.nodeType === 3) {
+          textNodes.add(added);
+          repairRoots.add(added.parentNode);
+        } else if (added.nodeType === 1 || added.nodeType === 9 || added.nodeType === 11) {
+          addedRoots.add(added);
+        }
+      }
+    }
+
+    // 同一批次的父子新增记录只 walk 最外层；属性/文字修补随后读取最终 DOM。
+    var roots = minimalTranslationRoots(addedRoots);
+    function coveredByWalk(node) {
+      for (var i = 0; i < roots.length; i += 1) {
+        if (containsTranslationRoot(roots[i], node)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    for (var r = 0; r < roots.length; r += 1) {
+      walk(roots[r]);
+    }
+    textNodes.forEach(function (node) {
+      if (connectedTranslationRoot(node) && !coveredByWalk(node)) {
+        translateTextNode(node);
+      }
+    });
+    attributeNodes.forEach(function (node) {
+      if (connectedTranslationRoot(node) && !coveredByWalk(node)) {
+        translateAttributes(node);
+        translateEditableValues(node);
+        scheduleEditableValueSweep(node);
+      }
+    });
+    var repairs = minimalTranslationRoots(repairRoots);
+    for (var k = 0; k < repairs.length; k += 1) {
+      if (!coveredByWalk(repairs[k])) {
+        fixForceCloseConfirmParagraphs(repairs[k]);
+        fixCompositeTextBlocks(repairs[k]);
+        repairRequestAndSearchText(repairs[k]);
+        fixPerformanceCompositeText(repairs[k]);
       }
     }
   }
@@ -31917,9 +31989,7 @@
   window.__POSTMAN_ZH_LOCALIZER__ = {
     run: run,
     translate: translate,
-    walk: walk,
-    getMisses: getMisses,
-    clearMisses: clearMisses
+    walk: walk
   };
 
   installShadowRootLocalization();

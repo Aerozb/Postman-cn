@@ -9,9 +9,6 @@
   [switch]$KeepUpdates,
   [switch]$NoVerify,
   [switch]$CleanOldVersions,
-  [switch]$Clear,
-  [Alias('out')]
-  [string]$NodeOut,
 
   [Parameter(ValueFromRemainingArguments = $true)]
   [string[]]$RemainingArguments
@@ -19,9 +16,8 @@
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
+$scriptsRoot = $PSScriptRoot
 $internalRoot = Join-Path $PSScriptRoot 'internal'
-$auditRoot = Join-Path $PSScriptRoot 'audit'
-$runtimeRoot = Join-Path $PSScriptRoot 'runtime'
 $dataRoot = Join-Path $PSScriptRoot 'data'
 $maintenanceRoot = Join-Path $PSScriptRoot 'maintenance'
 Set-Location -LiteralPath $repoRoot
@@ -30,17 +26,7 @@ try {
   [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 } catch {}
 
-# 菜单模式（双击 bat、未带命令）下，任务结束后窗口会随进程退出而消失，
-# 用户来不及看结果（会被当成"闪退"）。
-#
-# 这里**刻意使用阻塞式等待**：改为手动按回车退出，不再倒计时自动关闭
-# （2026-09-11 用户明确要求「执行完不要自动退出，搞成手动退出，不要倒计时啥的」）。
-# 早先的注释禁止 Read-Host，理由是"双击窗口会看起来卡死"；实践中相反的问题更严重
-# ——倒计时几秒关不够读整屏输出（stats 命令为此已被迫放宽到 60 秒），
-# 用户宁愿自己按键。窗口里有明确的中文提示，不会真被误认为卡死。
-#
-# 只在菜单模式下阻塞：`postman-zh.bat <命令>` 走命令行模式，
-# 直接 exit 不等待，自动化调用不受影响。
+# 只有最外层负责退出：菜单模式手动回车关闭，命令行模式直接返回退出码。
 $script:MenuMode = $false
 
 function Wait-BeforeClose {
@@ -166,6 +152,23 @@ function Assert-NodeRuntime {
   }
 }
 
+function Invoke-ChildProcess {
+  param([string]$FilePath, [string[]]$Arguments = @())
+
+  $program = Get-Command $FilePath -ErrorAction Stop
+  $previousPreference = $ErrorActionPreference
+  try {
+    # Windows PowerShell 会将原生 stderr 包成 ErrorRecord；成败仍按进程退出码。
+    $ErrorActionPreference = 'Continue'
+    $global:LASTEXITCODE = 0
+    & $program.Source @Arguments 2>&1 | ForEach-Object { Write-Host ([string]$_) }
+    $code = $global:LASTEXITCODE
+  } finally {
+    $ErrorActionPreference = $previousPreference
+  }
+  return [int]$code
+}
+
 function Invoke-NodeScript {
   param(
     [Parameter(Mandatory)][string]$ScriptPath,
@@ -175,8 +178,7 @@ function Invoke-NodeScript {
   if (-not (Test-Path -LiteralPath $ScriptPath)) {
     throw "找不到脚本：$ScriptPath"
   }
-  & node $ScriptPath @Arguments
-  Stop-WithCode $LASTEXITCODE
+  return (Invoke-ChildProcess -FilePath 'node' -Arguments (@($ScriptPath) + @($Arguments)))
 }
 
 function Invoke-PowerShellScript {
@@ -193,21 +195,58 @@ function Invoke-PowerShellScript {
     if ($Parameters.Count -gt 0) {
       throw "内部调用错误：不能同时使用参数表和透传参数。"
     }
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $ScriptPath @Arguments
-  } else {
-    & $ScriptPath @Parameters
+    return (Invoke-ChildProcess -FilePath 'powershell.exe' -Arguments (@('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $ScriptPath) + @($Arguments)))
   }
-  $code = if ($null -eq $LASTEXITCODE) { 0 } else { $LASTEXITCODE }
-  Stop-WithCode $code
+  # 无原生命令的脚本正常返回时也应为 0，避免继承上一条命令的退出码。
+  $global:LASTEXITCODE = 0
+  & $ScriptPath @Parameters | Out-Host
+  return [int]$global:LASTEXITCODE
 }
 
-function Get-NodeArguments {
-  param([string[]]$Arguments = @())
-
-  $result = @()
-  if ($NodeOut) { $result += @('--out', $NodeOut) }
-  $result += @($Arguments)
-  return $result
+function Invoke-ZhUpdateCheck {
+  Assert-NodeRuntime
+  $checkScript = Join-Path $repoRoot 'payload\zh-version-check-main.js'
+  if (-not (Test-Path -LiteralPath $checkScript)) { throw '找不到汉化版本检查脚本。' }
+  # 复用主进程实现；临时调用器仅打印状态，最终收尾前先执行 finally 清理。
+  $inline = @'
+const m = require(process.argv[2]);
+m.check(true).then((r) => {
+  if (r.status === 'disabled') { console.log('汉化版本检查已关闭。先运行 zh-updates on 再查。'); return; }
+  if (r.status === 'error') {
+    if (/rate limited/.test(r.detail || '')) { console.log('GitHub 接口访问次数暂时用尽，过一会儿会自动恢复。'); }
+    else { console.log('暂时查不到最新版本（' + (r.detail || '未知原因') + '）。'); }
+    return;
+  }
+  if (r.status === 'update-available') {
+    console.log('发现新版本 ' + r.latestVersion + '（当前 v' + (r.localVersion || '?') + '）');
+    console.log('下载地址：' + r.url);
+    return;
+  }
+  if (r.status === 'local-unpublished') {
+    console.log('当前 Postman v' + (r.localVersion || '?') + ' 对应的汉化包尚未在 GitHub 发布。');
+    console.log('最新已发布版本：' + r.latestVersion);
+    console.log('发布页：' + r.page);
+    return;
+  }
+  if (r.status === 'release-incomplete') {
+    console.log('GitHub 上的 ' + r.latestVersion + ' 汉化产物尚未上传完整，请稍后再检查。');
+    console.log('发布页：' + r.page);
+    return;
+  }
+  if (r.status === 'latest') {
+    console.log('已是 GitHub 最新已发布汉化版本（' + r.latestVersion + '）。');
+    return;
+  }
+  console.log('暂未确认 GitHub 发布状态，请稍后再试。');
+}).catch((e) => { console.log('查询失败：' + ((e && e.message) || e)); process.exit(1); });
+'@
+  $tmp = Join-Path $env:TEMP ("postman-zh-check-{0}.js" -f ([guid]::NewGuid().ToString('N')))
+  try {
+    [System.IO.File]::WriteAllText($tmp, $inline, (New-Object System.Text.UTF8Encoding $false))
+    return (Invoke-NodeScript $tmp @($checkScript))
+  } finally {
+    Remove-Item -LiteralPath $tmp -Force -ErrorAction SilentlyContinue
+  }
 }
 
 function Show-Help {
@@ -222,44 +261,16 @@ Postman 中文汉化工具
   restore       还原英文原版
   updates       查看自动更新开关；updates on 允许更新，updates off 恢复拦截（默认）
   zh-updates    查看汉化版本检查开关；zh-updates on|off 切换（默认开启），zh-updates check 立即查一次
-  collect       导出运行时收集到的漏翻；加 -Clear 清空记录，--details 查看候选明细
   verify        只验证当前 Postman 汉化状态；加 --details 查看完整诊断
+                使用 install -KeepUpdates 安装的实例，请用 verify -KeepUpdates 验证
+  test          运行离线隔离回归；加 --details 查看分项，不启动 Postman、不连接网络
   start         启动 Postman 并等待 CDP 调试端口
   stop          彻底关闭 Postman 进程
   fix-browser   修复系统浏览器 URL 参数引号
-  static-scan   扫描 UI 文案；加 --disk 扫描磁盘缓存，否则扫描运行中的页面；支持 --out、--details
   merge         合并 _generated/trans-*.json 译文；加 --check 只检查、不写入
-  probe         检查更新页面；支持 --out、--details，显式加 --screenshot 才保存截图
-  scan          扫描可点击界面；支持 --out、--details，显式加 --screenshot 才保存截图
-  audit <名称>  运行指定深度审计；支持 --details，--out 可用裸名称或 .json
   publish       调用维护者发布脚本
   stats         查看 GitHub 项目数据（Star、下载量、访问来源、热门页面）；加 --full 看完整 14 天逐日
   help          显示本帮助
-
-审计名称：
-  all-targets        全部 CDP 调试目标
-  deep-areas         深层界面
-  entry-modals       入口弹窗
-  import             导入界面
-  lightweight        轻量界面巡检
-  navigation         导航界面
-  new-collection     新建集合界面
-  new-request        新建请求界面
-  phased             分阶段完整审计
-  targeted           固定区域审计
-  targeted-surfaces  容易漏翻的重点界面
-
-高级审计默认使用受控预算。维护者需要在发布前执行高强度覆盖时，可对 new-request、navigation、deep-areas、entry-modals、phased、targeted、targeted-surfaces 和 all-targets 增加 --thorough，例如：
-  .\postman-zh.bat audit new-request --thorough
-  .\postman-zh.bat audit navigation --thorough
-  .\postman-zh.bat audit deep-areas --thorough
-  .\postman-zh.bat audit entry-modals --thorough
-  .\postman-zh.bat audit phased --thorough
-  .\postman-zh.bat audit targeted --thorough
-  .\postman-zh.bat audit targeted-surfaces --thorough
-  .\postman-zh.bat audit all-targets --thorough
-
-截图默认关闭。当前支持 --screenshot 的命令为 probe、scan，以及 lightweight、new-request、new-collection、import、navigation、deep-areas、targeted 审计。生成的 PNG 可能包含当前可见的工作区或请求内容，截图像素不会自动脱敏。
 
 安装示例：
   .\postman-zh.bat install
@@ -324,25 +335,17 @@ function Format-MenuCell {
 # 双击 postman-zh.bat（不带任何命令）时显示的交互菜单。
 # 返回值：@{ Command = '<命令>'; Arguments = @(...) }，或 $null 表示用户选择退出。
 function Show-Menu {
-  # DefaultArgs：菜单选中该项时自动补上的参数。
-  # 第 7 项必须带 --disk：不带时走 CDP 路径，而 Debugger.getScriptSource 对
-  # Postman 那几个 6 MB 级脚本单个就要 120 秒以上（2026-09-03 实测前 3 个烧掉
-  # 6 分钟），120 个根本跑不完，用户看到的就是「卡住不动」。--disk 读磁盘缓存
-  # 约 40 秒扫完 820 个资源，是唯一适合放进菜单的走法。
   $items = @(
     @{ Key = '1';  Command = 'install';     Label = '安装汉化';         Note = '打补丁、关闭更新并验证；成功后清理旧版' }
     @{ Key = '2';  Command = 'verify';      Label = '验证汉化状态';     Note = '只检查，不改动' }
     @{ Key = '3';  Command = 'restore';     Label = '还原英文原版';     Note = '撤销汉化，恢复官方英文界面' }
     @{ Key = '4';  Command = 'start';       Label = '启动 Postman';     Note = '启动并等待 CDP 调试端口' }
     @{ Key = '5';  Command = 'stop';        Label = '关闭 Postman';     Note = '循环杀干净全部进程' }
-    @{ Key = '6';  Command = 'collect';     Label = '导出运行时漏翻';   Note = '导出用户实际遇到的漏翻文案' }
-    @{ Key = '7';  Command = 'static-scan'; Label = '静态扫描界面文案'; Note = '扫出未翻译候选，供补词条'; DefaultArgs = @('--disk') }
-    @{ Key = '8';  Command = 'merge';       Label = '合并译文';         Note = '把 _generated/trans-*.json 并入词典' }
-    @{ Key = '9';  Command = 'audit';       Label = '深度审计界面';     Note = '需要再选一个审计名称' }
-    @{ Key = '10'; Command = 'updates';     Label = '自动更新开关';     Note = '默认关闭；开启后官方升级会覆盖汉化' }
-    @{ Key = '11'; Command = 'fix-browser'; Label = '修复浏览器链接';   Note = '仅在登录页外部链接异常时用' }
-    @{ Key = '12'; Command = 'publish';     Label = '发布（维护者）';   Note = '推送代码到 GitHub 并发 Release' }
-    @{ Key = '13'; Command = 'stats';       Label = '查看项目数据';     Note = 'Star、下载量、访问与克隆趋势' }
+    @{ Key = '6';  Command = 'merge';       Label = '合并译文';         Note = '把 _generated/trans-*.json 并入词典' }
+    @{ Key = '7';  Command = 'updates';     Label = '自动更新开关';     Note = '默认关闭；开启后官方升级会覆盖汉化' }
+    @{ Key = '8';  Command = 'fix-browser'; Label = '修复浏览器链接';   Note = '仅在登录页外部链接异常时用' }
+    @{ Key = '9';  Command = 'publish';     Label = '发布（维护者）';   Note = '推送代码到 GitHub 并发 Release' }
+    @{ Key = '10'; Command = 'stats';       Label = '查看项目数据';     Note = 'Star、下载量、访问与克隆趋势' }
     @{ Key = 'h';  Command = 'help';        Label = '查看完整命令帮助'; Note = '' }
     @{ Key = '0';  Command = 'exit';        Label = '退出';             Note = '不执行任何操作' }
   )
@@ -379,53 +382,7 @@ function Show-Menu {
       continue
     }
 
-    # 菜单项自带的默认参数（目前只有第 7 项的 --disk）
     $arguments = @()
-    if ($picked.ContainsKey('DefaultArgs') -and $picked.DefaultArgs) {
-      $arguments = @($picked.DefaultArgs)
-    }
-    if ($picked.Command -eq 'audit') {
-      $auditItems = @(
-        @{ Key = '1';  Name = 'lightweight';       Label = '轻量界面巡检' }
-        @{ Key = '2';  Name = 'new-request';       Label = '新建请求界面' }
-        @{ Key = '3';  Name = 'new-collection';    Label = '新建集合界面' }
-        @{ Key = '4';  Name = 'import';            Label = '导入界面' }
-        @{ Key = '5';  Name = 'navigation';        Label = '导航与设置界面' }
-        @{ Key = '6';  Name = 'deep-areas';        Label = '深层界面' }
-        @{ Key = '7';  Name = 'targeted-surfaces'; Label = '容易漏翻的重点界面' }
-        @{ Key = '8';  Name = 'entry-modals';      Label = '入口弹窗' }
-        @{ Key = '9';  Name = 'phased';            Label = '分阶段完整审计' }
-        @{ Key = '10'; Name = 'targeted';          Label = '固定区域审计' }
-        @{ Key = '11'; Name = 'all-targets';       Label = '全部调试目标' }
-      )
-
-      while ($true) {
-        Write-Host ''
-        Write-Host '=== 深度审计界面 ===' -ForegroundColor Cyan
-        Write-Host '输入序号选择审计，输入 0 返回上一级。'
-        Write-Host ''
-        foreach ($auditItem in $auditItems) {
-          Write-Host ('  {0,-3} {1}' -f $auditItem.Key, $auditItem.Label)
-        }
-        Write-Host '  0   返回上一级'
-        Write-Host ''
-
-        $auditChoice = ''
-        try { $auditChoice = (Read-Host '请选择').Trim() } catch { return $null }
-        if ($auditChoice -eq 'q' -or $auditChoice -eq 'Q') { return $null }
-        if ($auditChoice -eq '0') { break }
-
-        $auditPicked = $auditItems | Where-Object { $_.Key -eq $auditChoice } | Select-Object -First 1
-        if (-not $auditPicked) {
-          Write-Host "无效选择：$auditChoice，请重新输入。" -ForegroundColor Red
-          continue
-        }
-        $arguments = @($auditPicked.Name)
-        break
-      }
-
-      if ($arguments.Count -eq 0) { continue }
-    }
 
     if ($picked.Command -eq 'updates') {
       $currentPref = Get-UpdatePreference -Path (Get-UpdatePreferencePath)
@@ -463,25 +420,17 @@ function Show-Menu {
   }
 }
 
-try {
-  if (-not $Command) {
-    $script:MenuMode = $true
-    $selection = Show-Menu
-    if (-not $selection) { Stop-WithCode 0 }
-    $Command = $selection.Command
-    if ($selection.Arguments.Count -gt 0) {
-      $RemainingArguments = @($selection.Arguments) + @($RemainingArguments)
-    }
-  }
+function Invoke-SelectedCommand {
+  param([string]$Command, [string[]]$RemainingArguments = @())
 
-  $validCommands = @('install', 'restore', 'updates', 'zh-updates', 'collect', 'verify', 'start', 'stop', 'fix-browser', 'static-scan', 'merge', 'probe', 'scan', 'audit', 'publish', 'stats', 'help')
+  $validCommands = @('install', 'restore', 'updates', 'zh-updates', 'verify', 'test', 'start', 'stop', 'fix-browser', 'merge', 'publish', 'stats', 'help')
   if ($validCommands -notcontains $Command) {
     Write-Host "未知命令：$Command"
     Write-Host "请运行 .\postman-zh.bat help 查看可用命令。"
-    Stop-WithCode 2
+    return 2
   }
 
-  $nodeCommands = @('install', 'collect', 'verify', 'static-scan', 'merge', 'probe', 'scan', 'audit', 'stats')
+  $nodeCommands = @('install', 'verify', 'test', 'merge', 'stats')
   if ($nodeCommands -contains $Command) {
     Assert-NodeRuntime
   }
@@ -489,7 +438,7 @@ try {
   switch ($Command) {
     'help' {
       Show-Help
-      Stop-WithCode 0
+      return 0
     }
 
     'install' {
@@ -503,14 +452,14 @@ try {
       # 菜单 1（含直接回车）默认清理；命令行仍由显式参数选择。
       # 通过命名参数交给安装器，在安装/验证成功后执行，避免提前删除旧版。
       if ($CleanOldVersions -or $script:MenuMode) { $params.CleanOldVersions = $true }
-      Invoke-PowerShellScript (Join-Path $internalRoot '安装汉化.ps1') $params
+      return (Invoke-PowerShellScript (Join-Path $internalRoot '安装汉化.ps1') $params)
     }
 
     'restore' {
       $params = @{ Latest = $true; RestoreOriginal = $true }
       if ($PostmanDir) { $params.PostmanDir = $PostmanDir }
       if ($NoRestart) { $params.NoRestart = $true }
-      Invoke-PowerShellScript (Join-Path $internalRoot '安装汉化.ps1') $params
+      return (Invoke-PowerShellScript (Join-Path $internalRoot '安装汉化.ps1') $params)
     }
 
     'updates' {
@@ -532,7 +481,7 @@ try {
       } else {
         Write-Host "无法识别的参数：$($RemainingArguments[0])"
         Write-Host '用法：.\postman-zh.bat updates [on|off]'
-        Stop-WithCode 2
+        return 2
       }
     }
 
@@ -554,157 +503,86 @@ try {
         Set-ZhUpdatePreference -Path $prefPath -Enabled $false
         Write-Host '汉化版本检查已关闭。'
       } elseif (@('check', 'now') -contains $action) {
-        # 立即查一次：走 payload 里那份主进程实现，避免两套请求逻辑各写一遍
-        $checkScript = Join-Path (Split-Path -Parent $PSScriptRoot) 'payload\zh-version-check-main.js'
-        if (-not (Test-Path -LiteralPath $checkScript)) {
-          Write-Host '找不到版本检查脚本，无法查询。'
-          Stop-WithCode 1
-        }
-        # 这段只调 check(true) 并打印中文结论；不写偏好文件
-        $inline = @'
-// argv[0]=node、argv[1]=本临时脚本、argv[2] 才是传进来的实现文件路径
-const target = process.argv[2];
-if (!target) { console.log('缺少版本检查脚本路径。'); process.exit(1); }
-const m = require(target);
-m.check(true).then((r) => {
-  if (r.status === 'disabled') { console.log('汉化版本检查已关闭。先运行 zh-updates on 再查。'); return; }
-  if (r.status === 'error') {
-    if (/rate limited/.test(r.detail || '')) { console.log('GitHub 接口访问次数暂时用尽，过一会儿会自动恢复。'); }
-    else { console.log('暂时查不到最新版本（' + (r.detail || '未知原因') + '）。'); }
-    return;
-  }
-  if (r.status === 'update-available') {
-    console.log('发现新版本 ' + r.latestVersion + '（当前 v' + (r.localVersion || '?') + '）');
-    console.log('下载地址：' + r.url);
-    return;
-  }
-  if (r.status === 'local-unpublished') {
-    console.log('当前 Postman v' + (r.localVersion || '?') + ' 对应的汉化包尚未在 GitHub 发布。');
-    console.log('最新已发布版本：' + r.latestVersion);
-    console.log('发布页：' + r.page);
-    return;
-  }
-  if (r.status === 'release-incomplete') {
-    console.log('GitHub 上的 ' + r.latestVersion + ' 汉化产物尚未上传完整，请稍后再检查。');
-    console.log('发布页：' + r.page);
-    return;
-  }
-  if (r.status === 'latest') {
-    console.log('已是 GitHub 最新已发布汉化版本（' + r.latestVersion + '）。');
-    return;
-  }
-  console.log('暂未确认 GitHub 发布状态，请稍后再试。');
-}).catch((e) => { console.log('查询失败：' + ((e && e.message) || e)); process.exit(1); });
-'@
-        $tmp = Join-Path $env:TEMP ("postman-zh-check-{0}.js" -f ([guid]::NewGuid().ToString('N')))
-        try {
-          [System.IO.File]::WriteAllText($tmp, $inline, (New-Object System.Text.UTF8Encoding $false))
-          Invoke-NodeScript $tmp @($checkScript)
-        } finally {
-          Remove-Item -LiteralPath $tmp -Force -ErrorAction SilentlyContinue
-        }
+        return (Invoke-ZhUpdateCheck)
       } else {
         Write-Host "无法识别的参数：$($RemainingArguments[0])"
         Write-Host '用法：.\postman-zh.bat zh-updates [on|off|check]'
-        Stop-WithCode 2
+        return 2
       }
-    }
-
-    'collect' {
-      $nodeArgs = @($RemainingArguments)
-      if ($Clear) { $nodeArgs += '--clear' }
-      Invoke-NodeScript (Join-Path $runtimeRoot '收集漏翻.js') $nodeArgs
     }
 
     'verify' {
       $nodeArgs = @($RemainingArguments)
       if ($PostmanDir) { $nodeArgs += @('--postman-dir', $PostmanDir) }
       if (-not $KeepUpdates) { $nodeArgs += '--expect-updates-disabled' }
-      Invoke-NodeScript (Join-Path $PSScriptRoot '验证汉化.js') $nodeArgs
+      return (Invoke-NodeScript (Join-Path $scriptsRoot '验证汉化.js') $nodeArgs)
+    }
+
+    'test' {
+      $unknown = @($RemainingArguments | Where-Object { $_ -and $_ -notin @('--details', '-Details') })
+      if ($unknown.Count -gt 0) {
+        Write-Host '用法：.\postman-zh.bat test [--details]'
+        return 2
+      }
+      $details = @($RemainingArguments | Where-Object { $_ -in @('--details', '-Details') }).Count -gt 0
+      $nodeArgs = if ($details) { @('--details') } else { @() }
+      $code = Invoke-NodeScript (Join-Path $scriptsRoot '运行回归.js') $nodeArgs
+      if ($code -ne 0) { return $code }
+      $testParameters = @{}
+      if ($details) { $testParameters.Details = $true }
+      $code = Invoke-PowerShellScript (Join-Path $maintenanceRoot '验证入口进程.ps1') $testParameters
+      if ($code -ne 0) { return $code }
+      return (Invoke-PowerShellScript (Join-Path $maintenanceRoot '验证发布预检.ps1') @{})
     }
 
     'start' {
       $params = @{ TimeoutSec = $TimeoutSec }
       if ($PostmanDir) { $params.PostmanDir = $PostmanDir }
       if ($NoWait) { $params.NoWait = $true }
-      Invoke-PowerShellScript (Join-Path $internalRoot '启动程序.ps1') $params
+      return (Invoke-PowerShellScript (Join-Path $internalRoot '启动程序.ps1') $params)
     }
 
     'stop' {
-      Invoke-PowerShellScript (Join-Path $internalRoot '关闭程序.ps1') @{}
+      return (Invoke-PowerShellScript (Join-Path $internalRoot '关闭程序.ps1') @{})
     }
 
     'fix-browser' {
-      Invoke-PowerShellScript (Join-Path $internalRoot '修复浏览器链接.ps1') @{}
-    }
-
-    'static-scan' {
-      Invoke-NodeScript (Join-Path $dataRoot '提取界面文案.js') @(Get-NodeArguments $RemainingArguments)
+      return (Invoke-PowerShellScript (Join-Path $internalRoot '修复浏览器链接.ps1') @{})
     }
 
     'merge' {
-      Invoke-NodeScript (Join-Path $dataRoot '合并译文.js') @($RemainingArguments)
-    }
-
-    'probe' {
-      Invoke-NodeScript (Join-Path $runtimeRoot '探测更新页面.js') @(Get-NodeArguments $RemainingArguments)
-    }
-
-    'scan' {
-      Invoke-NodeScript (Join-Path $auditRoot '扫描可交互界面.js') @(Get-NodeArguments $RemainingArguments)
-    }
-
-    'audit' {
-      $auditNames = [ordered]@{
-        'all-targets' = '审计全部调试目标.js'
-        'deep-areas' = '审计深层界面.js'
-        'entry-modals' = '审计入口弹窗.js'
-        'import' = '审计导入界面.js'
-        'lightweight' = '审计轻量界面.js'
-        'navigation' = '审计导航界面.js'
-        'new-collection' = '审计新建集合.js'
-        'new-request' = '审计新建请求.js'
-        'phased' = '审计分阶段流程.js'
-        'targeted' = '审计指定界面.js'
-        'targeted-surfaces' = '审计易漏界面.js'
-      }
-      $auditDescriptions = [ordered]@{
-        'all-targets' = '全部 CDP 调试目标'
-        'deep-areas' = '深层界面'
-        'entry-modals' = '入口弹窗'
-        'import' = '导入界面'
-        'lightweight' = '轻量界面巡检'
-        'navigation' = '导航界面'
-        'new-collection' = '新建集合界面'
-        'new-request' = '新建请求界面'
-        'phased' = '分阶段完整审计'
-        'targeted' = '固定区域审计'
-        'targeted-surfaces' = '容易漏翻的重点界面'
-      }
-      $name = if ($RemainingArguments.Count -gt 0) { $RemainingArguments[0] } else { $null }
-      if (-not $name -or -not $auditNames.Contains($name)) {
-        Write-Host "请指定审计名称："
-        foreach ($auditName in $auditDescriptions.Keys) {
-          Write-Host ("  {0,-18} {1}" -f $auditName, $auditDescriptions[$auditName])
-        }
-        Stop-WithCode 2
-      }
-      $auditArguments = if ($RemainingArguments.Count -gt 1) { @($RemainingArguments[1..($RemainingArguments.Count - 1)]) } else { @() }
-      $nodeArgs = @(Get-NodeArguments $auditArguments)
-      Invoke-NodeScript (Join-Path $auditRoot $auditNames[$name]) $nodeArgs
+      return (Invoke-NodeScript (Join-Path $dataRoot '合并译文.js') @($RemainingArguments))
     }
 
     'publish' {
-      Invoke-PowerShellScript (Join-Path $maintenanceRoot '发布中文版.ps1') @{} @($RemainingArguments)
+      return (Invoke-PowerShellScript (Join-Path $maintenanceRoot '发布中文版.ps1') @{} @($RemainingArguments))
     }
 
     'stats' {
       # 只读 GitHub 公开数据 + 本仓库流量，走 gh CLI（认证由 gh 管，脚本里不出现令牌）
       # 输出是整屏表格，靠 Stop-WithCode 的手动等待留给用户读完。
-      Invoke-NodeScript (Join-Path $maintenanceRoot '查看项目数据.js') @($RemainingArguments)
+      return (Invoke-NodeScript (Join-Path $maintenanceRoot '查看项目数据.js') @($RemainingArguments))
     }
   }
-} catch {
-  Write-Host "[Postman 汉化] 错误：$($_.Exception.Message)" -ForegroundColor Red
-  Stop-WithCode 1
+  return 0
 }
+
+function Invoke-EntryPoint {
+  param([string]$Command, [string[]]$Arguments = @())
+
+  $script:MenuMode = -not $Command
+  try {
+    if ($script:MenuMode) {
+      $selection = Show-Menu
+      if (-not $selection) { return 0 }
+      $Command = $selection.Command
+      $Arguments = @($selection.Arguments) + @($Arguments)
+    }
+    return (Invoke-SelectedCommand -Command $Command -RemainingArguments $Arguments)
+  } catch {
+    Write-Host "[Postman 汉化] 错误：$($_.Exception.Message)" -ForegroundColor Red
+    return 1
+  }
+}
+
+Stop-WithCode -Code (Invoke-EntryPoint -Command $Command -Arguments $RemainingArguments)

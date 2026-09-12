@@ -2,18 +2,17 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
+const { randomUUID } = require("node:crypto");
 
-// All generated audit artifacts belong to the workspace sibling directory.
-// Accepting a path from the command line would otherwise let a routine audit
-// overwrite arbitrary files on the operator's machine.
-const AUDIT_GENERATED_DIR = path.resolve(__dirname, "..", "..", "..", "_generated");
+// 按需诊断产物仅写入仓库同级 _generated，不接受任意输出目录。
+const DIAGNOSTIC_GENERATED_DIR = path.resolve(__dirname, "..", "..", "..", "_generated");
 const OUTPUT_EXTENSIONS = new Set([".json", ".png"]);
 
-function ensureAuditGeneratedDir() {
-  fs.mkdirSync(AUDIT_GENERATED_DIR, { recursive: true });
+function ensureGeneratedDir() {
+  fs.mkdirSync(DIAGNOSTIC_GENERATED_DIR, { recursive: true });
   let stat;
   try {
-    stat = fs.lstatSync(AUDIT_GENERATED_DIR);
+    stat = fs.lstatSync(DIAGNOSTIC_GENERATED_DIR);
   } catch (error) {
     throw new Error(`无法访问项目同级 _generated 目录：${error.message}`);
   }
@@ -22,7 +21,7 @@ function ensureAuditGeneratedDir() {
   }
 }
 
-function validateAuditOutputName(value, fallback = "audit-report") {
+function validateOutputName(value, fallback = "diagnostic-report") {
   const requested = value == null || value === "" ? fallback : String(value).trim();
   if (!requested || requested.startsWith("--")) {
     throw new Error("--out 后必须提供文件名。只能使用 _generated 下的文件名。 ");
@@ -50,19 +49,8 @@ function validateAuditOutputName(value, fallback = "audit-report") {
   return requested;
 }
 
-function resolveAuditOutputBase(value, fallback = "audit-report") {
-  const requested = validateAuditOutputName(value, fallback);
-  const extension = path.extname(requested);
-  const stem = extension ? requested.slice(0, -extension.length) : requested;
-  if (!stem || stem === "." || stem === "..") {
-    throw new Error("--out 文件名不能为空。 ");
-  }
-  ensureAuditGeneratedDir();
-  return path.join(AUDIT_GENERATED_DIR, stem);
-}
-
-function resolveAuditOutputPath(value, fallback = "audit-report.json") {
-  const requested = validateAuditOutputName(value, fallback);
+function resolveDiagnosticOutputPath(value, fallback = "diagnostic-report.json") {
+  const requested = validateOutputName(value, fallback);
   const extension = path.extname(requested).toLowerCase();
   // Reports are JSON. A .png --out value is accepted as a convenient base
   // name and normalized to the corresponding JSON report path.
@@ -71,13 +59,11 @@ function resolveAuditOutputPath(value, fallback = "audit-report.json") {
     : extension
       ? requested
       : `${requested}.json`;
-  ensureAuditGeneratedDir();
-  return path.join(AUDIT_GENERATED_DIR, filename);
+  ensureGeneratedDir();
+  return path.join(DIAGNOSTIC_GENERATED_DIR, filename);
 }
 
-// 审计报告只能保留定位漏翻所需的短文本和计数。
-// 页面 URL 可能含 userId/teamId，DOM 快照也可能混入请求正文、响应或输入值，
-// 因此所有审计脚本在写 JSON 前都必须经过这里的裁剪。
+// 仅保留定位问题所需的短文本和计数；页面、请求与输入数据先脱敏。
 
 // 这些字段可能直接携带请求/响应正文、输入值、认证信息或 CDP 内部对象。
 // 数字和布尔值仍由 sanitizeValue 保留，避免丢掉状态码、计数等汇总信息。
@@ -86,7 +72,7 @@ const DROP_COLLECTIONS = new Set(["log", "snapshots", "actions", "entries", "axE
 const PATH_KEYS = /^(?:path|filePath|portFile|sourcePath|directory|directoryPath|rootPath|cwd|workingDirectory|workspacePath|screenshotPath)$/i;
 const OUTPUT_PATH_KEYS = /^(?:out|screenshot)$/i;
 const KEEP_FINDING_KEYS = new Set([
-  "text", "key", "kind", "attribute", "tag", "role", "count", "step", "phase", "surface", "surfaces", "phases", "tabs"
+  "text", "key", "kind", "attribute", "tag", "role", "count"
 ]);
 
 const ABSOLUTE_URL_PATTERN = /\b(?:https?|wss?|ws|file):\/\/[^\s"'<>]+/gi;
@@ -177,7 +163,7 @@ function stripKnownIdentity(value, identity, state) {
   return replaceTracked(value, pattern, "$1", state);
 }
 
-function isAuditNoiseFinding(item, identities = new Set()) {
+function isDiagnosticNoise(item, identities = new Set()) {
   const text = normalizedCandidateText(item && typeof item === "object" ? item.text : item);
   if (!text) return false;
   const attribute = String(item && typeof item === "object" && item.attribute || "").toLowerCase();
@@ -196,12 +182,6 @@ function isAuditNoiseFinding(item, identities = new Set()) {
   remainder = replaceTracked(remainder, TECHNICAL_TERM_PATTERN, " ", state);
   remainder = normalizedCandidateText(remainder);
   return state.removed && !/[A-Za-z]{2,}/.test(remainder);
-}
-
-function filterAuditFindings(value, contextValue = value) {
-  if (!Array.isArray(value)) return [];
-  const identities = contextValue instanceof Set ? contextValue : collectIdentityHints(contextValue);
-  return value.filter((item) => !isAuditNoiseFinding(item, identities));
 }
 
 function sanitizeEmbeddedUrl(value) {
@@ -287,82 +267,33 @@ function safeTarget(target) {
 }
 
 function compactFinding(item, context) {
-  // 有些审计（如「新建集合」的 probe 命中）直接往 hits 里放字符串。以前这里
-  // 一律返回 null，于是那些命中被静默丢掉、报告里 hits 永远是空数组，而脚本
-  // 自己的 hitCount 仍然在数它们，两边对不上。统一归一成 { text } 再走噪声过滤。
+  // 字符串与对象形式统一脱敏，避免短文本诊断被静默丢弃。
   if (typeof item === "string") {
-    const text = cleanText(item, 600);
+    const text = cleanText(item, context.findingTextLimit);
     if (!text) return null;
-    return isAuditNoiseFinding({ text }, context.identities) ? null : { text };
+    return isDiagnosticNoise({ text }, context.identities) ? null : { text };
   }
   if (!item || typeof item !== "object") return null;
-  if (isAuditNoiseFinding(item, context.identities)) return null;
+  if (isDiagnosticNoise(item, context.identities)) return null;
   const result = {};
   for (const key of KEEP_FINDING_KEYS) {
     if (!(key in item)) continue;
     const value = item[key];
-    if (Array.isArray(value)) {
-      result[key] = value.slice(0, 20).map((entry) => {
-        if (entry && typeof entry === "object") {
-          const compact = {};
-          for (const field of ["tabId", "tabName", "name"]) {
-            if (field in entry) compact[field] = cleanText(entry[field], 160);
-          }
-          return compact;
-        }
-        return cleanText(entry, 160);
-      });
-    }
-    else if (typeof value === "number" || typeof value === "boolean") result[key] = value;
-    else result[key] = cleanText(value, 600);
+    if (typeof value === "number" || typeof value === "boolean") result[key] = value;
+    else if (typeof value === "string") result[key] = cleanText(value, key === "text" ? context.findingTextLimit : 600);
   }
   return result;
 }
 
-function compactCollection(value, key, context) {
-  if (!Array.isArray(value)) return [];
-  if (key === "actions") {
-    return value.slice(0, 500).map((item) => {
-      if (!item || typeof item !== "object") return { ok: false };
-      const result = {};
-      for (const field of ["name", "label", "type", "surface", "phase", "spec", "reason", "ok", "successful"]) {
-        if (!(field in item)) continue;
-        result[field] = typeof item[field] === "boolean" ? item[field] : cleanText(item[field], 160);
-      }
-      return result;
-    });
-  }
-  if (key === "snapshots" || key === "log") {
-    return value.slice(0, 500).map((item) => {
-      if (!item || typeof item !== "object") return {};
-      const result = {};
-      for (const field of ["name", "step", "label", "phase", "tabId", "tabName", "hitCount", "targetCount", "overlayCount", "rootCount", "findings", "hits"]) {
-        if (!(field in item)) continue;
-        if (field === "findings" || field === "hits") {
-          result[field] = Array.isArray(item[field]) ? item[field].slice(0, 100).map((entry) => compactFinding(entry, context)).filter(Boolean) : [];
-        } else if (typeof item[field] === "number" || typeof item[field] === "boolean") {
-          result[field] = item[field];
-        } else {
-          result[field] = cleanText(item[field], 160);
-        }
-      }
-      // 步骤级 hitCount 也按脱敏后保留下来的 hits 重算，否则日志里会出现
-      // { hitCount: 1, hits: [] } 这种自相矛盾的记录。只在它原本就是 hits
-      // 长度的镜像时才动，复合计数留给脚本自己算。
-      if (
-        Array.isArray(result.hits) && Array.isArray(item.hits) &&
-        typeof result.hitCount === "number" && result.hitCount === item.hits.length
-      ) {
-        result.hitCount = result.hits.length;
-      }
-      return result;
-    });
-  }
-  // entries/targets/overlays 只保留数量；其中可能含按钮正文或用户工作区名称。
-  return { count: value.length };
+function compactFindings(value, context) {
+  // Filter first, then cap: identity noise must not consume the report's quota.
+  const entries = value.map((entry) => compactFinding(entry, context)).filter(Boolean);
+  if (context.findingLimit === null || entries.length <= context.findingLimit) return entries;
+  context.omittedEntries += entries.length - context.findingLimit;
+  return entries.slice(0, context.findingLimit);
 }
 
-function sanitizeValue(value, key = "", context = { identities: new Set() }) {
+function sanitizeValue(value, key, context) {
   if (DROP_KEYS.test(key)) {
     // 保留状态码、计数和布尔结果，但绝不保留敏感字段中的字符串/对象。
     if (typeof value === "number" || typeof value === "boolean") return value;
@@ -379,7 +310,7 @@ function sanitizeValue(value, key = "", context = { identities: new Set() }) {
   if (typeof value === "string") return cleanText(value);
   if (Array.isArray(value)) {
     const entries = key === "top"
-      ? value.filter((entry) => !isAuditNoiseFinding(entry, context.identities))
+      ? value.filter((entry) => !isDiagnosticNoise(entry, context.identities))
       : value;
     return entries.map((entry) => sanitizeValue(entry, key, context)).filter((entry) => entry !== undefined);
   }
@@ -388,7 +319,7 @@ function sanitizeValue(value, key = "", context = { identities: new Set() }) {
   const result = {};
   for (const [childKey, childValue] of Object.entries(value)) {
     if (DROP_COLLECTIONS.has(childKey) && Array.isArray(childValue)) {
-      result[childKey] = compactCollection(childValue, childKey, context);
+      result[childKey] = { count: childValue.length };
       continue;
     }
     if (childKey === "target" && childValue && typeof childValue === "object") {
@@ -396,7 +327,7 @@ function sanitizeValue(value, key = "", context = { identities: new Set() }) {
       continue;
     }
     if ((childKey === "findings" || childKey === "hits") && Array.isArray(childValue)) {
-      result[childKey] = childValue.slice(0, 500).map((entry) => compactFinding(entry, context)).filter(Boolean);
+      result[childKey] = compactFindings(childValue, context);
       continue;
     }
     const cleaned = sanitizeValue(childValue, childKey, context);
@@ -405,20 +336,30 @@ function sanitizeValue(value, key = "", context = { identities: new Set() }) {
   return result;
 }
 
-// 摘要里的计数必须和脱敏后真正写进报告的条目数一致。若沿用过滤前的原始计数，
-// 终端会说「发现 1 条待复核文本」而报告里的 hits 是空数组，维护者无法判断这条
-// 是真漏翻还是被身份噪声过滤剔掉的误报——团队名 slug（speeding-water-181381）
-// 就是这种情况，2026-08-30 实测踩到。
-function sanitizeAuditReport(report) {
-  const context = { identities: collectIdentityHints(report) };
+// 内层结果收缩成计数前，先保留已有的部分结果标记。
+function hasPartialResult(value) {
+  if (!value || typeof value !== "object") return false;
+  if (Array.isArray(value)) return value.some(hasPartialResult);
+  if (value.complete === false || value.truncated === true) return true;
+  if (value.exhausted === true) return true;
+  return ["targets", "snapshots", "shots", "log", "steps", "coverage", "budget", "timeBudget", "results"]
+    .some((key) => hasPartialResult(value[key]));
+}
+
+function sanitizeDiagnosticReport(report, { findingLimit = 500, findingTextLimit = 600 } = {}) {
+  if (findingLimit !== null && (!Number.isInteger(findingLimit) || findingLimit < 1)) {
+    throw new TypeError("findingLimit 必须是正整数或 null。");
+  }
+  if (!Number.isInteger(findingTextLimit) || findingTextLimit < 1 || findingTextLimit > 1200) {
+    throw new TypeError("findingTextLimit 必须是 1 到 1200 之间的整数。");
+  }
+  const context = { identities: collectIdentityHints(report), findingLimit, findingTextLimit, omittedEntries: 0 };
   const result = sanitizeValue(report, "", context) || {};
-  if (Array.isArray(report && report.findings) && result.summary && typeof result.summary.findings === "number") {
-    result.summary.findings = filterAuditFindings(report.findings, context.identities).length;
+  if (Array.isArray(result.findings) && result.summary && typeof result.summary.findings === "number") {
+    result.summary.findings = result.findings.length;
   }
   if (Array.isArray(result.hits) && Array.isArray(report && report.hits)) {
-    // 只在 hitCount 确实是 hits 长度的镜像时才重算。像「新建集合」那样把
-    // englishHits 和导航失败也计进去的复合计数不能被覆盖，它由脚本自己按
-    // 脱敏后的数组重算。
+    // 只修正数组长度的镜像计数，其他统计仍由调用方负责。
     const rawLength = report.hits.length;
     if (typeof result.hitCount === "number" && result.hitCount === rawLength) {
       result.hitCount = result.hits.length;
@@ -427,13 +368,19 @@ function sanitizeAuditReport(report) {
       result.summary.hitCount = result.hits.length;
     }
   }
+  if (context.omittedEntries) {
+    result.reportTruncation = {
+      omittedEntries: (Number(result.reportTruncation && result.reportTruncation.omittedEntries) || 0) + context.omittedEntries
+    };
+  }
+  if (context.omittedEntries || hasPartialResult(report)) result.complete = false;
   return result;
 }
 
-function assertAuditOutputFile(filePath, expectedExtension, label) {
+function assertOutputFile(filePath, expectedExtension, label) {
   const resolved = path.resolve(String(filePath || ""));
-  const generated = path.resolve(AUDIT_GENERATED_DIR);
-  ensureAuditGeneratedDir();
+  const generated = path.resolve(DIAGNOSTIC_GENERATED_DIR);
+  ensureGeneratedDir();
   const relative = path.relative(generated, resolved);
   if (!relative || relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
     throw new Error(`${label}路径必须位于项目同级 _generated 目录内。 `);
@@ -445,7 +392,7 @@ function assertAuditOutputFile(filePath, expectedExtension, label) {
   if (path.extname(filename).toLowerCase() !== expectedExtension) {
     throw new Error(`${label}必须使用 ${expectedExtension} 文件名。 `);
   }
-  validateAuditOutputName(filename);
+  validateOutputName(filename);
   try {
     const stat = fs.lstatSync(resolved);
     if (stat.isSymbolicLink()) {
@@ -460,29 +407,26 @@ function assertAuditOutputFile(filePath, expectedExtension, label) {
   return resolved;
 }
 
-// 返回写盘时那份**脱敏后**的报告，供调用方据此统计条数。
-// 摘要必须按这份结果计数：脱敏会剔除身份噪声（团队名 slug、头像 alt、测试 id 等），
-// 若按过滤前的数组算，就会出现"摘要说发现 1 条、报告里 hits 是空的"这种对不上的情况，
-// 维护者无从判断那条是真漏翻还是误报。见 AGENTS.md 规则 8。
-function writeAuditReport(filePath, report) {
-  const resolved = assertAuditOutputFile(filePath, ".json", "审计报告");
-  const sanitized = sanitizeAuditReport(report);
-  fs.writeFileSync(resolved, JSON.stringify(sanitized, null, 2) + "\n", "utf8");
+// 返回实际写盘的脱敏结果；调用方按它汇总，不使用过滤前的计数。
+function writeDiagnosticReport(filePath, report, options) {
+  const resolved = assertOutputFile(filePath, ".json", "诊断报告");
+  const sanitized = sanitizeDiagnosticReport(report, options);
+  // Only sanitized content reaches disk. Rename after a complete write so an
+  // interrupted export leaves the previous report intact.
+  const temporary = `${resolved}.${process.pid}-${randomUUID()}.tmp`;
+  try {
+    fs.writeFileSync(temporary, JSON.stringify(sanitized, null, 2) + "\n", { encoding: "utf8", flag: "wx" });
+    fs.renameSync(temporary, resolved);
+  } finally {
+    try { fs.unlinkSync(temporary); } catch (error) { if (error.code !== "ENOENT") throw error; }
+  }
   return sanitized;
-}
-
-// 取脱敏后报告里某个候选数组的真实长度。字段缺失按 0 处理，
-// 这样调用方可以无条件写 countAuditFindings(written, "hits")，不必各自判空。
-function countAuditFindings(sanitizedReport, field = "findings") {
-  if (!sanitizedReport || typeof sanitizedReport !== "object") return 0;
-  const value = sanitizedReport[field];
-  return Array.isArray(value) ? value.length : 0;
 }
 
 function normalizeScreenshotData(data) {
   if (Buffer.isBuffer(data)) return data;
   if (typeof data !== "string") {
-    throw new TypeError("审计截图数据必须是 Buffer 或 base64 字符串。 ");
+    throw new TypeError("诊断截图数据必须是 Buffer 或 base64 字符串。 ");
   }
   const compact = data.replace(/\s+/g, "");
   const unpadded = compact.replace(/=+$/, "");
@@ -491,203 +435,24 @@ function normalizeScreenshotData(data) {
     unpadded.includes("=") ||
     unpadded.length % 4 === 1
   ) {
-    throw new Error("审计截图数据不是合法的 base64 字符串。 ");
+    throw new Error("诊断截图数据不是合法的 base64 字符串。 ");
   }
   const decoded = Buffer.from(compact, "base64");
   if (decoded.toString("base64").replace(/=+$/, "") !== unpadded) {
-    throw new Error("审计截图数据不是合法的 base64 字符串。 ");
+    throw new Error("诊断截图数据不是合法的 base64 字符串。 ");
   }
   return decoded;
 }
 
-function writeAuditScreenshot(filePath, data) {
-  const resolved = assertAuditOutputFile(filePath, ".png", "审计截图");
+function writeDiagnosticScreenshot(filePath, data) {
+  const resolved = assertOutputFile(filePath, ".png", "诊断截图");
   fs.writeFileSync(resolved, normalizeScreenshotData(data));
 }
 
-function selfTest() {
-  const sanitized = sanitizeAuditReport({
-    target: { title: "Postman C:\\Users\\Example\\private-request", url: "https://desktop.postman.com/?userId=123&token=secret" },
-    source: { port: 12345, portFile: "C:\\Users\\Example\\Postman\\DevToolsActivePort", path: "/home/example/private" },
-    out: "C:\\Users\\Example\\_generated\\report.json",
-    screenshot: null,
-    webSocketDebuggerUrl: "ws://127.0.0.1:12345/devtools/browser/secret",
-    request: {
-      status: 200,
-      url: "https://api.example.test/items?userId=123#private",
-      headers: { Authorization: "Bearer header-secret" },
-      postData: "raw request body",
-      response: { status: 201, body: "raw response body" }
-    },
-    postData: "raw body",
-    payload: { text: "payload secret" },
-    body: "body secret",
-    inputValue: "typed secret",
-    authorization: "Bearer top-level-secret",
-    token: "top-level-token",
-    error: "读取 \"C:\\Users\\Example\\secret.txt\"；UNC \\\\server\\share\\secret.txt；Unix /home/example/private.txt；Authorization: Bearer error-secret；ws://127.0.0.1:12345/devtools/browser/secret；https://api.example.test/?token=url-secret",
-    requestBody: "secret body",
-    summary: { snapshots: 3, actions: 2, findings: 1 },
-    actions: [{ name: "open", ok: true, target: { inputValue: "secret" } }],
-    findings: [
-      { text: "Open https://example.test/path?token=finding-secret", count: 1 },
-      { text: '{"requestBody":"this is a long private body that must not be written to the audit report","name":"secret"}', count: 1 }
-    ]
-  });
-  const serialized = JSON.stringify(sanitized);
-  const filtered = sanitizeAuditReport({
-    summary: { findings: 26 },
-    snapshots: [{
-      name: "identity-context",
-      hits: [
-        { text: "example-user 的头像", kind: "attribute", attribute: "aria-label" },
-        { text: "demo-team-181381 团队标志", kind: "attribute", attribute: "alt" }
-      ]
-    }],
-    findings: [
-      { text: "button", kind: "ax-role" },
-      { text: "menuitem", kind: "text" },
-      { text: "aether-button-tooltip", kind: "attribute", attribute: "data-aether-id" },
-      { text: "request-editor-tab--body", kind: "attribute", attribute: "data-testid" },
-      { text: "env-filter-select-trigger-prod", kind: "text" },
-      { text: "WORKSPACE-README.md", kind: "text" },
-      { text: "邀请 .trial_button { background: #fff; color: black; } 企业试用", kind: "text" },
-      { text: "example-user", kind: "text" },
-      { text: "demo-team-181381", kind: "text" },
-      { text: "example-user 的头像", kind: "attribute", attribute: "aria-label" },
-      { text: "demo-team-181381 团队标志", kind: "attribute", attribute: "alt" },
-      { text: "example-user，你今天想如何使用 Postman？", kind: "text" },
-      { text: "使用现有 Playwright 测试验证 API 行为", kind: "text" },
-      { text: "返回（Alt+左方向键）", kind: "attribute", attribute: "aria-label" },
-      { text: "GET 未命名请求", kind: "text" },
-      { text: "example-user demo@example.test", kind: "text" },
-      { text: "example-user （你）", kind: "text" },
-      { text: "Open request", kind: "text" },
-      { text: "Can access", kind: "text" },
-      { text: "Create a button", kind: "text" },
-      { text: "Open WORKSPACE-README.md", kind: "text" },
-      { text: "Edit CSS styles", kind: "text" },
-      { text: "Manage example-user workspace", kind: "text" },
-      { text: "Request editor", kind: "text" },
-      { text: "Environment filter", kind: "text" },
-      { text: "Aether integration", kind: "text" }
-    ]
-  });
-  const filteredTexts = filtered.findings.map((item) => item.text);
-  const greetingFiltered = sanitizeAuditReport({
-    summary: { findings: 3 },
-    findings: [
-      { text: "sample-user，你今天想如何使用 Postman？", kind: "text" },
-      { text: "sample-user", kind: "text" },
-      { text: "No environment", kind: "text" }
-    ]
-  });
-  const checks = [
-    [sanitized.summary.snapshots, 3],
-    [sanitized.summary.actions, 2],
-    [sanitized.summary.findings, 2],
-    [sanitized.target.title, "Postman [本机路径已隐藏]"],
-    [sanitized.target.url, "https://desktop.postman.com/"],
-    [sanitized.out, "report.json"],
-    [sanitized.screenshot, null],
-    [sanitized.source.port, 12345],
-    [sanitized.request.status, 200],
-    [sanitized.request.response.status, 201],
-    [sanitized.findings[0].text, "Open https://example.test/path"],
-    [sanitized.findings.length, 2],
-    [sanitized.findings[1].text, "[疑似请求/响应正文已隐藏]"],
-    [sanitizeUrl("wss://127.0.0.1:12345/devtools/browser/secret"), "[WebSocket 地址已隐藏]"],
-    [sanitizeUrl("https://example.test/path?token=secret#fragment"), "https://example.test/path"],
-    [sanitized.source.portFile, undefined],
-    [sanitized.request.headers, undefined],
-    [sanitized.request.postData, undefined],
-    [sanitized.request.response.body, undefined],
-    [sanitized.postData, undefined],
-    [sanitized.payload, undefined],
-    [sanitized.body, undefined],
-    [sanitized.inputValue, undefined],
-    [sanitized.authorization, undefined],
-    [sanitized.token, undefined],
-    [/C:\\\\Users|\\\\\\\\server\\share|\/home\/example|userId=|token=|ws:\/\/|Bearer\s+(?:header|top-level|error)-secret|raw (?:request|response)? body|secret\.txt/i.test(serialized), false],
-    [filtered.summary.findings, 9],
-    [filtered.findings.length, 9],
-    [filtered.snapshots[0].hits.length, 0],
-    [filteredTexts.includes("button"), false],
-    [filteredTexts.includes("menuitem"), false],
-    [filteredTexts.includes("aether-button-tooltip"), false],
-    [filteredTexts.includes("request-editor-tab--body"), false],
-    [filteredTexts.includes("env-filter-select-trigger-prod"), false],
-    [filteredTexts.includes("WORKSPACE-README.md"), false],
-    [filteredTexts.some((text) => text.includes("background: #fff")), false],
-    [filteredTexts.includes("example-user"), false],
-    [filteredTexts.includes("demo-team-181381"), false],
-    [filteredTexts.includes("Open request"), true],
-    [filteredTexts.includes("Can access"), true],
-    [filteredTexts.includes("Create a button"), true],
-    [filteredTexts.includes("Open WORKSPACE-README.md"), true],
-    [filteredTexts.includes("Edit CSS styles"), true],
-    [filteredTexts.includes("Manage example-user workspace"), true],
-    [filteredTexts.includes("Request editor"), true],
-    [filteredTexts.includes("Environment filter"), true],
-    [filteredTexts.includes("Aether integration"), true],
-    [isAuditNoiseFinding({ text: "Link", kind: "text" }), false],
-    [isAuditNoiseFinding({ text: "Image", kind: "text" }), false],
-    [isAuditNoiseFinding({ text: "link", kind: "ax-role" }), true],
-    [isAuditNoiseFinding({ text: "image", kind: "attribute", attribute: "role" }), true],
-    [greetingFiltered.summary.findings, 1],
-    [greetingFiltered.findings.length, 1],
-    [greetingFiltered.findings[0].text, "No environment"]
-  ];
-  const generated = AUDIT_GENERATED_DIR;
-  const outputPathChecks = [
-    [resolveAuditOutputPath("自检报告"), path.join(generated, "自检报告.json")],
-    [resolveAuditOutputPath("自检报告.png"), path.join(generated, "自检报告.json")],
-    [resolveAuditOutputBase("自检报告.json"), path.join(generated, "自检报告")]
-  ];
-  for (const [actual, expected] of outputPathChecks) checks.push([actual, expected]);
-  for (const invalid of ["../逃逸.json", "..\\逃逸.json", "C:\\逃逸.json", "/tmp/逃逸.json", "目录/报告.json", "报告.txt", "报告:数据流.json"]) {
-    let rejected = false;
-    try { resolveAuditOutputPath(invalid); } catch (_) { rejected = true; }
-    checks.push([rejected, true]);
-  }
-  let escapedWriteRejected = false;
-  try { writeAuditReport(path.join(generated, "..", "逃逸.json"), {}); } catch (_) { escapedWriteRejected = true; }
-  checks.push([escapedWriteRejected, true]);
-  let nestedWriteRejected = false;
-  try { writeAuditReport(path.join(generated, "子目录", "嵌套.json"), {}); } catch (_) { nestedWriteRejected = true; }
-  checks.push([nestedWriteRejected, true]);
-  checks.push([assertAuditOutputFile(path.join(generated, "自检截图.png"), ".png", "审计截图"), path.join(generated, "自检截图.png")]);
-  checks.push([normalizeScreenshotData(Buffer.from([0x89, 0x50, 0x4e, 0x47])).toString("hex"), "89504e47"]);
-  checks.push([normalizeScreenshotData("iVBORw==").toString("hex"), "89504e47"]);
-  for (const [invalidPath, data] of [
-    [path.join(generated, "..", "逃逸.png"), "iVBORw=="],
-    [path.join(generated, "子目录", "嵌套.png"), "iVBORw=="],
-    [path.join(generated, "自检截图.png:数据流"), "iVBORw=="],
-    [path.join(generated, "自检截图.json"), "iVBORw=="],
-    [path.join(generated, "自检截图.png"), { data: "iVBORw==" }],
-    [path.join(generated, "自检截图.png"), "不是 base64"]
-  ]) {
-    let rejected = false;
-    try { writeAuditScreenshot(invalidPath, data); } catch (_) { rejected = true; }
-    checks.push([rejected, true]);
-  }
-  const failed = checks.filter(([actual, expected]) => actual !== expected);
-  if (failed.length) throw new Error(`自检失败，共 ${failed.length} 项不符合预期。`);
-  console.log(`审计报告脱敏自检通过，共 ${checks.length} 项。`);
-}
-
-if (require.main === module) selfTest();
-
 module.exports = {
-  AUDIT_GENERATED_DIR,
-  sanitizeAuditReport,
-  filterAuditFindings,
-  isAuditNoiseFinding,
-  sanitizeUrl,
-  safeTarget,
-  validateAuditOutputName,
-  resolveAuditOutputBase,
-  resolveAuditOutputPath,
-  writeAuditReport,
-  writeAuditScreenshot
+  DIAGNOSTIC_GENERATED_DIR,
+  resolveDiagnosticOutputPath,
+  sanitizeDiagnosticReport,
+  writeDiagnosticReport,
+  writeDiagnosticScreenshot
 };
