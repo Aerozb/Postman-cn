@@ -49,6 +49,7 @@ async function main() {
     ["词典读取与翻译样例", () => require("./runtime/验证词典工具.js").runDictionaryTests()],
     ["数据保护与翻译调度", () => require("./runtime/验证翻译调度.js").runLocalizationRuntimeTests()],
     ["CDP 与诊断输出", () => require("./runtime/验证诊断工具.js").runDiagnosticTests()],
+    ["实机验证就绪轮询", () => require("./runtime/验证页面就绪.js").runPageReadinessTests()],
     ["汉化版本检查", () => require("./runtime/验证版本检查.js").runVersionCheckTests()],
     ["版本检查界面", () => require("./runtime/验证版本检查界面.js").runVersionCheckUiTests()],
     ["跨站子帧注入", () => require("./runtime/验证跨帧注入.js").runOopifInjectTests()]

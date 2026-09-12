@@ -40,7 +40,7 @@ param(
   [switch]$KeepArtifacts,
   # 指定要打包的 Postman 版本目录名，默认自动取最新的 app-*
   [string]$AppDir,
-  # Release 标签，默认 v<版本号>
+  # Release 标签，必须与包内版本对应；默认 v<版本号>
   [string]$Tag
 )
 
@@ -196,6 +196,67 @@ function Initialize-PublishNetwork {
   } catch {
     Write-Warn2 '读取系统代理失败，继续使用当前网络设置。'
   }
+}
+
+# 只读取 ASAR 的 Pickle 文件头、JSON 索引及 package.json，不解包、不写临时文件。
+# 流由调用方持有；离线回归可传入内存 ASAR，避免读取真实安装目录。
+function Read-PublishAsarPackage {
+  param([Parameter(Mandatory)][System.IO.Stream]$Stream)
+  $reader = $null
+  try {
+    if (-not $Stream.CanRead -or -not $Stream.CanSeek -or $Stream.Length -lt 16) { throw '无效的 ASAR 流' }
+    $utf8 = [System.Text.UTF8Encoding]::new($false, $true)
+    $reader = [System.IO.BinaryReader]::new($Stream, $utf8, $true)
+    $Stream.Position = 0
+    $sizePayload = $reader.ReadUInt32()
+    $headerSize = $reader.ReadUInt32()
+    $headerPayload = $reader.ReadUInt32()
+    $jsonSize = $reader.ReadUInt32()
+    if ($sizePayload -ne 4 -or $headerSize -lt 8 -or $headerSize -gt 16MB -or
+        ($headerSize % 4) -ne 0 -or $headerPayload -ne ($headerSize - 4) -or
+        $jsonSize -eq 0 -or $jsonSize -gt ($headerSize - 8) -or
+        ($headerSize - 8 - $jsonSize) -gt 3 -or (8L + $headerSize) -gt $Stream.Length) {
+      throw '无效的 ASAR 文件头'
+    }
+    $headerJson = $utf8.GetString($reader.ReadBytes([int]$jsonSize))
+    if (-not $headerJson.TrimStart().StartsWith('{')) { throw '无效的 ASAR 索引对象' }
+    $header = $headerJson | ConvertFrom-Json -ErrorAction Stop
+    $entry = $header.files.'package.json'
+    if ($null -eq $entry -or $entry.unpacked -or $null -ne $entry.link -or
+        ($entry.size -isnot [int] -and $entry.size -isnot [long]) -or
+        $entry.size -le 0 -or $entry.size -gt 1MB -or
+        $entry.offset -isnot [string] -or $entry.offset -notmatch '^(0|[1-9][0-9]*)\z') {
+      throw '无效的 package.json 索引'
+    }
+    $dataStart = 8L + $headerSize
+    $offset = [long]$entry.offset
+    if ($offset -gt ($Stream.Length - $dataStart - $entry.size)) { throw 'package.json 内容越界' }
+    $Stream.Position = $dataStart + $offset
+    $packageJson = $utf8.GetString($reader.ReadBytes([int]$entry.size))
+    if (-not $packageJson.TrimStart().StartsWith('{')) { throw '无效的 package.json 对象' }
+    return ($packageJson | ConvertFrom-Json -ErrorAction Stop)
+  } catch {
+    throw 'app.asar 的 package.json 读取失败：文件头、索引或内容异常。'
+  } finally {
+    if ($reader) { $reader.Dispose() }
+  }
+}
+
+function Get-PublishVersion {
+  param([string]$AppDirectoryName, [object]$Package, [string]$ReleaseTag)
+  if ($null -eq $Package -or $Package.name -isnot [string] -or $Package.name -cne 'Postman' -or
+      $Package.version -isnot [string] -or $Package.version -notmatch '^[0-9]+(?:\.[0-9]+){1,3}\z') {
+    throw 'app.asar 的 package.json 不是有效的 Postman 稳定版本。'
+  }
+  $packageVersion = $Package.version
+  if ($AppDirectoryName -cne "app-$packageVersion") {
+    throw "版本目录 $AppDirectoryName 与 app.asar 包内版本 $packageVersion 不一致。"
+  }
+  $expectedTag = "v$packageVersion"
+  if ($ReleaseTag -and $ReleaseTag -cne $expectedTag) {
+    throw "Release 标签 $ReleaseTag 与 app.asar 包内版本不一致；应为 $expectedTag。"
+  }
+  return [pscustomobject]@{ Version = $packageVersion; Tag = $expectedTag }
 }
 
 if ($TestOnly) {
@@ -475,17 +536,30 @@ if ($AppDir) {
            Sort-Object { try { [version]($_.Name -replace '^app-','') } catch { [version]'0.0.0' } } -Descending
   if ($cands) { $appPath = $cands[0].FullName }
 }
-if (-not $appPath -or -not (Test-Path -LiteralPath $appPath)) {
+if (-not $appPath -or -not (Test-Path -LiteralPath $appPath -PathType Container)) {
   Write-Bad "找不到 Postman 版本目录（$postmanRoot\app-*）"
   $problems.Add('Postman 版本目录不存在')
 } else {
-  $version = (Split-Path -Leaf $appPath) -replace '^app-',''
   $asar = Join-Path $appPath 'resources\app.asar'
   if (-not (Test-Path -LiteralPath $asar)) {
     Write-Bad "找不到 app.asar：$asar"
     $problems.Add('app.asar 不存在')
   } else {
-    Write-Ok "待发布版本：$version（$appPath）"
+    $asarStream = $null
+    try {
+      $asarStream = [System.IO.File]::OpenRead($asar)
+      $package = Read-PublishAsarPackage -Stream $asarStream
+      $releaseVersion = Get-PublishVersion -AppDirectoryName (Get-Item -LiteralPath $appPath).Name -Package $package -ReleaseTag $Tag
+      $version = $releaseVersion.Version
+      $Tag = $releaseVersion.Tag
+      Write-Ok "待发布版本：$version（$appPath）"
+      Write-Ok "目录、app.asar 包内版本与 Release 标签一致（$Tag）"
+    } catch {
+      Write-Bad $_.Exception.Message
+      $problems.Add($_.Exception.Message)
+    } finally {
+      if ($asarStream) { $asarStream.Dispose() }
+    }
     # 校验确实打过汉化补丁，别把英文原版发出去
     if (Test-BinaryContains -Path $asar -Needle 'postman-zh-localizer') { Write-Ok 'app.asar 已含汉化补丁标记' }
     else {
@@ -524,8 +598,6 @@ if ($problems.Count -gt 0) {
 Write-Host "  全部通过，可以发布。" -ForegroundColor Green
 
 if ($CheckOnly) { Write-Host ""; Write-Host "（-CheckOnly 模式，未做任何改动）" -ForegroundColor Gray; exit 0 }
-
-if (-not $Tag) { $Tag = "v$version" }
 
 # =====================================================================
 # 阶段 2：推送代码
@@ -711,7 +783,7 @@ $exists = ($existingRelease.Code -eq 0)
 
 if ($exists) {
   if (-not $ReplaceRelease) {
-    Write-Warn2 "Release $Tag 已存在。加 -ReplaceRelease 覆盖它，或用 -Tag 指定别的标签。"
+    Write-Warn2 "Release $Tag 已存在。确认需要重建同版本发布时加 -ReplaceRelease。"
     Write-Info "现有资产将保留不变；本次已生成的文件在：$outDir"
     exit 1
   }
@@ -751,10 +823,11 @@ Postman 中文汉化版 $version
 
 ## 本次维护
 
-- 工具链收拢为「当前官方 i18n + 用户截图反馈」两条维护主线，精简菜单、AGENTS 与维护文档
-- 移除自动巡检、缓存扫词、更新页探测及被动漏翻收集；历史漏翻记录保持原样
-- 保留实时 DOM 翻译、菜单及跨帧注入，优化重复扫描和延迟任务，修复同址子帧刷新与失败重试
-- 加强请求数据、代码区和输入值保护，统一词典读取、合并和统计，并增加离线回归入口
+- 基于官方 Postman $version Windows x64 完整包重新安装汉化，本地保留匹配版本的英文原版备份
+- 重新抓取并复核当前官方 i18n 资源和真实翻译输出；官方资源用于取材，仍由运行时词典完成汉化
+- 修复首次升级菜单延迟初始化导致的验证误报，按实际就绪状态轮询；支持独立数据目录启动旧版回归
+- 发布匹配同一 Postman 版本的完整绿色包和 app.asar，预检校验包内版本、版本目录与 Release 标签一致
+- 保留两个独立更新开关：Postman 官方更新默认关闭，汉化版本检查默认开启且只提示，不自动下载安装
 
 ## 使用说明
 

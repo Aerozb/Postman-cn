@@ -73,6 +73,9 @@ function Stop-PostmanCompletely {
 }
 
 function Get-PostmanPortFile {
+  param([string]$UserDataDir = '')
+
+  if ($UserDataDir) { return Join-Path $UserDataDir 'DevToolsActivePort' }
   if (-not $env:APPDATA) { throw '未设置 APPDATA，找不到 Postman 调试端口文件。' }
   return Join-Path $env:APPDATA 'Postman\DevToolsActivePort'
 }
@@ -117,15 +120,23 @@ function Start-PostmanDebugSession {
   param(
     [Parameter(Mandatory)][string]$FilePath,
     [ValidateRange(1, 3600)][int]$TimeoutSec = 60,
-    [switch]$NoWait
+    [switch]$NoWait,
+    [string]$UserDataDir = ''
   )
 
-  $portFile = Get-PostmanPortFile
+  $arguments = @('--remote-debugging-port=0')
+  if ($UserDataDir) {
+    $UserDataDir = [IO.Path]::GetFullPath($UserDataDir)
+    # Postman 在单实例锁之前读取此参数；目录先创建，避免 app.setPath 失败。
+    New-Item -ItemType Directory -Path $UserDataDir -Force | Out-Null
+    $arguments += "--user-data-path=$UserDataDir"
+  }
+  $portFile = Get-PostmanPortFile -UserDataDir $UserDataDir
   if (Test-Path -LiteralPath $portFile) {
     Remove-Item -LiteralPath $portFile -Force -ErrorAction Stop
   }
   Write-Host "[Postman 汉化] 正在启动：$FilePath"
-  Start-PostmanDetached -FilePath $FilePath -ArgumentList '--remote-debugging-port=0'
+  Start-PostmanDetached -FilePath $FilePath -ArgumentList $arguments
   if ($NoWait) {
     Write-Host "[Postman 汉化] 已启动；已按 -NoWait 跳过等待。端口文件将写入：$portFile"
     return

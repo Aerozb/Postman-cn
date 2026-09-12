@@ -51,6 +51,7 @@ $stopCalls = @($entryAst.FindAll({ param($node)
 Assert-Test ($stopCalls.Count -eq 1 -and $entryCall -match '^Stop-WithCode ') '统一入口只有一个最外层收尾调用'
 $entryParameters = @($entryAst.ParamBlock.Parameters.Name.VariablePath.UserPath)
 Assert-Test ($entryParameters -notcontains 'Clear' -and $entryParameters -notcontains 'NodeOut') '入口已清除旧扫描专属参数'
+Assert-Test ($entryParameters -contains 'UserDataDir') '入口支持显式独立数据目录'
 
 # 执行真实入口末行；仅把边界调用换成桩，检查全部命令的退出码和收尾次数。
 & {
@@ -169,16 +170,20 @@ Assert-Test ($entryParameters -notcontains 'Clear' -and $entryParameters -notcon
   Reset-EntryFixture
   [void](Invoke-EntryFixture 'install')
   Assert-Test (-not $script:Fixture.Calls[0].Parameters.ContainsKey('CleanOldVersions')) '命令行安装默认保留旧版'
+  Reset-EntryFixture
+  [void](Invoke-EntryFixture 'start')
+  Assert-Test (-not $script:Fixture.Calls[0].Parameters.ContainsKey('UserDataDir')) '默认启动不改数据目录'
 
   $PostmanDir = 'fixture-app'; $NoRestart = $true; $NoVerify = $true; $KeepUpdates = $true
   Reset-EntryFixture
   [void](Invoke-EntryFixture 'install')
   $passed = $script:Fixture.Calls[0].Parameters
   Assert-Test ($passed.NoRestart -and -not $passed.Verify -and -not $passed.DisableUpdates -and $passed.PostmanDir -eq $PostmanDir) '安装命名参数原样透传'
-  $TimeoutSec = 90; $NoWait = $true
+  $TimeoutSec = 90; $NoWait = $true; $UserDataDir = 'C:\fixture profile\Postman'
   Reset-EntryFixture
   [void](Invoke-EntryFixture 'start')
   Assert-Test ($script:Fixture.Calls[0].Parameters.NoWait -and $script:Fixture.Calls[0].Parameters.TimeoutSec -eq 90) '启动 NoWait 和超时透传'
+  Assert-Test ($script:Fixture.Calls[0].Parameters.UserDataDir -eq $UserDataDir) '启动独立数据目录原样透传'
   Reset-EntryFixture
   [void](Invoke-EntryFixture 'verify' @('--details'))
   Assert-Test (($script:Fixture.Calls[0].Arguments -join '|') -eq '--details|--postman-dir|fixture-app') '验证目录、KeepUpdates 和 details 透传'
@@ -340,11 +345,16 @@ $stopText = $stopText.Remove($start, $exitStatement.Extent.Text.Length).Insert($
 
 & {
   function Write-Host { param($Object, $ForegroundColor, [switch]$NoNewline) }
-  function Get-PostmanPortFile { return 'memory:port' }
+  function Get-PostmanPortFile {
+    param($UserDataDir)
+    if ($UserDataDir) { return Join-Path $UserDataDir 'DevToolsActivePort' }
+    return 'memory:port'
+  }
   function Test-Path { param($LiteralPath); return $true }
-  function Remove-Item { param($LiteralPath, [switch]$Force, $ErrorAction); $script:Calls.Add('clear') }
-  function Start-PostmanDetached { param($FilePath, $ArgumentList); $script:Calls.Add("start:$ArgumentList") }
-  function Wait-PostmanReady { param($TimeoutSec, $PortFile); $script:Calls.Add("wait:$TimeoutSec"); return 40101 }
+  function New-Item { param($ItemType, $Path, [switch]$Force); $script:Calls.Add('mkdir'); $script:CreatedProfile = $Path }
+  function Remove-Item { param($LiteralPath, [switch]$Force, $ErrorAction); $script:Calls.Add('clear'); $script:ClearedPort = $LiteralPath }
+  function Start-PostmanDetached { param($FilePath, $ArgumentList); $script:Calls.Add("start:$ArgumentList"); $script:LaunchArguments = @($ArgumentList) }
+  function Wait-PostmanReady { param($TimeoutSec, $PortFile); $script:Calls.Add("wait:$TimeoutSec"); $script:WaitedPort = $PortFile; return 40101 }
   foreach ($noWait in @($false, $true)) {
     $script:Calls = New-Object 'System.Collections.Generic.List[string]'
     Start-PostmanDebugSession -FilePath 'memory:Postman.exe' -TimeoutSec 90 -NoWait:$noWait
@@ -352,6 +362,34 @@ $stopText = $stopText.Remove($start, $exitStatement.Extent.Text.Length).Insert($
     if (-not $noWait) { $expected += ',wait:90' }
     Assert-Test (($script:Calls -join ',') -eq $expected) "调试启动清旧端口、随机端口与 NoWait=$noWait 的调用顺序"
   }
+  foreach ($noWait in @($false, $true)) {
+    $script:Calls = New-Object 'System.Collections.Generic.List[string]'
+    $script:CreatedProfile = ''; $script:ClearedPort = ''; $script:WaitedPort = ''
+    $profile = 'C:\fixture profile\Postman'
+    Start-PostmanDebugSession -FilePath 'memory:Postman.exe' -TimeoutSec 90 -NoWait:$noWait -UserDataDir $profile
+    $expected = "mkdir,clear,start:--remote-debugging-port=0 --user-data-path=$profile"
+    if (-not $noWait) { $expected += ',wait:90' }
+    Assert-Test (($script:Calls -join ',') -eq $expected) "独立目录先创建再启动，保留 NoWait=$noWait 语义"
+    Assert-Test ($script:CreatedProfile -eq $profile -and $script:ClearedPort -eq "$profile\DevToolsActivePort") '独立启动只清理目标目录的旧端口'
+    Assert-Test ($script:LaunchArguments.Count -eq 2 -and $script:LaunchArguments[1] -eq "--user-data-path=$profile") '含空格的数据目录作为单个启动参数'
+    $expectedPort = if ($noWait) { '' } else { "$profile\DevToolsActivePort" }
+    Assert-Test ($script:WaitedPort -eq $expectedPort) '独立启动轮询使用同一个数据目录'
+  }
+}
+
+Assert-Test ((Get-PostmanPortFile -UserDataDir 'C:\fixture profile\Postman') -eq 'C:\fixture profile\Postman\DevToolsActivePort') '显式数据目录优先定位调试端口'
+Assert-Test ((Get-PostmanPortFile) -eq (Join-Path $env:APPDATA 'Postman\DevToolsActivePort')) '默认端口文件位置保持不变'
+Assert-Test ((ConvertTo-NativeArgument '--user-data-path=C:\fixture profile\Postman') -eq '"--user-data-path=C:\fixture profile\Postman"') '含空格的数据目录传给 Windows 启动器时正确加引号'
+
+$startupAst = Read-TestAst (Join-Path $internalRoot '启动程序.ps1')
+& {
+  function Start-PostmanDebugSession {
+    param($FilePath, $TimeoutSec, [switch]$NoWait, $UserDataDir)
+    $script:StartupArguments = @{ FilePath = $FilePath; TimeoutSec = $TimeoutSec; NoWait = $NoWait; UserDataDir = $UserDataDir }
+  }
+  $exe = 'memory:Postman.exe'; $TimeoutSec = 91; $NoWait = $true; $UserDataDir = 'C:\fixture profile\Postman'
+  & ([scriptblock]::Create($startupAst.EndBlock.Statements[-1].Extent.Text))
+  Assert-Test ($script:StartupArguments.FilePath -eq $exe -and $script:StartupArguments.TimeoutSec -eq 91 -and $script:StartupArguments.NoWait -and $script:StartupArguments.UserDataDir -eq $UserDataDir) '启动脚本把独立数据目录交给共享调试启动器'
 }
 
 $installerAst = Read-TestAst (Join-Path $internalRoot '安装汉化.ps1')

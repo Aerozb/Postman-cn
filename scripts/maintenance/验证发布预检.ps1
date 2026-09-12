@@ -9,7 +9,8 @@ if ($parseErrors.Count) { throw '发布脚本语法检查失败。' }
 $functionNames = @(
   'Get-GitHubFailureKind', 'Get-GitHubFailureMessage', 'Invoke-GitHubRead',
   'Read-GitHubJson', 'Get-PublishGitHubIdentity', 'Get-PublishGitHubRepository',
-  'Get-PublishSystemProxy', 'Initialize-PublishNetwork'
+  'Get-PublishSystemProxy', 'Initialize-PublishNetwork',
+  'Read-PublishAsarPackage', 'Get-PublishVersion'
 )
 foreach ($name in $functionNames) {
   $definition = $ast.Find({ param($node)
@@ -59,6 +60,85 @@ function Assert-Throws([scriptblock]$Action, [string]$Pattern, [string]$Name) {
 }
 function New-ProxySettings([string]$Server, [int]$Enabled = 1, [string]$Bypass = '<local>;*.example.invalid') {
   return [pscustomobject]@{ ProxyEnable = $Enabled; ProxyServer = $Server; ProxyOverride = $Bypass }
+}
+
+# 与真实 ASAR 相同的 Pickle 头部和偏移；前置另一文件的数据，覆盖非零偏移。
+function New-PublishAsarFixture {
+  param(
+    [string]$PackageJson = '{"name":"Postman","version":"12.27.6","description":"中文清单"}',
+    [hashtable]$EntryOverrides = @{},
+    [switch]$MissingPackage
+  )
+  $utf8 = [System.Text.UTF8Encoding]::new($false)
+  $packageBytes = $utf8.GetBytes($PackageJson)
+  $prefix = $utf8.GetBytes('other-file-data')
+  $entry = @{ size = $packageBytes.Length; offset = [string]$prefix.Length }
+  foreach ($key in $EntryOverrides.Keys) { $entry[$key] = $EntryOverrides[$key] }
+  $files = @{}
+  if (-not $MissingPackage) { $files['package.json'] = $entry }
+  $headerBytes = $utf8.GetBytes((@{ files = $files } | ConvertTo-Json -Depth 5 -Compress))
+  $padding = (4 - ($headerBytes.Length % 4)) % 4
+  $headerSize = 8 + $headerBytes.Length + $padding
+  $stream = [System.IO.MemoryStream]::new()
+  $writer = [System.IO.BinaryWriter]::new($stream, $utf8, $true)
+  try {
+    $writer.Write([uint32]4)
+    $writer.Write([uint32]$headerSize)
+    $writer.Write([uint32]($headerSize - 4))
+    $writer.Write([uint32]$headerBytes.Length)
+    $writer.Write($headerBytes)
+    if ($padding) { $writer.Write((New-Object byte[] $padding)) }
+    $writer.Write($prefix)
+    $writer.Write($packageBytes)
+  } finally { $writer.Dispose() }
+  $stream.Position = 0
+  return $stream
+}
+
+$fixture = New-PublishAsarFixture
+try {
+  $package = Read-PublishAsarPackage -Stream $fixture
+  Assert-True ($package.name -ceq 'Postman' -and $package.version -ceq '12.27.6') '从 ASAR 非零偏移读取真实包内版本'
+  Assert-True ($package.description -ceq '中文清单' -and $fixture.CanRead) 'UTF-8 字节数准确且保留调用方流'
+} finally { $fixture.Dispose() }
+$confirmed = Get-PublishVersion -AppDirectoryName 'app-12.27.6' -Package $package
+Assert-True ($confirmed.Version -ceq '12.27.6' -and $confirmed.Tag -ceq 'v12.27.6') '产物版本与默认标签由包内版本生成'
+$confirmed = Get-PublishVersion -AppDirectoryName 'app-12.27.6' -Package $package -ReleaseTag 'v12.27.6'
+Assert-True ($confirmed.Tag -ceq 'v12.27.6') '显式匹配标签通过'
+foreach ($directory in @('app-12.27.5', 'app-12.27.6-extra', 'Postman')) {
+  Assert-Throws { Get-PublishVersion -AppDirectoryName $directory -Package $package } '版本目录.*不一致' "拦截错版目录：$directory"
+}
+foreach ($tag in @('v12.27.5', '12.27.6', 'v12.27.6-test', 'V12.27.6')) {
+  Assert-Throws { Get-PublishVersion -AppDirectoryName 'app-12.27.6' -Package $package -ReleaseTag $tag } 'Release 标签.*不一致' "拦截错版标签：$tag"
+}
+foreach ($invalid in @('{}', '{"name":"Other","version":"12.27.6"}', '{"name":"Postman","version":12}', '{"name":"Postman","version":"12.27.6-beta"}', '{"name":"Postman","version":"12.27.6\n"}')) {
+  $invalidPackage = $invalid | ConvertFrom-Json
+  Assert-Throws { Get-PublishVersion -AppDirectoryName 'app-12.27.6' -Package $invalidPackage } '稳定版本' '拦截无效 Postman 版本元数据'
+}
+foreach ($case in @(
+  @{ Name = '缺少 package.json'; Missing = $true },
+  @{ Name = 'package.json 语法错误'; Json = '{' },
+  @{ Name = 'package.json 根节点不是对象'; Json = '[{"name":"Postman","version":"12.27.6"}]' },
+  @{ Name = '外置 package.json'; Entry = @{ unpacked = $true } },
+  @{ Name = '链接 package.json'; Entry = @{ link = 'other.json' } },
+  @{ Name = '越界偏移'; Entry = @{ offset = '999999999' } },
+  @{ Name = '负数偏移'; Entry = @{ offset = '-1' } },
+  @{ Name = '超长清单'; Entry = @{ size = 1048577 } },
+  @{ Name = '截断清单'; Truncate = $true },
+  @{ Name = '损坏 Pickle 头部'; BadHeader = $true },
+  @{ Name = '空 ASAR'; Empty = $true }
+)) {
+  $fixtureParameters = @{}
+  if ($case.Json) { $fixtureParameters.PackageJson = $case.Json }
+  if ($case.Entry) { $fixtureParameters.EntryOverrides = $case.Entry }
+  if ($case.Missing) { $fixtureParameters.MissingPackage = $true }
+  $fixture = New-PublishAsarFixture @fixtureParameters
+  try {
+    if ($case.Truncate) { $fixture.SetLength($fixture.Length - 1) }
+    if ($case.BadHeader) { $fixture.WriteByte(0) }
+    if ($case.Empty) { $fixture.SetLength(0) }
+    Assert-Throws { Read-PublishAsarPackage -Stream $fixture } 'package.json 读取失败' "ASAR 读取失败时停止：$($case.Name)"
+  } finally { $fixture.Dispose() }
 }
 
 $failures = @(

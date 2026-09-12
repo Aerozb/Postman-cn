@@ -6,6 +6,7 @@
 
 param(
   [string]$PostmanDir = "",       # app-x.y.z dir; auto-detected if empty
+  [string]$UserDataDir = "",      # optional isolated Electron userData directory
   [ValidateRange(1, 3600)]
   [int]$TimeoutSec   = 60,        # max seconds to wait for the page
   [switch]$NoWait                 # launch only, do not wait for the page
@@ -44,4 +45,4 @@ if (-not (Test-Path -LiteralPath $exe)) { throw "未找到 Postman.exe：$exe" }
 # A running single-instance Postman ignores new launch flags. Restart it so the
 # requested random CDP port is guaranteed to apply.
 Stop-PostmanCompletely
-Start-PostmanDebugSession -FilePath $exe -TimeoutSec $TimeoutSec -NoWait:$NoWait
+Start-PostmanDebugSession -FilePath $exe -TimeoutSec $TimeoutSec -NoWait:$NoWait -UserDataDir $UserDataDir

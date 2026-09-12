@@ -588,6 +588,8 @@ function inspectOopifInjectPatch(source) {
   return { checked: true, source: source.source, installed: missing.length === 0, missing };
 }
 
+const CONTEXT_TRANSITION_RE = /execution context was destroyed|cannot find (?:default )?(?:execution )?context|inspected target navigated/i;
+
 async function connectCdp(wsUrl) {
   const cdp = await connectSharedCdp(wsUrl);
   return {
@@ -596,7 +598,10 @@ async function connectCdp(wsUrl) {
       try { return await cdp.send(...args); } catch (error) {
         if (error.code !== "CDP_PROTOCOL") throw error;
         const details = SHOW_DETAILS ? " 诊断：" + JSON.stringify(sanitizeDiagnosticReport({ message: error.message, code: error.protocolCode, data: error.data })) : "";
-        throw new Error("CDP 命令执行失败。" + details);
+        const wrapped = new Error("CDP 命令执行失败。" + details);
+        wrapped.code = error.code;
+        wrapped.contextTransition = CONTEXT_TRANSITION_RE.test(error.message);
+        throw wrapped;
       }
     }
   };
@@ -627,6 +632,64 @@ async function waitForPostmanTarget(port, timeoutMs) {
   throw new Error(`没有找到 Postman 页面目标。${targetDetails}`);
 }
 
+// 首次升级时页面目标可能已出现，但远端脚本和菜单管理器仍在加载。
+// 只读轮询实际依赖；就绪前不创建探针，也不把缺少菜单当成可跳过项。
+const VERIFICATION_READY_EXPRESSION = `(() => {
+  const localizer = window.__POSTMAN_ZH_LOCALIZER__;
+  const manager = window.pm && window.pm.contextMenuManager;
+  return {
+    documentReady: document.readyState !== "loading" && !!document.body,
+    localizerReady: !!(localizer && typeof localizer.translate === "function" &&
+      typeof localizer.walk === "function" &&
+      document.documentElement.getAttribute("data-postman-zh-localized") === "true"),
+    contextMenuReady: !!(manager && typeof manager.buildMenu === "function" &&
+      manager.__postmanZhBuildMenuPatched === true)
+  };
+})()`;
+
+async function waitForVerificationReady(cdp, timeoutMs, { now = Date.now, delay = sleep } = {}) {
+  if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) {
+    throw new RangeError("页面就绪超时必须是正数。");
+  }
+  const deadline = now() + timeoutMs;
+  let state = {};
+  let lastReadError = null;
+  while (true) {
+    const remaining = deadline - now();
+    if (remaining <= 0) break;
+    try {
+      const response = await cdp.send("Runtime.evaluate", {
+        expression: VERIFICATION_READY_EXPRESSION,
+        returnByValue: true
+      }, { timeoutMs: Math.min(5000, remaining) });
+      state = response.exceptionDetails ? {} : response.result?.value || {};
+      lastReadError = response.exceptionDetails ? { code: "PAGE_EVALUATION", message: "页面执行上下文尚未就绪" } : null;
+      if (now() >= deadline) break;
+      if (state.documentReady && state.localizerReady && state.contextMenuReady) return state;
+    } catch (error) {
+      // 导航切换上下文、单次读取超时可在同一预算内重试；连接断开立即失败。
+      const contextTransition = error.code === "CDP_PROTOCOL" &&
+        (error.contextTransition || CONTEXT_TRANSITION_RE.test(error.message));
+      if (!contextTransition && error.code !== "CDP_TIMEOUT") throw error;
+      state = {};
+      lastReadError = { code: error.code, message: error.message };
+    }
+    const afterRead = deadline - now();
+    if (afterRead > 0) await delay(Math.min(200, afterRead));
+  }
+  const missing = [
+    !state.documentReady && "页面 DOM",
+    !state.localizerReady && "汉化运行时",
+    !state.contextMenuReady && "右键菜单汉化"
+  ].filter(Boolean);
+  const detail = missing.length ? missing.join("、") : "页面响应超出时间预算";
+  const error = new Error(`等待 Postman 验证就绪超时（${timeoutMs} ms）：${detail}。`);
+  error.code = "POSTMAN_READY_TIMEOUT";
+  error.readiness = state;
+  error.lastReadError = lastReadError;
+  throw error;
+}
+
 async function main() {
   const versionCheckRegression = await runVersionCheckTests();
   const versionCheckUiRegression = await runVersionCheckUiTests();
@@ -653,7 +716,7 @@ async function main() {
   const cdp = await connectCdp(target.webSocketDebuggerUrl);
   try {
     await cdp.send("Runtime.enable");
-    await sleep(1500);
+    await waitForVerificationReady(cdp, timeoutMs);
 
     const expression = `(() => {
       const sampleData = ${JSON.stringify(samples)};
@@ -973,7 +1036,9 @@ if (require.main === module) {
     const message = error && error.message ? error.message : String(error);
     console.error(`- ${message}`);
     if (SHOW_DETAILS) {
-      console.error(JSON.stringify(sanitizeDiagnosticReport({ ok: false, error: message }), null, 2));
+      console.error(JSON.stringify(sanitizeDiagnosticReport({
+        ok: false, error: message, readiness: error.readiness, lastReadError: error.lastReadError
+      }), null, 2));
     } else {
       console.error("需要完整诊断时，请运行 postman-zh.bat verify --details。");
     }
@@ -995,5 +1060,7 @@ module.exports = {
   targetDesktopVersion,
   discoverPostmanDirs,
   resolvePostmanDirFromTargetVersion,
-  scanFileForMarkers
+  scanFileForMarkers,
+  waitForVerificationReady,
+  VERIFICATION_READY_EXPRESSION
 };

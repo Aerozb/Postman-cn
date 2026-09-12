@@ -32,6 +32,7 @@
 | 参数 | 作用 |
 |---|---|
 | `-PostmanDir <path>` | 指定包含 Postman.exe 和 resources 的版本目录，默认自动发现 |
+| `-UserDataDir <path>` | 仅 `start`：指定独立 Postman 数据目录及其调试端口文件，默认位置不变 |
 | `-KeepUpdates` | 不注入官方自动更新守卫 |
 | `-NoVerify` | 跳过安装后的验证 |
 | `-CleanOldVersions` | 成功后清理同一安装根目录的旧 app-*、旧 nupkg，并精简 RELEASES |
@@ -43,6 +44,8 @@
 
 启动、停止和安装共用 `internal/进程工具.ps1`：完全停止后再启动，轮询新的端口文件及页面就绪，替代固定等待。`start -NoWait` 跳过就绪等待，`-TimeoutSec` 控制等待上限。
 
+旧版回归可用 `start -PostmanDir <旧版目录> -UserDataDir <临时目录>`，透传 Postman 的 `--user-data-path` 并从该目录读取 `DevToolsActivePort`，避免旧版打开日常数据。汉化偏好仍位于 `%APPDATA%/Postman`；完整隔离时，在测试命令进程内设置临时 `APPDATA`/`LOCALAPPDATA`，并令 `UserDataDir` 为该临时 `APPDATA/Postman`。不更改用户级或系统级环境变量；只调整 `APPDATA` 不等于已隔离 Electron 的数据目录。
+
 ## 离线回归
 
 ```powershell
@@ -52,7 +55,7 @@
 
 按顺序执行 Node 回归、PowerShell 入口/进程回归和发布预检回归；任一阶段失败即返回非零。默认中文摘要，details 显示分组耗时和失败诊断。测试不连接真实 Postman/GitHub，不操作真实进程或偏好。
 
-覆盖：JS/PowerShell 语法、文档链接、skill 元数据一致性、AGENTS 大小、最终词典计数/合并、固定翻译语料、数据保护与重试调度、CDP 生命周期/会话/预算、诊断脱敏与截断、版本检查、跨帧注入、命令出口和进程就绪。存储回归确认翻译器不再读写历史漏翻记录。
+覆盖：JS/PowerShell 语法、文档链接、skill 元数据一致性、AGENTS 大小、最终词典计数/合并、固定翻译语料、数据保护与重试调度、CDP 生命周期/会话/预算、诊断脱敏与截断、版本检查、跨帧注入、命令出口、进程就绪与验证前的菜单汉化就绪轮询。存储回归确认翻译器不再读写历史漏翻记录。
 
 `runtime/翻译回归样例.js` 同时供离线测试和 `verify` 的浏览器探针使用。实机验证仍需检查实际注入、界面布局和真实动态内容，不能由离线桩替代。
 

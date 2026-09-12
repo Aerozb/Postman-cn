@@ -3,6 +3,7 @@
   [string]$Command = '',
 
   [string]$PostmanDir,
+  [string]$UserDataDir,
   [int]$TimeoutSec = 60,
   [switch]$NoWait,
   [switch]$NoRestart,
@@ -257,7 +258,7 @@ Postman 中文汉化工具
   .\postman-zh.bat <命令> [参数]
 
 常用命令：
-  install       安装汉化、关闭自动更新并验证（菜单 1 / 回车会在成功后清理旧版）
+  install       安装汉化、安装更新守卫并验证（保留已有开关偏好；菜单 1 / 回车成功后清理旧版）
   restore       还原英文原版
   updates       查看自动更新开关；updates on 允许更新，updates off 恢复拦截（默认）
   zh-updates    查看汉化版本检查开关；zh-updates on|off 切换（默认开启），zh-updates check 立即查一次
@@ -265,6 +266,7 @@ Postman 中文汉化工具
                 使用 install -KeepUpdates 安装的实例，请用 verify -KeepUpdates 验证
   test          运行离线隔离回归；加 --details 查看分项，不启动 Postman、不连接网络
   start         启动 Postman 并等待 CDP 调试端口
+                -UserDataDir <目录> 使用独立 Postman 数据目录（汉化偏好仍由 APPDATA 定位）
   stop          彻底关闭 Postman 进程
   fix-browser   修复系统浏览器 URL 参数引号
   merge         合并 _generated/trans-*.json 译文；加 --check 只检查、不写入
@@ -538,6 +540,7 @@ function Invoke-SelectedCommand {
     'start' {
       $params = @{ TimeoutSec = $TimeoutSec }
       if ($PostmanDir) { $params.PostmanDir = $PostmanDir }
+      if ($UserDataDir) { $params.UserDataDir = $UserDataDir }
       if ($NoWait) { $params.NoWait = $true }
       return (Invoke-PowerShellScript (Join-Path $internalRoot '启动程序.ps1') $params)
     }

@@ -816,6 +816,186 @@ const samples = {
   ],
   "translationProbeExpectations": [
     [
+      "Everyone in the workspace will be connected to this folder. Members who don't have it locally will need to clone or open it.",
+      "工作区中的所有成员都会连接到此文件夹。本地尚无此文件夹的成员需要先克隆或打开它。"
+    ],
+    [
+      "Withdraw request",
+      "撤回请求"
+    ],
+    [
+      "Response Body Size",
+      "响应正文大小"
+    ],
+    [
+      "Runner Name",
+      "运行器名称"
+    ],
+    [
+      "Updated Runner Key",
+      "运行器密钥已更新"
+    ],
+    [
+      "You need to be an Editor to manage roles on this element.",
+      "你需要拥有编辑者角色才能管理此元素的角色。"
+    ],
+    [
+      "Copy bundle secret",
+      "复制捆绑包密钥"
+    ],
+    [
+      "Failed to save Shared Vault",
+      "保存共享保管库失败"
+    ],
+    [
+      "Set up HashiCorp Integration",
+      "设置 HashiCorp 集成"
+    ],
+    [
+      "User stopped run",
+      "用户已停止运行"
+    ],
+    [
+      "Setup (optional)",
+      "准备（可选）"
+    ],
+    [
+      "Teardown (optional)",
+      "清理（可选）"
+    ],
+    [
+      "You need to be online to view usage",
+      "需要联网才能查看使用情况"
+    ],
+    [
+      "Used as Dependency",
+      "作为依赖项使用"
+    ],
+    [
+      "Used as Fork (1,200)",
+      "作为派生使用（1,200）"
+    ],
+    [
+      "1 use",
+      "使用了 1 次"
+    ],
+    [
+      "2 uses",
+      "使用了 2 次"
+    ],
+    [
+      "No forks or dependencies yet",
+      "暂无派生或依赖项"
+    ],
+    [
+      "Import collection",
+      "导入集合"
+    ],
+    [
+      "Paste a collection, an API spec, a cURL command or URLs",
+      "粘贴集合、API 规范、cURL 命令或 URL"
+    ],
+    [
+      "Checking pasted content…",
+      "正在检查粘贴的内容…"
+    ],
+    [
+      "Checking Orders API.postman_collection.json…",
+      "正在检查 Orders API.postman_collection.json…"
+    ],
+    [
+      "Selected file type cannot be imported. Supported: .json, .yaml, .yml.",
+      "暂不支持导入所选文件类型。支持的格式：.json, .yaml, .yml。"
+    ],
+    [
+      "Selected file is over 10.5 MB. Import it from the sidebar and select it above instead.",
+      "所选文件超过 10.5 MB。请从侧边栏导入，然后在上方选择。"
+    ],
+    [
+      "Generating a collection from Orders API",
+      "正在从 Orders API 生成集合"
+    ],
+    [
+      "No collections or API specs available",
+      "没有可用的集合或 API 规范"
+    ],
+    [
+      "OVERRIDES (2)",
+      "覆盖项（2）"
+    ],
+    [
+      "Overrides (1)",
+      "覆盖项（1）"
+    ],
+    [
+      "LINKED (1,200)",
+      "关联项（1,200）"
+    ],
+    [
+      "This request has 2 linked requests:",
+      "此请求有 2 个关联请求："
+    ],
+    [
+      "Status: healthy",
+      "状态：健康"
+    ],
+    [
+      "This monitor is unhealthy.",
+      "此监视器的状态为不健康。"
+    ],
+    [
+      "This schedule is paused.",
+      "此计划的状态为已暂停。"
+    ],
+    [
+      "Service is up.",
+      "服务运行正常。"
+    ],
+    [
+      "Service is down.",
+      "服务暂不可用。"
+    ],
+    [
+      "Service status is unknown.",
+      "服务状态未知。"
+    ],
+    [
+      "Failed Percent: 12.5%",
+      "失败比例：12.5%"
+    ],
+    [
+      "Response Time: 0.25 seconds",
+      "响应时间：0.25 秒"
+    ],
+    [
+      "Response Time: --",
+      "响应时间：--"
+    ],
+    [
+      "Run on data from Orders.csv",
+      "使用 Orders.csv 中的数据运行"
+    ],
+    [
+      "2 failed tests, 1 error, across 3 regions, 4 total requests",
+      "2 个测试失败，1 个错误，覆盖 3 个区域，共 4 个请求"
+    ],
+    [
+      "0 failed tests, 1 error, across 1 runner, 1 total request",
+      "0 个测试失败，1 个错误，覆盖 1 个运行器，共 1 个请求"
+    ],
+    [
+      "1 failed test, 0 errors, 1,200 total requests",
+      "1 个测试失败，0 个错误，共 1,200 个请求"
+    ],
+    [
+      "Apply Fix",
+      "应用修复"
+    ],
+    [
+      "Open conversation",
+      "打开对话"
+    ],
+    [
       "Search resources",
       "搜索资源"
     ],
@@ -1141,6 +1321,9 @@ const samples = {
     ]
   ],
   "translationPreservationTargets": [
+    "Checking network…",
+    "This widget is healthy.",
+    "Status: enabled",
     "OverviewController",
     "Add My Collections Backup",
     "editor",
