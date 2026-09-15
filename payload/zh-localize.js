@@ -27211,6 +27211,21 @@
       return count + " 个" + { folder: "文件夹", request: "请求", example: "示例" }[kind.toLowerCase().replace(/s$/, "")];
     }],
     // ==== BEGIN 官方 i18n 清单生成的插值规则（rules-b*.json，勿手改）====
+    [/^Expires\s+at\s+(?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60})\s+today\.$/, "今天 $1 到期。"],
+    [/^Edit\s+routing\s+identifier\s+for\s+(?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60})$/, "编辑 $1 的路由标识"],
+    [/^Must\s+be\s+([\d][\d,.]*)\s+characters\s+or\s+fewer\.$/, "不能超过 $1 个字符。"],
+    [/^Sort\s+by\s+(?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60}?),\s+sorted\s+ascending$/, "按 $1 排序，当前为升序"],
+    [/^Sort\s+by\s+(?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60}?),\s+sorted\s+descending$/, "按 $1 排序，当前为降序"],
+    [/^Resize\s+(?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60}?)\s+column$/, "调整 $1 列宽"],
+    [/^Migrate\s+to\s+Organizations\s+\u2014\s+(?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60})$/, "迁移到组织 — $1"],
+    [/^[\u201c"](?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60}?)[\u201d"]\s+will\s+be\s+permanently\s+deleted\.$/, "“$1”将被永久删除。"],
+    [/^([\d][\d,.]*)\s+items\s+linked$/, "已关联 $1 个项目"],
+    [/^([\d][\d,.]*)%\s+chaos$/, "$1% 混沌注入"],
+    [/^([\d][\d,.]*)s\s+delay$/, "延迟 $1 秒"],
+    [/^Mocks\s+\(([\d][\d,.]*)\)$/, "模拟服务器（$1）"],
+    [/^([\d][\d,.]*)\s+Mocks$/, "$1 个模拟服务器"],
+    [/^Refreshed\s+at\s+(?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60})$/, "刷新于 $1"],
+    [/^Connected\s+to\s+(?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60})$/, "已连接到 $1"],
     [/^Cloud\s+mocks\s+don['’]t\s+support\s+pm\.state,\s+and\s+these\s+modules\s+can['’]t\s+load\s+in\s+the\s+cloud:\s+(?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60}?)\.\s+Use\s+pm\.require\(\)\s+for\s+third-party\s+libraries,\s+remove\s+blocked\s+built-ins\s+\(like\s+fs\),\s+and\s+keep\s+the\s+handler\s+stateless,\s+then\s+push\s+again\.$/, "云端 Mock 不支持 pm.state，而以下模块也无法在云端加载：$1。请用 pm.require() 引入第三方库、移除被禁用的内置模块（如 fs），并保持处理函数无状态，然后重新推送。"],
     [/^Cloud\s+mocks\s+don['’]t\s+support\s+pm\.state,\s+and\s+these\s+modules\s+can['’]t\s+load\s+in\s+the\s+cloud:\s+(?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60}?)\.\s+Use\s+pm\.require\(\)\s+for\s+third-party\s+libraries,\s+remove\s+blocked\s+built-ins\s+\(like\s+fs\),\s+and\s+keep\s+the\s+handler\s+stateless,\s+then\s+save\s+again\.$/, "云端 Mock 不支持 pm.state，而以下模块也无法在云端加载：$1。请用 pm.require() 引入第三方库、移除被禁用的内置模块（如 fs），并保持处理函数无状态，然后重新保存。"],
     [/^Load\s+third-party\s+libraries\s+\((?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60}?)\)\s+with\s+pm\.require\(\)\s+instead\s+of\s+require\(\)\.\s+Update\s+your\s+handler,\s+then\s+push\s+again\.$/, "请用 pm.require() 而不是 require() 加载第三方库（$1）。请修改你的处理函数后重新推送。"],
@@ -28418,6 +28433,19 @@
     [/^<\s+([\d][\d,.]*)\s+days$/, "少于 $1 天"],
     [/^Set\s+by\s+(?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60})$/, "由 $1 设置"],
     [/^([\d][\d,.]*)\s+·\s+(?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60}?)\s+live$/, "$1 · $2 个在线"],
+    // ---- 12.28.1 宽泛兜底：排在既有具体规则之后 ----
+    [/^Visited\s+(?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60})$/, "访问于 $1"],
+    [/^Team\s+(?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60})$/, "团队 $1"],
+    [/^Workspace\s+(?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60})$/, "工作区 $1"],
+    [/^Dataset:\s+(?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60})$/, "数据集：$1"],
+    [/^Tag:\s+(?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60})$/, "标签：$1"],
+    [/^In:\s+(?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60})$/, "位于：$1"],
+    [/^Find:\s+(?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60})$/, "查找：$1"],
+    [/^Sorted:\s+(?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60}?)\.$/, "已排序：$1。"],
+    [/^Open\s+[\u2018'](?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60}?)[\u2019']$/, "打开“$1”"],
+    [/^Toggle\s+(?![Tt]his\s|[Tt]hat\s|[Tt]hese\s|[Tt]hose\s|[Aa]ll\s|[Yy]our\s|[Tt]he\s|[Aa]n?\s)((?:(?!\.\s)[^,;:!?]){1,60})$/, "切换 $1"],
+    [/^Original\s+([A-Za-z][A-Za-z .\u2019'-]{0,40}?)$/i, function () { var a = arguments; var t1 = i18nTerm(a[1]); if (!t1) { return a[0]; } return "原始" + t1 + ""; }],
+    [/^Connected\s+([A-Za-z][A-Za-z .\u2019'-]{0,40}?)$/i, function () { var a = arguments; var t1 = i18nTerm(a[1]); if (!t1) { return a[0]; } return "已连接的" + t1 + ""; }],
     // ==== END 官方 i18n 清单生成的插值规则 ====
 
 
