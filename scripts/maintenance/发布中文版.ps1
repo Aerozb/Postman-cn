@@ -8,6 +8,7 @@
     1. 预检：git / gh / 当前账号 / 仓库权限 / 提交身份 / 磁盘空间
     2. 推送仓库代码到 GitHub（默认普通推送，-Force 才覆盖远程）
     3. 打包 Postman 完整绿色版 + 单独的 app.asar，发布到 Releases
+       同标签 Release 默认删除重建；要保住线上现有 Release 就加 -NoReplaceRelease
     4. 确认资产上传成功后，删除本地打包产物（_release，约 280MB）
        想留着就加 -KeepArtifacts
 
@@ -16,6 +17,7 @@
     .\postman-zh.bat publish -CheckOnly
     .\postman-zh.bat publish -SkipPush
     .\postman-zh.bat publish -SkipRelease
+    .\postman-zh.bat publish -NoReplaceRelease
     .\postman-zh.bat publish -SkipRelease -Force
 #>
 [CmdletBinding()]
@@ -32,8 +34,10 @@ param(
   [switch]$SkipZip,
   # 强制覆盖远程历史（默认关闭，确需覆盖时显式传 -Force）
   [switch]$Force,
-  # 覆盖已存在的同名 Release
+  # 覆盖已存在的同名 Release（默认开启；用 -NoReplaceRelease 关闭）
   [switch]$ReplaceRelease,
+  # 保留已存在的同名 Release，遇到同标签即停止（关闭默认的重建行为）
+  [switch]$NoReplaceRelease,
   # 不询问，直接执行
   [switch]$Yes,
   # 发布成功后保留 _release 里的本地打包产物（默认上传成功即删除）
@@ -47,6 +51,16 @@ param(
 $ErrorActionPreference = 'Stop'
 $script:ExpectedRepo = 'Aerozb/Postman-cn'
 $script:RepoDirName  = 'Postman-cn'
+
+# 同标签 Release 默认重建：日常维护里同一个 Postman 版本会多次补词条后重发，
+# 每次都手动加 -ReplaceRelease 只是重复劳动。需要保住线上现有 Release 时传
+# -NoReplaceRelease，脚本遇到同标签就停下并保留原资产。
+# 注意这里只影响 Release；git 推送仍是普通 push，覆盖远端历史依旧要显式 -Force。
+if ($NoReplaceRelease) {
+  $ReplaceRelease = $false
+} else {
+  $ReplaceRelease = $true
+}
 
 # ---------- 输出辅助 ----------
 function Write-Head($t) { Write-Host ""; Write-Host "=== $t ===" -ForegroundColor Cyan }
@@ -783,7 +797,7 @@ $exists = ($existingRelease.Code -eq 0)
 
 if ($exists) {
   if (-not $ReplaceRelease) {
-    Write-Warn2 "Release $Tag 已存在。确认需要重建同版本发布时加 -ReplaceRelease。"
+    Write-Warn2 "Release $Tag 已存在，且本次传了 -NoReplaceRelease，因此不重建。"
     Write-Info "现有资产将保留不变；本次已生成的文件在：$outDir"
     exit 1
   }
