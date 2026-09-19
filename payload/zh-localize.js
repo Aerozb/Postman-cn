@@ -27455,6 +27455,18 @@
   }
 
   var RULES = [
+    /* === 12.28.6 ICU 单复数一致性修补（勿手改）=== */
+    [/^([\d][\d,.]*)\s+Errors?$/, "$1 个错误"],
+    [/^\+([\d][\d,.]*)\s+Args?$/, "+$1 个参数"],
+    [/^([\d][\d,.]*)\s+rows?$/, "$1 行"],
+    /* === 12.28.6 收尾批插值规则（勿手改）=== */
+    [/^\((\d[\d,.]*) ms\)$/, "（$1 毫秒）"],
+    [/^The ([A-Za-z][A-Za-z .\u2019'-]{0,40}?) will be moved to$/, function(){var a=arguments;var t1=i18nTerm(a[1]); if(!t1){return a[0];}return "该"+t1+"将被移动到";}],
+    [/^Showing the first (.+?) rows$/, "仅显示前 $1 行"],
+    [/^This view returns more rows than can be saved at once \((.+?) maximum\)\. Narrow the query and try again\.$/, "此视图返回的行数超过一次可保存的上限（最多 $1 行）。请缩小查询范围后重试。"],
+    [/^(\d[\d,.]*) member\(s\) couldn't run locally \(no local source\): (.+)$/, "$1 位成员无法在本地运行（没有本地源）：$2"],
+    [/^Showing (.+?) of (.+?) rows$/, "显示 $2 行中的 $1 行"],
+    [/^(\d{1,2}(?::\d{2})?\s*(?:[AaPp][Mm])?): (\d[\d,.]*) credits consumed$/, "$1：已消耗 $2 个额度"],
     // 12.27.7 集合使用情况：官方 ICU 单复数展开后的完整标签。
     [/^Used as Fork \((\d+(?:,\d{3})*)\)$/, "作为派生使用（$1）"],
     [/^(\d+(?:,\d{3})*) uses?$/, "使用了 $1 次"],
