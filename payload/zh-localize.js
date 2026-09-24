@@ -26278,6 +26278,16 @@
     "For": "循环"
   });
 
+  // 登录/欢迎页（12.29.2 官方 i18n 与用户截图反馈）
+  Object.assign(EXACT, {
+    "simplified with Postman": "由 Postman 化繁为简",
+    "Continue with Github": "使用 Github 继续",
+    "Continue without an account": "不使用账户继续",
+    "Single Sign On (SSO)": "单点登录（SSO）",
+    "Enter your work email": "输入你的工作邮箱",
+    "Log In": "登录"
+  });
+
   var EDITABLE_EXACT = {
     "This workspace contains all your collections and environments, as well as any monitors, mock servers or integrations created on them.": true,
     "Postman editor": true,

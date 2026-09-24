@@ -44,6 +44,9 @@ param(
   [switch]$KeepArtifacts,
   # 指定要打包的 Postman 版本目录名，默认自动取最新的 app-*
   [string]$AppDir,
+  # 指定 Postman 安装根目录（含 Postman.exe、Update.exe、app-*）。
+  # 默认按工作区上级推断；仓库与 Postman 不在标准嵌套布局时用它显式指定。
+  [string]$PostmanRoot,
   # Release 标签，必须与包内版本对应；默认 v<版本号>
   [string]$Tag
 )
@@ -436,7 +439,18 @@ if (-not $repoDir) {
   throw "无法定位 Postman-cn 仓库：未找到 payload\zh-localize.js"
 }
 $workspaceRoot = Split-Path -Parent $repoDir
-$postmanRoot = Split-Path -Parent $workspaceRoot            # ...\Desktop\Postman
+# 安装根目录：优先用显式 -PostmanRoot；其次由绝对 -AppDir 反推其上级；
+# 都没有再按标准嵌套布局取工作区上级。（PowerShell 变量名不区分大小写，
+# 参数 -PostmanRoot 与此处 $postmanRoot 是同一变量，所以只在为空时才推断。）
+if ([string]::IsNullOrWhiteSpace($postmanRoot)) {
+  if ($AppDir -and [System.IO.Path]::IsPathRooted($AppDir)) {
+    $postmanRoot = Split-Path -Parent $AppDir
+  } else {
+    $postmanRoot = Split-Path -Parent $workspaceRoot          # 标准布局：...\Postman
+  }
+} else {
+  $postmanRoot = [System.IO.Path]::GetFullPath($postmanRoot)  # 归一显式传入的根目录
+}
 $outDir      = Join-Path $workspaceRoot '_release'          # 产物始终放仓库外，不会被 git 看到
 
 # =====================================================================
@@ -682,12 +696,15 @@ if ($SkipZip -and (Test-Path -LiteralPath $zipPath)) {
   Write-Info "复用已有压缩包：$zipName"
 } else {
   # 组装绿色版目录：Postman.exe + Update.exe + app-<ver>\（不含 app.asar.original）
+  # 压缩包内的根目录固定叫 Postman（不带版本号），解压即得干净的 Postman\ 文件夹。
   $stage = Join-Path $outDir "_stage-$version"
   if (Test-Path -LiteralPath $stage) { Remove-Item -LiteralPath $stage -Recurse -Force }
   New-Item -ItemType Directory -Path $stage -Force | Out-Null
+  $pkgRoot = Join-Path $stage 'Postman'
+  New-Item -ItemType Directory -Path $pkgRoot -Force | Out-Null
 
   Write-Info '复制版本目录（排除 app.asar.original 与日志，省 120MB）'
-  $dest = Join-Path $stage (Split-Path -Leaf $appPath)
+  $dest = Join-Path $pkgRoot (Split-Path -Leaf $appPath)
   # robocopy 比 Copy-Item 快且能按名排除；/NFL /NDL 静默文件级日志
   # Squirrel-*.log 含本机安装路径与 Windows 账户名，不能进公开压缩包
   $rc = Start-Process robocopy -ArgumentList @("`"$appPath`"", "`"$dest`"", '/E','/XF','app.asar.original','*.log','/NFL','/NDL','/NJH','/NJS','/NP','/R:1','/W:1') -Wait -PassThru -NoNewWindow
@@ -695,13 +712,13 @@ if ($rc.ExitCode -ge 8) { Write-Bad "robocopy 失败（退出码 $($rc.ExitCode)
 
   foreach ($f in @('Postman.exe','Update.exe')) {
     $p = Join-Path $postmanRoot $f
-    if (Test-Path -LiteralPath $p) { Copy-Item -LiteralPath $p -Destination $stage -Force }
+    if (Test-Path -LiteralPath $p) { Copy-Item -LiteralPath $p -Destination $pkgRoot -Force }
   }
   # Squirrel 需要 packages\RELEASES 才认得版本，带上这一个小文件
   $rel = Join-Path $postmanRoot 'packages\RELEASES'
   if (Test-Path -LiteralPath $rel) {
-    New-Item -ItemType Directory -Path (Join-Path $stage 'packages') -Force | Out-Null
-    Copy-Item -LiteralPath $rel -Destination (Join-Path $stage 'packages') -Force
+    New-Item -ItemType Directory -Path (Join-Path $pkgRoot 'packages') -Force | Out-Null
+    Copy-Item -LiteralPath $rel -Destination (Join-Path $pkgRoot 'packages') -Force
   }
 
   $stageMB = [math]::Round((Get-ChildItem -LiteralPath $stage -Recurse -File | Measure-Object Length -Sum).Sum / 1MB, 1)
@@ -815,7 +832,7 @@ if ($exists) {
 $notes = @'
 # 下载说明
 
-- **Postman-cn-$version-win64.zip** — 完整绿色版，解压后直接运行 `Postman.exe`，开箱即中文
+- **Postman-cn-$version-win64.zip** — 完整绿色版，解压得到 `Postman` 文件夹，进去直接运行 `Postman.exe`，开箱即中文
 - **app.asar** — Windows x64 汉化核心包，已装同版本 Postman 的话，备份后替换 `app-$version\resources\app.asar` 即可
 '@.Replace('$version', $version)
 $notesFile = Join-Path $outDir 'release-notes.md'

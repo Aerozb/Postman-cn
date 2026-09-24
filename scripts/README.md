@@ -83,6 +83,10 @@
 
 完整发布会提交、推送和上传，`-SkipRelease` 也不是只读模式。执行前核对工作区及产物，详见 [升级与发布](../docs/升级与发布.md)。
 
+绿色版压缩包内的根目录固定叫 `Postman`（不带版本号），解压即得干净的 `Postman\` 文件夹，进去直接运行 `Postman.exe`；下载资产文件名仍保留版本号（`Postman-cn-<版本>-win64.zip`）。
+
+仓库与 Postman 安装目录不在标准嵌套布局（`<安装根>\postman-zh-workspace\Postman-cn`）时，用 `-PostmanRoot <安装根>` 显式指定含 `Postman.exe`、`Update.exe`、`app-*` 的安装根目录；只传绝对路径的 `-AppDir <版本目录>` 也会自动反推其上级作为安装根。
+
 同标签 Release 默认重建：同一个 Postman 版本多次补词条后重发是常态，`publish` 遇到已存在的标签会删除旧 Release 及其资产再重建，旧资产的下载计数随之重置。需要保住线上现有 Release 时传 `-NoReplaceRelease`，脚本遇到同标签即停止并保留原资产。该默认只作用于 Release；git 推送仍是普通 push，覆盖远端历史依旧要显式 `-Force`。删除前仍会询问一次，`-Yes` 跳过询问。
 
 ## 实现分工
