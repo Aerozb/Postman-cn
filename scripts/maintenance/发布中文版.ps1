@@ -807,52 +807,17 @@ if ($exists) {
   Write-Info "已删除旧 Release $Tag"
 }
 
-# 词条数实测，不写常量：每轮补词条都会变，写死必然过时
-# （2026-09-01 之前硬编码 13400，实测已 24190，少报约 45%）。
-$entryCount = ''
-$countScript = Join-Path $repoDir 'scripts\data\统计词条.js'
-if (Test-Path -LiteralPath $countScript) {
-  $c = Invoke-Native node @($countScript)
-  if ($c.Code -eq 0 -and $c.Out.Trim() -match '^\d+$') {
-    # 向下取整到百位，避免说明里出现「24190 条」这种假精确
-    $entryCount = [string]([math]::Floor([int]$c.Out.Trim() / 100) * 100)
-    Write-Ok "词条实测 $($c.Out.Trim()) 条（说明里写约 $entryCount 条）"
-  }
-}
-if (-not $entryCount) {
-  Write-Bad '统计词条失败，无法生成 Release 说明里的条数'
-  exit 1
-}
-
 # 用单引号 here-string（@'...'@）避免反引号被当成 PowerShell 转义符：
 # 双引号 here-string 里 `a=响铃(BEL)、`P 等会吃掉反引号，导致 markdown 代码块
 # 渲染成乱码（曾出现 “替换 `app-...`” → “替换 <BEL>pp-...”）。变量用 .Replace 注入。
+# Release 说明只保留「下载说明」两条（维护者约定，2026-09-24）：本次维护/使用说明
+# 每轮都要手改、发布后还得再改回，统一精简到最小；版本号运行时注入。
 $notes = @'
-Postman 中文汉化版 $version
-
-## 下载说明
+# 下载说明
 
 - **Postman-cn-$version-win64.zip** — 完整绿色版，解压后直接运行 `Postman.exe`，开箱即中文
 - **app.asar** — Windows x64 汉化核心包，已装同版本 Postman 的话，备份后替换 `app-$version\resources\app.asar` 即可
-
-## 本次维护
-
-- 基于官方 Postman $version Windows x64 完整包重新安装汉化，本地保留匹配版本的英文原版备份
-- 重新抓取并复核当前官方 i18n 资源和真实翻译输出；官方资源用于取材，仍由运行时词典完成汉化
-- 修复首次升级菜单延迟初始化导致的验证误报，按实际就绪状态轮询；支持独立数据目录启动旧版回归
-- 发布匹配同一 Postman 版本的完整绿色包和 app.asar，预检校验包内版本、版本目录与 Release 标签一致
-- 保留两个独立更新开关：Postman 官方更新默认关闭，汉化版本检查默认开启且只提示，不自动下载安装
-
-## 使用说明
-
-- 两个下载文件均用于 Windows x64，且须与 Postman $version 匹配；macOS / Linux 需分别适配
-- 汉化基于运行时注入，界面词典约 $entryCount 条；官方 i18n 是取材来源，并非直接替换官方语言包
-- 请求编辑器等界面由 Postman 服务端下发，文案会独立更新；遇到漏翻欢迎携截图提 Issue，请先遮住个人信息
-- Postman 自动更新默认关闭，汉化版本检查默认开启；两个开关位于「设置 > 更新」，汉化检查只提示，不自动下载安装
-- 手动替换 `app.asar` 前**请先备份原文件**；保留英文原版才可还原
-- 绿色版不含工具链和英文原版备份（`app.asar.original`）。如需脚本重装或还原，请安装官方版 Postman，再用本仓库的 `postman-zh.bat`：菜单第 `1` 项安装、第 `3` 项还原；别把绿色版的已汉化 asar 当英文原版
-- HTTP 状态短语、请求头、模型名、协议与产品名、代码标识符和快捷键等保持原样
-'@.Replace('$version', $version).Replace('$entryCount', $entryCount)
+'@.Replace('$version', $version)
 $notesFile = Join-Path $outDir 'release-notes.md'
 Set-Content -LiteralPath $notesFile -Value $notes -Encoding UTF8
 
