@@ -230,7 +230,19 @@ $stopText = $stopText.Remove($start, $exitStatement.Extent.Text.Length).Insert($
   function Get-UpdatePreferencePath { return 'memory:updates' }
   function Get-UpdatePreference { param($Path); return $false }
   function Read-Host { return $script:MenuInputs.Dequeue() }
+  # install/restore/start 会先确定 Postman 版本目录：这里桩掉 lib/查找Postman.ps1 的探测与解析，
+  # 用内存值模拟“自动找到”与“拖入解析”，避免依赖真实文件系统。
+  $script:FixtureFoundDir = 'fixture-app'
+  function Find-InstalledPostmanAppDir { param($RepoRoot, [switch]$IncludeRunning); return $script:FixtureFoundDir }
+  function Resolve-PostmanAppDirFromPath { param($PathValue); if ($PathValue -and "$PathValue".Trim()) { return ('resolved:' + "$PathValue".Trim()) }; return $null }
+  # 记住上次拖入目录的偏好也用内存桩：$script:RememberedDir 模拟已持久化的值，
+  # Set-RememberedPostmanDir 记录写入，避免读写真实 %APPDATA% 文件。
+  $script:RememberedDir = $null
+  $script:RememberedWrites = New-Object 'System.Collections.Generic.List[string]'
+  function Get-RememberedPostmanDir { return $script:RememberedDir }
+  function Set-RememberedPostmanDir { param($Dir); $script:RememberedWrites.Add($Dir) }
   function Select-FixtureMenu([string[]]$Choices) {
+    $script:PostmanDir = $null  # 每次菜单相当于全新进程，目录未定
     $script:MenuInputs = New-Object 'System.Collections.Generic.Queue[string]'
     foreach ($choice in $Choices) { $script:MenuInputs.Enqueue($choice) }
     return (& $realShowMenu)
@@ -249,6 +261,25 @@ $stopText = $stopText.Remove($start, $exitStatement.Extent.Text.Length).Insert($
   foreach ($choice in @('0', 'q')) {
     Assert-Test ($null -eq (Select-FixtureMenu @($choice))) "真实菜单 $choice 正常退出"
   }
+
+  # install/restore/start 的版本目录确定：自动探测命中直接用，未命中则提示拖入并解析，回车放弃退回菜单。
+  $script:FixtureFoundDir = 'auto-app'
+  Assert-Test ((Select-FixtureMenu @('1')).Command -eq 'install' -and $script:PostmanDir -eq 'auto-app') '自动探测到 Postman 时菜单安装直接采用'
+  $script:FixtureFoundDir = $null
+  $dragged = Select-FixtureMenu @('1', 'C:\dragged\Postman')
+  Assert-Test ($dragged.Command -eq 'install' -and $script:PostmanDir -eq 'resolved:C:\dragged\Postman') '找不到时拖入目录解析并用于安装'
+  Assert-Test ($null -eq (Select-FixtureMenu @('3', '', '0'))) '拖入提示直接回车则放弃并退回菜单'
+
+  # 记住上次拖入目录：拖入成功即记住；下次自动探测仍失败时无需再拖直接复用；自动探测命中优先于记忆。
+  $script:FixtureFoundDir = $null
+  $script:RememberedDir = $null
+  $script:RememberedWrites = New-Object 'System.Collections.Generic.List[string]'
+  [void](Select-FixtureMenu @('1', 'C:\dragged\Postman'))
+  Assert-Test (($script:RememberedWrites -join '|') -eq 'resolved:C:\dragged\Postman') '拖入目录后记住解析结果供下次复用'
+  $script:RememberedDir = 'remembered-app'
+  Assert-Test ((Select-FixtureMenu @('1')).Command -eq 'install' -and $script:PostmanDir -eq 'remembered-app') '自动探测失败时沿用上次记住的目录，无需再拖入'
+  $script:FixtureFoundDir = 'auto-app'
+  Assert-Test ((Select-FixtureMenu @('1')).Command -eq 'install' -and $script:PostmanDir -eq 'auto-app') '自动探测命中时优先于记住的目录'
 }
 
 # 执行器的 stdout 不混入返回值；无外部命令的 PS 脚本不继承旧退出码。

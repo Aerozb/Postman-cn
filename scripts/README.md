@@ -23,6 +23,8 @@
 
 `test` 和 `zh-updates` 是 CLI 专用命令，不增加菜单项。
 
+菜单选 1/3/4（`install`/`restore`/`start`）时先按 Postman 官方安装位置自动探测版本目录；若默认位置找不到（例如整个 Postman 被移动到别处），菜单会提示把 Postman 目录拖进来再回车——既接受含 `Postman.exe` 的版本目录，也接受含 `app-*` 子目录的安装根目录（自动挑最高版本），直接回车则返回菜单不做改动。拖入成功的目录会记到 `%APPDATA%/Postman/postman-zh-postman-dir.json`（无 BOM），下次自动探测仍失败时直接复用，免去重复拖拽；该目录再次移动或删除后自动失效并重新提示，拖入新目录即覆盖记忆。CLI 下仍用 `-PostmanDir` 显式指定，且始终优先于记忆。探测与解析逻辑集中在 `lib/查找Postman.ps1`。
+
 `verify` 需要运行中的 Postman/CDP。先执行 `start`；它会重启已运行实例，以确保随机调试端口生效。`test` 和 `merge` 不要求应用启动。
 
 旧的 `collect`、`static-scan`、`probe`、`scan`、`audit` 及审计子菜单已移除，裸命令按未知命令返回 `2`。日常维护以当前官方 i18n 和用户截图反馈为主，不再后台收集漏翻或自动遍历界面。

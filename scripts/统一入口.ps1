@@ -21,6 +21,7 @@ $scriptsRoot = $PSScriptRoot
 $internalRoot = Join-Path $PSScriptRoot 'internal'
 $dataRoot = Join-Path $PSScriptRoot 'data'
 $maintenanceRoot = Join-Path $PSScriptRoot 'maintenance'
+. (Join-Path $PSScriptRoot 'lib\查找Postman.ps1')
 Set-Location -LiteralPath $repoRoot
 
 try {
@@ -132,6 +133,41 @@ function Set-ZhUpdatePreference {
   $payload = [ordered]@{ enabled = $Enabled; dismissedTag = $dismissed }
   $json = $payload | ConvertTo-Json -Compress
   [System.IO.File]::WriteAllText($Path, $json, (New-Object System.Text.UTF8Encoding $false))
+}
+
+# 记住上一次在菜单里拖入的 Postman 目录。给 Postman 常驻非标准位置（如桌面）的用户免去重复拖拽：
+# 自动探测仍失败时直接复用这个目录。和上面两个开关一样写在 %APPDATA%/Postman 下、无 BOM，
+# 但这是纯本地便利项——读写失败一律静默忽略，绝不因此打断安装、还原或启动。
+function Get-PostmanDirPreferencePath {
+  if (-not $env:APPDATA) { return $null }
+  return Join-Path (Join-Path $env:APPDATA 'Postman') 'postman-zh-postman-dir.json'
+}
+
+function Get-RememberedPostmanDir {
+  $path = Get-PostmanDirPreferencePath
+  if (-not $path -or -not (Test-Path -LiteralPath $path)) { return $null }
+  try {
+    $saved = [string]((Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json).dir)
+    if ([string]::IsNullOrWhiteSpace($saved)) { return $null }
+    # 记住的目录可能已被删除或再次移动：用时重新解析校验，失效即视为没有记忆。
+    return (Resolve-PostmanAppDirFromPath $saved)
+  } catch {
+    return $null
+  }
+}
+
+function Set-RememberedPostmanDir {
+  param([string]$Dir)
+  $path = Get-PostmanDirPreferencePath
+  if (-not $path -or [string]::IsNullOrWhiteSpace($Dir)) { return }
+  try {
+    $parent = Split-Path -Parent $path
+    if (-not (Test-Path -LiteralPath $parent)) {
+      New-Item -ItemType Directory -Path $parent -Force | Out-Null
+    }
+    $json = ([ordered]@{ dir = $Dir } | ConvertTo-Json -Compress)
+    [System.IO.File]::WriteAllText($path, $json, (New-Object System.Text.UTF8Encoding $false))
+  } catch { }
 }
 
 function Assert-NodeRuntime {
@@ -334,6 +370,56 @@ function Format-MenuCell {
   return $Text + (' ' * $pad)
 }
 
+# 菜单模式下为需要 Postman 的操作（install/restore/start）确定版本目录。
+# 默认使用 Postman 官方安装位置自动探测；找不到时提示用户把 Postman 目录拖进来。
+# 返回解析好的版本目录；用户直接回车放弃时返回 $null（调用方应退回菜单）。
+function Resolve-PostmanDirForMenu {
+  # 命令行在菜单前显式给了 -PostmanDir：宽松解析（版本目录或安装根目录都接受）后沿用。
+  if ($script:PostmanDir) {
+    $fromArg = Resolve-PostmanAppDirFromPath $script:PostmanDir
+    if ($fromArg) { return $fromArg }
+    Write-Host "指定的 -PostmanDir 不是有效的 Postman 目录：$($script:PostmanDir)" -ForegroundColor Yellow
+  }
+
+  # 默认：自动探测官方安装位置与正在运行的实例。
+  $found = Find-InstalledPostmanAppDir -RepoRoot $repoRoot -IncludeRunning
+  if ($found) {
+    Write-Host "已找到 Postman：$found" -ForegroundColor DarkGray
+    return $found
+  }
+
+  # 自动探测失败：先看上次记住的拖入目录，仍然有效就直接沿用，免得每次都拖。
+  $remembered = Get-RememberedPostmanDir
+  if ($remembered) {
+    Write-Host "沿用上次记住的 Postman 目录：$remembered" -ForegroundColor DarkGray
+    Write-Host '（如需更换，把新的 Postman 目录拖进来即可覆盖；或用 -PostmanDir 指定。）' -ForegroundColor DarkGray
+    return $remembered
+  }
+
+  # 找不到：默认位置没有 Postman（可能装在别处或被移动过），提示拖入目录。
+  Write-Host ''
+  Write-Host '未在默认安装位置找到 Postman。' -ForegroundColor Yellow
+  Write-Host '默认会自动使用 Postman 的安装位置；如果你把 Postman 装在别处或移动过，请把它的目录拖到这里再回车。'
+  Write-Host '可以是含 Postman.exe 的版本目录（形如 app-12.x.y），也可以是含 app-* 子目录的安装根目录。'
+  Write-Host '拖入成功后会记住这个目录，下次自动复用，不用再拖一遍。'
+  Write-Host '直接回车则返回菜单，不做任何改动。'
+  Write-Host ''
+
+  while ($true) {
+    $raw = ''
+    try { $raw = (Read-Host '拖入 Postman 目录并回车（回车返回）') } catch { return $null }
+    if ($null -eq $raw -or $raw.Trim() -eq '') { return $null }
+
+    $resolved = Resolve-PostmanAppDirFromPath $raw
+    if ($resolved) {
+      Write-Host "已选择版本目录：$resolved" -ForegroundColor Green
+      Set-RememberedPostmanDir $resolved  # 记住，下次自动探测失败时复用
+      return $resolved
+    }
+    Write-Host '这个目录里没找到可汉化的 Postman（需要 Postman.exe 和 resources\app.asar，或含 app-* 子目录）。请重新拖入，或直接回车返回菜单。' -ForegroundColor Red
+  }
+}
+
 # 双击 postman-zh.bat（不带任何命令）时显示的交互菜单。
 # 返回值：@{ Command = '<命令>'; Arguments = @(...) }，或 $null 表示用户选择退出。
 function Show-Menu {
@@ -413,6 +499,13 @@ function Show-Menu {
       }
 
       if ($arguments.Count -eq 0) { continue }
+    }
+
+    # install/restore/start 需要一个 Postman 版本目录：默认自动探测，找不到就提示拖入。
+    if ($picked.Command -in @('install', 'restore', 'start')) {
+      $resolvedDir = Resolve-PostmanDirForMenu
+      if (-not $resolvedDir) { continue }  # 用户放弃 → 退回菜单
+      $script:PostmanDir = $resolvedDir
     }
 
     Write-Host ''
