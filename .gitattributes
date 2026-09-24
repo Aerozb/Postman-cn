@@ -1,0 +1,7 @@
+# 本项目仅面向 Windows。cmd.exe 解析 LF 结尾的 .bat 会导致双击闪退，
+# 因此批处理与 PowerShell 脚本强制使用 CRLF；其余文本沿用 git 默认处理。
+# eol=crlf 同时作用于 git clone 检出与 GitHub「Download ZIP」(git archive) 导出，
+# 保证仓库源码保存为 LF、而 Windows 侧拿到的脚本始终是 CRLF。
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
