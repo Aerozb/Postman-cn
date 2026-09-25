@@ -233,7 +233,7 @@ $stopText = $stopText.Remove($start, $exitStatement.Extent.Text.Length).Insert($
   # install/restore/start 会先确定 Postman 版本目录：这里桩掉 lib/查找Postman.ps1 的探测与解析，
   # 用内存值模拟“自动找到”与“拖入解析”，避免依赖真实文件系统。
   $script:FixtureFoundDir = 'fixture-app'
-  function Find-InstalledPostmanAppDir { param($RepoRoot, [switch]$IncludeRunning); return $script:FixtureFoundDir }
+  function Find-InstalledPostmanAppDir { param($RepoRoot, [switch]$IncludeRunning, [switch]$IncludeRemembered); return $script:FixtureFoundDir }
   function Resolve-PostmanAppDirFromPath { param($PathValue); if ($PathValue -and "$PathValue".Trim()) { return ('resolved:' + "$PathValue".Trim()) }; return $null }
   # 记住上次拖入目录的偏好也用内存桩：$script:RememberedDir 模拟已持久化的值，
   # Set-RememberedPostmanDir 记录写入，避免读写真实 %APPDATA% 文件。

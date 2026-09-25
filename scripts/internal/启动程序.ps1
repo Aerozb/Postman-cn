@@ -13,30 +13,21 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$scriptsRoot = Split-Path -Parent $PSScriptRoot
+$repoRoot = Split-Path -Parent $scriptsRoot
 . (Join-Path $PSScriptRoot "进程工具.ps1")
+# Postman 目录的探测与解析只有这一份实现，菜单、安装、启动和发布共用。
+. (Join-Path $scriptsRoot "lib\查找Postman.ps1")
 
-# --- Locate Postman.exe ---
-# Auto-detect the Squirrel install root (the dir that holds app-x.y.z folders).
-# Search order: the official per-user install location, then each ancestor of
-# this script (so it works whether the repo sits beside the install or elsewhere).
-if (-not $PostmanDir) {
-  $candidates = @()
-  if ($env:LOCALAPPDATA) { $candidates += (Join-Path $env:LOCALAPPDATA 'Postman') }
-  $d = Split-Path -Parent $PSCommandPath
-  while ($d) { $candidates += $d; $parent = Split-Path -Parent $d; if ($parent -eq $d) { break }; $d = $parent }
-
-  foreach ($base in $candidates) {
-    if (-not (Test-Path -LiteralPath $base)) { continue }
-    $appDirs = Get-ChildItem -LiteralPath $base -Directory -Filter "app-*" -ErrorAction SilentlyContinue
-    if ($appDirs) {
-      # pick highest version by natural sort of the version suffix
-      $PostmanDir = ($appDirs | Sort-Object {
-        $v = $_.Name -replace '^app-',''
-        try { [version]$v } catch { [version]"0.0.0" }
-      } | Select-Object -Last 1).FullName
-      break
-    }
-  }
+# --- 定位 Postman.exe ---
+# 显式给了目录就宽松解析（版本目录或安装根目录都接受）；否则走共用探测：
+# 正在运行的实例 → 官方安装位置和仓库周边（含下一级）→ 上次记住的拖入目录。
+if ($PostmanDir) {
+  $resolved = Resolve-PostmanAppDirFromPath $PostmanDir
+  if (-not $resolved) { throw "PostmanDir 不是有效的 Postman 目录：$PostmanDir" }
+  $PostmanDir = $resolved
+} else {
+  $PostmanDir = Find-InstalledPostmanAppDir -RepoRoot $repoRoot -IncludeRunning -IncludeRemembered
   if (-not $PostmanDir) { throw "未找到 app-* 版本目录，请通过 -PostmanDir 明确指定。" }
 }
 $exe = Join-Path $PostmanDir "Postman.exe"

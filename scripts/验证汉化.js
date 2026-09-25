@@ -210,7 +210,10 @@ function discoverPostmanDirs(targetUrl) {
     if (!roots.some((item) => samePath(item, normalized))) roots.push(normalized);
   };
 
-  if (process.env.LOCALAPPDATA) addRoot(path.join(process.env.LOCALAPPDATA, "Postman"));
+  if (process.env.LOCALAPPDATA) {
+    addRoot(path.join(process.env.LOCALAPPDATA, "Postman"));
+    addRoot(path.join(process.env.LOCALAPPDATA, "Programs", "Postman"));
+  }
   // Keep discovery bounded to the installation locations already used by the
   // start script and this repository; never scan an entire drive.
   let current = path.resolve(__dirname);
@@ -218,21 +221,34 @@ function discoverPostmanDirs(targetUrl) {
     addRoot(current);
     current = path.dirname(current);
   }
+  if (process.env.USERPROFILE) {
+    addRoot(path.join(process.env.USERPROFILE, "Desktop"));
+    addRoot(path.join(process.env.USERPROFILE, "Downloads"));
+  }
 
   const version = targetDesktopVersion(targetUrl);
   const candidates = [];
-  for (const root of roots) {
-    let entries;
+  const readDirs = (dir) => {
     try {
-      entries = fs.readdirSync(root, { withFileTypes: true });
+      return fs.readdirSync(dir, { withFileTypes: true }).filter((entry) => entry.isDirectory());
     } catch (_) {
-      continue;
+      return [];
     }
-    for (const entry of entries) {
-      if (!entry.isDirectory() || !/^app-.+/i.test(entry.name)) continue;
+  };
+  const collectFrom = (root) => {
+    for (const entry of readDirs(root)) {
+      if (!/^app-.+/i.test(entry.name)) continue;
       if (version && entry.name.slice(4).toLowerCase() !== version.toLowerCase()) continue;
       const candidate = path.join(root, entry.name);
       if (isPostmanAppDir(candidate)) candidates.push(normalizePath(candidate));
+    }
+  };
+  for (const root of roots) {
+    collectFrom(root);
+    // 安装根常常是搜索根下面一层（例如 Desktop\Postman\app-x.y.z），只多下降一层，
+    // 且只看名字含 postman 的目录，保持扫描有界。
+    for (const child of readDirs(root)) {
+      if (/postman/i.test(child.name)) collectFrom(path.join(root, child.name));
     }
   }
   return Array.from(new Map(candidates.map((item) => [

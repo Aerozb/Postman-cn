@@ -439,14 +439,18 @@ if (-not $repoDir) {
   throw "无法定位 Postman-cn 仓库：未找到 payload\zh-localize.js"
 }
 $workspaceRoot = Split-Path -Parent $repoDir
+# Postman 目录的探测与解析只有这一份实现，菜单、安装、启动和发布共用。
+. (Join-Path $repoDir 'scripts\lib\查找Postman.ps1')
 # 安装根目录：优先用显式 -PostmanRoot；其次由绝对 -AppDir 反推其上级；
-# 都没有再按标准嵌套布局取工作区上级。（PowerShell 变量名不区分大小写，
-# 参数 -PostmanRoot 与此处 $postmanRoot 是同一变量，所以只在为空时才推断。）
+# 都没有再走与菜单同一套自动探测（含记住的拖入目录）并反推其安装根。
+# 早先这里按「仓库嵌在工作区里」硬推上级目录，仓库与 Postman 同级时会推到无关目录而报找不到版本目录。
+# （PowerShell 变量名不区分大小写，参数 -PostmanRoot 与此处 $postmanRoot 是同一变量，所以只在为空时才推断。）
 if ([string]::IsNullOrWhiteSpace($postmanRoot)) {
   if ($AppDir -and [System.IO.Path]::IsPathRooted($AppDir)) {
     $postmanRoot = Split-Path -Parent $AppDir
   } else {
-    $postmanRoot = Split-Path -Parent $workspaceRoot          # 标准布局：...\Postman
+    $detected = Find-InstalledPostmanAppDir -RepoRoot $repoDir -IncludeRunning -IncludeRemembered
+    if ($detected) { $postmanRoot = Get-PostmanInstallRoot $detected }
   }
 } else {
   $postmanRoot = [System.IO.Path]::GetFullPath($postmanRoot)  # 归一显式传入的根目录
@@ -558,14 +562,22 @@ if ($ghCmd -and $ghUser) {
 # --- 待打包的 Postman 版本 ---
 $appPath = $null; $version = $null
 if ($AppDir) {
-  $appPath = if ([System.IO.Path]::IsPathRooted($AppDir)) { $AppDir } else { Join-Path $postmanRoot $AppDir }
-} else {
-  $cands = Get-ChildItem -LiteralPath $postmanRoot -Directory -Filter 'app-*' -ErrorAction SilentlyContinue |
-           Sort-Object { try { [version]($_.Name -replace '^app-','') } catch { [version]'0.0.0' } } -Descending
-  if ($cands) { $appPath = $cands[0].FullName }
+  # 相对 -AppDir 需要安装根才能拼出完整路径；根目录没定位到就只能靠绝对路径或 -PostmanRoot。
+  if ([System.IO.Path]::IsPathRooted($AppDir)) {
+    $appPath = $AppDir
+  } elseif (-not [string]::IsNullOrWhiteSpace($postmanRoot)) {
+    $appPath = Join-Path $postmanRoot $AppDir
+  }
+} elseif (-not [string]::IsNullOrWhiteSpace($postmanRoot)) {
+  # 版本目录的挑选与菜单、安装共用 lib 的实现，避免两处排序规则不一致。
+  $appPath = Select-BestPostmanAppDir $postmanRoot
 }
 if (-not $appPath -or -not (Test-Path -LiteralPath $appPath -PathType Container)) {
-  Write-Bad "找不到 Postman 版本目录（$postmanRoot\app-*）"
+  if ([string]::IsNullOrWhiteSpace($postmanRoot)) {
+    Write-Bad '没有找到 Postman 安装目录。请用 -PostmanRoot 指定含 Postman.exe 与 app-* 的安装根目录，或用 -AppDir 指定版本目录的完整路径。'
+  } else {
+    Write-Bad "找不到 Postman 版本目录（$postmanRoot\app-*）"
+  }
   $problems.Add('Postman 版本目录不存在')
 } else {
   $asar = Join-Path $appPath 'resources\app.asar'

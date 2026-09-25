@@ -14,10 +14,10 @@ $ErrorActionPreference = "Stop"
 $scriptRoot = Split-Path -Parent $PSCommandPath
 $repoRoot = Split-Path -Parent (Split-Path -Parent $scriptRoot)
 $packageRoot = $repoRoot
-$workspaceRoot = Split-Path -Parent $repoRoot
-$workspaceParent = Split-Path -Parent $workspaceRoot
 $scriptsRoot = Join-Path $repoRoot "scripts"
 . (Join-Path $scriptRoot "进程工具.ps1")
+# Postman 目录的探测与解析只有这一份实现，菜单、安装、启动和发布共用。
+. (Join-Path $scriptsRoot "lib\查找Postman.ps1")
 
 try {
   [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
@@ -43,78 +43,20 @@ function Resolve-ExistingPath {
   return (Get-Item -LiteralPath $candidate -ErrorAction Stop).FullName
 }
 
-function Test-PostmanAppDir {
-  param([string]$Dir)
-  if ([string]::IsNullOrWhiteSpace($Dir)) {
-    return $false
-  }
-  return (Test-Path -LiteralPath (Join-Path $Dir "Postman.exe")) -and
-    (Test-Path -LiteralPath (Join-Path $Dir "resources\app.asar"))
-}
-
-function Get-PostmanAppVersion {
-  param([string]$Dir)
-  $name = Split-Path -Leaf $Dir
-  if ($name -match '^app-(\d+(?:\.\d+){1,3})') {
-    try {
-      return [version]$Matches[1]
-    } catch {}
-  }
-  return [version]"0.0.0"
-}
-
 function Resolve-PostmanAppDir {
   if ($PostmanDir) {
-    $resolved = Resolve-ExistingPath $PostmanDir
-    if (-not (Test-PostmanAppDir $resolved)) {
-      throw "PostmanDir 不是有效的 Postman 版本目录：$resolved"
+    # 宽松解析：既接受版本目录本身，也接受含 app-* 的安装根目录（与菜单拖入保持一致）。
+    $resolved = Resolve-PostmanAppDirFromPath (Resolve-ExistingPath $PostmanDir)
+    if (-not $resolved) {
+      throw "PostmanDir 不是有效的 Postman 目录：$PostmanDir"
     }
     return $resolved
   }
 
-  if (-not $Latest) {
-    $processCandidates = @()
-    try {
-      $processCandidates = Get-Process Postman -ErrorAction SilentlyContinue |
-        Where-Object { $_.Path } |
-        ForEach-Object { Split-Path -Parent $_.Path } |
-        Select-Object -Unique
-    } catch {}
-
-    foreach ($candidate in $processCandidates) {
-      if (Test-PostmanAppDir $candidate) {
-        return (Get-Item -LiteralPath $candidate).FullName
-      }
-    }
-  }
-
-  $roots = @(
-    (Get-Location).Path,
-    $workspaceRoot,
-    $workspaceParent,
-    (Join-Path $env:LOCALAPPDATA "Postman")
-  ) | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -Unique
-
-  $dirCandidates = @()
-  foreach ($root in $roots) {
-    $dirCandidates += Get-ChildItem -LiteralPath $root -Directory -Filter "app-*" -ErrorAction SilentlyContinue
-  }
-
-  $match = $dirCandidates |
-    Where-Object { Test-PostmanAppDir $_.FullName } |
-    ForEach-Object {
-      [PSCustomObject]@{
-        Item = $_
-        Version = Get-PostmanAppVersion $_.FullName
-        LastWriteTime = $_.LastWriteTime
-      }
-    } |
-    Sort-Object @{ Expression = "Version"; Descending = $true }, @{ Expression = "LastWriteTime"; Descending = $true } |
-    Select-Object -First 1
-
-  if ($match) {
-    return $match.Item.FullName
-  }
+  # 探测规则集中在 lib\查找Postman.ps1，与菜单、启动和发布共用同一套结论。
+  # 未指定 -Latest 时优先跟随正在运行的实例；记忆目录作为最后兜底。
+  $found = Find-InstalledPostmanAppDir -RepoRoot $repoRoot -IncludeRunning:(-not $Latest) -IncludeRemembered
+  if ($found) { return $found }
 
   throw "找不到 Postman。请通过 -PostmanDir `"C:\Path\To\Postman\app-x.y.z`" 指定版本目录。"
 }
