@@ -394,11 +394,10 @@ function Show-Menu {
     @{ Key = '3';  Command = 'restore';     Label = '还原英文原版';     Note = '撤销汉化，恢复官方英文界面' }
     @{ Key = '4';  Command = 'start';       Label = '启动 Postman';     Note = '启动并等待 CDP 调试端口' }
     @{ Key = '5';  Command = 'stop';        Label = '关闭 Postman';     Note = '循环杀干净全部进程' }
-    @{ Key = '6';  Command = 'merge';       Label = '合并译文';         Note = '把 _generated/trans-*.json 并入词典' }
-    @{ Key = '7';  Command = 'updates';     Label = '自动更新开关';     Note = '默认关闭；开启后官方升级会覆盖汉化' }
-    @{ Key = '8';  Command = 'fix-browser'; Label = '修复浏览器链接';   Note = '仅在登录页外部链接异常时用' }
-    @{ Key = '9';  Command = 'publish';     Label = '发布（维护者）';   Note = '推送代码到 GitHub 并发 Release' }
-    @{ Key = '10'; Command = 'stats';       Label = '查看项目数据';     Note = 'Star、下载量、访问与克隆趋势' }
+    @{ Key = '6';  Command = 'updates';     Label = '自动更新开关';     Note = '默认关闭；开启后官方升级会覆盖汉化' }
+    @{ Key = '7';  Command = 'fix-browser'; Label = '修复浏览器链接';   Note = '仅在登录页外部链接异常时用' }
+    @{ Key = '8';  Command = 'publish';     Label = '发布（维护者）';   Note = '推送代码到 GitHub 并发 Release' }
+    @{ Key = '9';  Command = 'stats';       Label = '查看项目数据';     Note = 'Star、下载量、访问与克隆趋势' }
     @{ Key = 'h';  Command = 'help';        Label = '查看完整命令帮助'; Note = '' }
     @{ Key = '0';  Command = 'exit';        Label = '退出';             Note = '不执行任何操作' }
   )

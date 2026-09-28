@@ -13,15 +13,14 @@
 | 3 | 还原英文原版 | `restore` |
 | 4 | 启动 Postman | `start` |
 | 5 | 关闭 Postman | `stop` |
-| 6 | 合并译文 | `merge` |
-| 7 | 自动更新开关 | `updates [on/off]` |
-| 8 | 修复浏览器链接 | `fix-browser` |
-| 9 | 发布（维护者） | `publish` |
-| 10 | 查看项目数据 | `stats` |
+| 6 | 自动更新开关 | `updates [on/off]` |
+| 7 | 修复浏览器链接 | `fix-browser` |
+| 8 | 发布（维护者） | `publish` |
+| 9 | 查看项目数据 | `stats` |
 | h | 完整帮助 | `help` |
 | 0 / q | 退出 | — |
 
-`test` 和 `zh-updates` 是 CLI 专用命令，不增加菜单项。
+`test`、`zh-updates` 和 `merge` 是 CLI 专用命令，不增加菜单项。`merge` 只在补词条后并入 `_generated/trans-*.json`，属于维护者的 AI 辅助流程，普通用户用不到，故不进菜单。
 
 所有涉及 Postman 目录的命令（`install`/`restore`/`start`/`verify`/`publish`）共用同一套探测：先看运行中的 Postman 进程，再依次扫 `%LOCALAPPDATA%\Postman`、`%LOCALAPPDATA%\Programs\Postman`、当前目录、本仓库及其上三层、桌面、下载目录；每个搜索根除了自身的 `app-*`，还会下降一层进入名字含 `postman` 的子目录（例如仓库与绿色版并列放在桌面时的 `Desktop\Postman\app-x.y.z`），命中多个版本取最高版本。`publish` 另有 `-PostmanRoot` 可显式指定安装根。
 

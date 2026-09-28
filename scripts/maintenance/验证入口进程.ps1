@@ -247,7 +247,7 @@ $stopText = $stopText.Remove($start, $exitStatement.Extent.Text.Length).Insert($
     foreach ($choice in $Choices) { $script:MenuInputs.Enqueue($choice) }
     return (& $realShowMenu)
   }
-  $menuCommands = @('install', 'verify', 'restore', 'start', 'stop', 'merge', 'updates', 'fix-browser', 'publish', 'stats')
+  $menuCommands = @('install', 'verify', 'restore', 'start', 'stop', 'updates', 'fix-browser', 'publish', 'stats')
   for ($i = 0; $i -lt $menuCommands.Count; $i++) {
     $choices = @([string]($i + 1))
     if ($menuCommands[$i] -eq 'updates') { $choices += '2' }
@@ -257,7 +257,7 @@ $stopText = $stopText.Remove($start, $exitStatement.Extent.Text.Length).Insert($
     Assert-Test (($selection.Arguments -join '|') -eq $expectedArguments) "菜单 $($i + 1) 只携带必要参数"
   }
   Assert-Test ((Select-FixtureMenu @('')).Command -eq 'install') '真实菜单回车仍默认安装'
-  Assert-Test ((Select-FixtureMenu @('7', '0', '6')).Command -eq 'merge') '更新子菜单返回后可选择合并'
+  Assert-Test ((Select-FixtureMenu @('6', '0', '5')).Command -eq 'stop') '更新子菜单返回后可继续选择其它菜单项'
   foreach ($choice in @('0', 'q')) {
     Assert-Test ($null -eq (Select-FixtureMenu @($choice))) "真实菜单 $choice 正常退出"
   }
