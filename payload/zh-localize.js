@@ -8,6 +8,22 @@
 
   var EXACT = {
     /* === batch-translated (auto-merged) === */
+    "Store in plain text": "以纯文本存储",
+    "This secret was secured in your local vault.": "此密钥已保存在你的本地保险库中。",
+    "This secret was secured in your shared vault.": "此密钥已保存在你的共享保险库中。",
+    "Couldn't restore the value. Check that your vault is unlocked and try again.": "无法恢复该值。请确认你的保险库已解锁后重试。",
+    "Couldn't store the value in plain text. Try again.": "无法以纯文本存储该值。请重试。",
+    "Private Cloud doesn't support pm.state or pm.datasets yet — mocks here must be stateless. Please remove them, then push again.": "私有云暂不支持 pm.state 或 pm.datasets——这里的模拟服务器必须是无状态的。请先移除它们，然后重新推送。",
+    "Private Cloud doesn't support pm.state or pm.datasets yet — mocks here must be stateless. Please remove them, then save again.": "私有云暂不支持 pm.state 或 pm.datasets——这里的模拟服务器必须是无状态的。请先移除它们，然后重新保存。",
+    "Untitled Collection": "未命名集合",
+    "Untitled Environment": "未命名环境",
+    "Untitled Flow": "未命名 Flow",
+    "Untitled Specification": "未命名规范",
+    "Untitled Spec": "未命名规范",
+    "Untitled API": "未命名 API",
+    "Untitled Monitor": "未命名监视器",
+    "Untitled Mock Server": "未命名模拟服务器",
+    /* === batch-translated (auto-merged) === */
     "Starts on this mock": "此模拟的启动记录",
     "Unknown starter": "未知启动者",
     "Previous starts": "历史启动记录",
@@ -28808,6 +28824,9 @@
     [/^Last (\d[\d,.]*) starts$/, "最近 $1 条启动记录"],
     [/^Previous starts (\d[\d,.]*)$/, "历史启动记录 $1"],
     // ---- END 12292 批次 ----
+    // ---- BEGIN 12300 批次插值规则（勿手改）----
+    [/^Choose a file smaller than ([^<>{}]{1,40})\.$/, "请选择小于 $1 的文件。"],
+    // ---- END 12300 批次 ----
     // ==== END 官方 i18n 清单生成的插值规则 ====
 
 
