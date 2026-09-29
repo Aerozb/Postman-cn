@@ -10817,6 +10817,7 @@
     /* === batch-translated (auto-merged) === */
     "Connected accounts": "已连接的账户",
     "Update downloaded": "更新已下载",
+    "Update downloaded, restart now": "更新已下载，立即重启",
     "Install update": "安装更新",
     "Restart to update": "重启以完成更新",
     "Downloading update": "正在下载更新",

@@ -816,6 +816,10 @@ const samples = {
   ],
   "translationProbeExpectations": [
     [
+      "Update downloaded, restart now",
+      "更新已下载，立即重启"
+    ],
+    [
       "Everyone in the workspace will be connected to this folder. Members who don't have it locally will need to clone or open it.",
       "工作区中的所有成员都会连接到此文件夹。本地尚无此文件夹的成员需要先克隆或打开它。"
     ],
