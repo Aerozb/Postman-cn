@@ -304,6 +304,57 @@ async function runLocalizationRuntimeTests() {
       assert.equal(wrapper.firstChild, code); assert.match(code.textContent, /^Run all requests/);
     }
   });
+  function integrationsReleaseNote(r, parent, title = "Integrations", gap = " ") {
+    const paragraph = r.el("p", "", parent);
+    paragraph.appendChild(r.document.createTextNode("You can now browse, connect, and manage all Postman integrations from the" + gap));
+    const strong = r.el("strong", title, paragraph);
+    paragraph.appendChild(r.document.createTextNode(gap + "page. The Integrations directory covers native integrations (Slack, Teams, Jira, GitHub), agent connectors (New Relic, Wiz), and legacy notification integrations (Datadog, PagerDuty, Splunk, Statuspage, webhooks) on the same page. Each integration has a full listing of features, links to documentation, and a media gallery. Existing integrations carry over automatically, nothing needs to be reconnected."));
+    return { paragraph, strong };
+  }
+  test("发行说明长段落兼容英文及已译粗体并保留文档链接", r => {
+    for (const title of ["Integrations", "集成"]) {
+      for (const gap of [" ", "\u00a0"]) {
+        const container = r.el("div");
+        const { paragraph, strong } = integrationsReleaseNote(r, container, title, gap);
+        const parts = [...paragraph.childNodes];
+        const strongText = strong.firstChild;
+        const docs = r.el("p", "了解更多请参阅 ", container);
+        const link = r.el("a", "Integrate Postman with third-party solutions", docs);
+        link.setAttribute("href", "https://learning.postman.com/docs/integrations/");
+        docs.appendChild(r.document.createTextNode("."));
+        r.localizer.walk(container);
+        assert.equal(paragraph.textContent, "现在，你可以在集成页面浏览、连接和管理所有 Postman 集成。集成目录在同一页面汇集了原生集成（Slack、Teams、Jira、GitHub）、代理连接器（New Relic、Wiz）以及旧版通知集成（Datadog、PagerDuty、Splunk、Statuspage、Webhook）。每项集成都提供完整的功能列表、文档链接和媒体展示。现有集成会自动保留，无需重新连接。");
+        assert.deepEqual(paragraph.childNodes, parts);
+        assert.equal(strong.firstChild, strongText);
+        assert.equal(strong.textContent, "集成");
+        assert.equal(docs.querySelector("a"), link);
+        assert.equal(link.getAttribute("href"), "https://learning.postman.com/docs/integrations/");
+        assert.equal(link.textContent, "将 Postman 与第三方解决方案集成");
+        const translated = paragraph.textContent;
+        r.localizer.walk(container);
+        assert.equal(paragraph.textContent, translated);
+      }
+    }
+  });
+  test("发行说明长段落修补保留数据区和不完整原文", r => {
+    for (const kind of ["code", "pre", "response-body", "key-value-cell"]) {
+      const parent = r.el(kind === "code" || kind === "pre" ? kind : "div");
+      if (kind === "response-body" || kind === "key-value-cell") parent.className = kind;
+      const { paragraph, strong } = integrationsReleaseNote(r, parent);
+      const original = paragraph.textContent;
+      r.api.fixCompositeTextBlocks(parent);
+      r.localizer.walk(parent);
+      assert.equal(paragraph.textContent, original, kind);
+      assert.equal(paragraph.childNodes[1], strong);
+    }
+    const parent = r.el("div");
+    const { paragraph, strong } = integrationsReleaseNote(r, parent);
+    paragraph.childNodes[2].nodeValue += " Additional release note.";
+    const original = paragraph.textContent;
+    r.api.fixCompositeTextBlocks(parent);
+    assert.equal(paragraph.textContent, original);
+    assert.equal(paragraph.childNodes[1], strong);
+  });
   test("强制关闭和性能组合文案同样保护键值数据区", r => {
     const cell = r.el("div"); cell.className = "key-value-cell";
     const p = r.el("p", "2 tabs have unsaved changes which will be lost if you force close these tabs.", cell);
