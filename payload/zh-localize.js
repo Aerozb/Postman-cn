@@ -8,6 +8,95 @@
 
   var EXACT = {
     /* === batch-translated (auto-merged) === */
+    "See your team’s credit consumption with credit reports in Flows": "通过 Flows 额度报告查看团队的额度用量",
+    "Credits report": "额度报告",
+    "Flows Analytics now includes a Credits report button that shows exactly how your credits are being used. Reports surface total credits, total executions, and active users, plus a Credits by Flow table you can filter by trigger type (HTTP, Triggers, Cloud Runs, Local Runs) and a per-user breakdown you can expand for more detail. Reports default to last month but can be switched to month-to-date, and can be downloaded as HTML or PDF. Available on all plans.": "Flows 分析现在提供额度报告按钮，可清楚查看额度用量。报告展示额度总量、执行总次数和活跃用户数，并提供按 Flow 汇总的额度表格，可按触发类型（HTTP、触发器、云端运行、本地运行）筛选，也可展开各用户的用量明细。报告默认展示上个月的数据，也可切换至本月截至当前的数据，并支持下载为 HTML 或 PDF。所有套餐均可使用。",
+    /* === batch-translated (auto-merged) === */
+    "Passport by Postman lets you grant granular, time-bound API access to any developer or AI agent. Secrets never leave your cloud, every call is audited, and access can be revoked in one click.": "Passport by Postman 支持向开发者或 AI 智能体授予精细且限时的 API 访问权限。密钥始终保留在你的云端，每次调用都有审计记录，并可一键撤销访问权限。",
+    "Passport by Postman lets you call APIs using a reference instead, the real value is never held on this machine.": "Passport by Postman 支持通过密钥引用调用 API，真实密钥值始终不会存储在此设备上。",
+    "Drop a CSV or JSON file, or browse": "拖放 CSV 或 JSON 文件，或浏览",
+    /* === batch-translated (auto-merged) === */
+    "Build with a third-party or public API": "使用第三方或公开 API 开发",
+    "Document and share APIs": "编写 API 文档并分享 API",
+    "Jira site": "Jira 站点",
+    "Connected workspaces could not be loaded.": "加载已连接的工作区失败。",
+    "Failed to open folder": "打开文件夹失败",
+    "I found a fix for these lint issues.": "已找到这些代码检查问题的修复方案。",
+    "Upload image": "上传图片",
+    "Drop image to upload": "拖放图片以上传",
+    "Upload failed": "上传失败",
+    "Image unavailable": "图片不可用",
+    "Add workspace README": "添加工作区 README",
+    "Bring your teammates in. Shared workspaces, real-time collaboration and roles are unlocked for everyone you add.": "邀请团队成员加入。每位受邀成员都可以使用共享工作区、实时协作和角色功能。",
+    "Add email": "添加邮箱",
+    "Send invites": "发送邀请",
+    "Enter at least one email address to send an invite.": "请至少输入一个邮箱地址以发送邀请。",
+    "Enter a valid email address.": "请输入有效的邮箱地址。",
+    "Invites are on their way.": "邀请已发出。",
+    "They will get an email with a link to join your team.": "他们将收到一封包含加入团队链接的邮件。",
+    "Could not send invites. Please try again.": "发送邀请失败，请重试。",
+    "Select a service to see how your weight changes affect the scores. Options are limited by the tags, environment, and governance group set in Step 1.": "选择服务以查看权重调整对评分的影响。可选服务受第 1 步设置的标签、环境和治理组限制。",
+    "Current filters": "当前筛选条件",
+    "These filters were set in the previous steps and limit which services you can preview.": "这些筛选条件已在前面的步骤中设置，决定了可预览的服务范围。",
+    "Tags:": "标签：",
+    "Environment:": "环境：",
+    "Governance Group:": "治理组：",
+    "Selected group": "所选组",
+    "No services match the tags, environment, and governance group set in Step 1. Adjust those filters to preview scores.": "没有服务符合第 1 步设置的标签、环境和治理组。请调整筛选条件后预览评分。",
+    "No services available to preview.": "没有可供预览的服务。",
+    "Select a service above to preview scores": "选择上方的服务以预览评分",
+    "Blocking. These metric(s) have missing or invalid thresholds and must be fixed before saving.": "阻止保存。这些指标的阈值缺失或无效，请修正后再保存。",
+    "Non-blocking. These metric(s) have no collected data for this service yet and score 0.": "不影响保存。这些指标尚未采集到此服务的数据，评分为 0。",
+    "Add at least one category with at least one metric to continue.": "请至少添加一个包含一项指标的类别后继续。",
+    "Invite has been resent": "邀请已重新发送",
+    "Something went wrong while resending the invite": "重新发送邀请时出错",
+    "Invite has been revoked": "邀请已撤销",
+    "Something went wrong while revoking the invite": "撤销邀请时出错",
+    "Give access to APIs without handing out secrets": "授予 API 访问权限，无需交出密钥",
+    "Securely call APIs without storing secrets": "无需存储密钥即可安全调用 API",
+    "Try Passport": "试用 Passport",
+    "Use a file saved to this workspace.": "使用已保存到此工作区的文件。",
+    "Create dataset from file": "从文件创建数据集",
+    "Replace file": "替换文件",
+    "Only CSV and JSON files can be added.": "仅支持添加 CSV 和 JSON 文件。",
+    "Only files can be added here. To add a database source, open the dataset from the sidebar and add it there.": "此处仅支持添加文件。要添加数据库数据源，请从侧边栏打开数据集后添加。",
+    "Saving to this workspace.": "正在保存到此工作区。",
+    "Saving to the repository folder.": "正在保存到仓库文件夹。",
+    "New dataset…": "新建数据集…",
+    "New dataset name": "新数据集名称",
+    "What this data covers and when to use it": "说明此数据涵盖的内容及适用场景",
+    "You don't have permission to create a dataset in this workspace, and there's no dataset here you can add to.": "你没有在此工作区创建数据集的权限，且此处没有可供你添加数据的数据集。",
+    "Why does this value need to stay in plain text?": "为什么此值需要保留为明文？",
+    "Your admins can see this request and its reason.": "管理员可以查看此申请及其理由。",
+    "Width (pixels)": "宽度（像素）",
+    "Height (pixels)": "高度（像素）",
+    "Changing one keeps the image's proportions. Leave both empty for the original size.": "修改任一尺寸都会保持图片比例。两项留空则使用原始尺寸。",
+    "Leave the fields as they are to keep the current size, enter pixels to replace it, or clear them for the original size.": "保持字段不变以保留当前尺寸，输入像素值以调整尺寸，或清空字段以使用原始尺寸。",
+    "The tool could not be created.": "创建工具失败。",
+    "Enable or disable this tool": "启用或禁用此工具",
+    "Clear sort to move items": "清除排序后即可移动项目",
+    "Postman Enterprise App": "Postman 企业版应用",
+    "Download and distribute Postman Enterprise Application in your organization.": "在组织中下载和分发 Postman 企业版应用。",
+    "Download and distribute Postman Desktop Agent in your organization.": "在组织中下载和分发 Postman Desktop Agent。",
+    "Postman Enterprise App Manifest": "Postman 企业版应用清单",
+    "Download the manifest for Postman App": "下载 Postman 应用清单",
+    "Mac Intel Chip": "Mac（Intel 芯片）",
+    "Mac Apple Chip": "Mac（Apple 芯片）",
+    "Before produce": "生产前",
+    "\"Before produce\" scripts run before the event is sent to the broker.": "“生产前”脚本在事件发送到 broker 之前运行。",
+    "Runs before the event is sent to the broker.": "在事件发送到 broker 之前运行。",
+    "After produce": "生产后",
+    "\"After produce\" scripts run after the broker acknowledges the produced event.": "“生产后”脚本在 broker 确认已生产的事件后运行。",
+    "Runs after the broker acknowledges the produced event.": "在 broker 确认已生产的事件后运行。",
+    "Before consume": "消费前",
+    "\"Before consume\" scripts run before the subscription starts streaming.": "“消费前”脚本在订阅开始流式接收之前运行。",
+    "Runs before the subscription starts streaming.": "在订阅开始流式接收之前运行。",
+    "\"On message\" scripts run once for every record received while streaming.": "“收到消息时”脚本会对流式接收的每条记录运行一次。",
+    "Runs once for every record received while streaming.": "对流式接收的每条记录运行一次。",
+    "After consume": "消费后",
+    "\"After consume\" scripts run after the stream ends.": "“消费后”脚本在流结束后运行。",
+    "Runs after the stream ends.": "在流结束后运行。",
+    /* === batch-translated (auto-merged) === */
     "Remove mock": "移除模拟服务",
     "This mock and its scenario configuration will be removed from the simulation.": "此模拟服务及其场景配置将从仿真中移除。",
     /* === batch-translated (auto-merged) === */
@@ -29090,6 +29179,23 @@
     [new RegExp("^(\\d+) models?$"), "$1 个模型"],
     [new RegExp("^Model: (.{1,120})$"), "模型：$1"],
     // ---- END 12305 批次 ----
+    // ---- BEGIN 12313 批次插值规则 ----
+    [new RegExp("^Are you sure you want to delete ([^<>?\\r\\n]{1,120}) and all of its tools\\? This can't be undone\\.$"), "确定要删除 $1 及其全部工具吗？此操作不可撤销。"],
+    [new RegExp("^Are you sure you want to delete ([^<>?\\r\\n]{1,120})\\? This can't be undone\\.$"), "确定要删除 $1 吗？此操作不可撤销。"],
+    [new RegExp("^Congratulations! Your (Solo|Team|Enterprise|new) trial is now active\\.$"), function (_match, tier) { return "恭喜！你的" + { Solo: "个人版", Team: "团队版", Enterprise: "企业版", "new": "新套餐" }[tier] + "试用已开启。"; }],
+    [new RegExp("^Add at least one metric to \"([^\"<>\\r\\n]{1,120})\" to continue\\.$"), "请至少为“$1”添加一项指标后继续。"],
+    [new RegExp("^Adds the file as a source and view in \"([^\"<>\\r\\n]{1,120})\"\\.$"), "将此文件作为数据源和视图添加到“$1”。"],
+    [new RegExp("^More actions for the invite sent to ([^\\s<>@]+@[^\\s<>@]+\\.[^\\s<>@]+)$"), "发送给 $1 的邀请的更多操作"],
+    [new RegExp("^Enter a whole number from 1 to (\\d+)$"), "请输入 1 到 $1 之间的整数"],
+    [new RegExp("^(\\d+) metrics? with invalid inputs$"), "$1 项指标的输入无效"],
+    [new RegExp("^(\\d+) metrics? (?:has|have) no data \\(scored as 0\\)$"), "$1 项指标没有数据（按 0 分计）"],
+    [new RegExp("^(\\d+) invites? sent$"), "已发送 $1 份邀请"],
+    [new RegExp("^Added \"([^\"<>\\r\\n]{1,120})\" to \"([^\"<>\\r\\n]{1,120})\"$"), "已将“$1”添加到“$2”"],
+    [new RegExp("^\\+ (\\d+) others?$"), "+$1 个其他站点"],
+    [new RegExp("^(\\d+) more: ([^<>\\r\\n]{1,160})$"), "另有 $1 项：$2"],
+    [new RegExp("^(v?\\d+\\.\\d+\\.\\d+(?:\\.\\d+)?) \\(latest\\)$"), "$1（最新版）"],
+    [new RegExp("^\\(Invited as (Admin|Editor|Viewer|Member|Developer|Guest|Partner|Owner|Collaborator)\\)$"), function (_match, role) { return "（受邀角色：" + i18nTerm(role) + "）"; }],
+    // ---- END 12313 批次 ----
     // ==== END 官方 i18n 清单生成的插值规则 ====
 
 
@@ -29997,6 +30103,54 @@
         continue;
       }
       var text = normalize(nodes[j].innerText || nodes[j].textContent || "");
+      // 官方 Passport 提示将品牌名包在链接或粗体中；仅在完整精确词条命中时改尾部文本。
+      // 不替换容器或内联元素，保留链接地址、事件与所有受保护后代。
+      if (/^(?:P|DIV|SPAN)$/.test(nodes[j].tagName) &&
+          text.indexOf("Passport by Postman lets you ") === 0 &&
+          Object.prototype.hasOwnProperty.call(EXACT, text)) {
+        var passportParts = Array.prototype.filter.call(nodes[j].childNodes, function (node) {
+          return node.nodeType !== 3 || normalize(node.nodeValue);
+        });
+        if (passportParts.length === 2 && passportParts[0].nodeType === 1 &&
+            /^(?:A|B|STRONG|SPAN)$/.test(passportParts[0].tagName) &&
+            passportParts[0].childNodes.length === 1 && passportParts[0].firstChild.nodeType === 3 &&
+            normalize(passportParts[0].textContent) === "Passport by Postman" &&
+            passportParts[1].nodeType === 3 && EXACT[text].indexOf("Passport by Postman ") === 0) {
+          passportParts[1].nodeValue = EXACT[text].slice("Passport by Postman".length);
+          continue;
+        }
+      }
+      // 数据集拖放提示保留 browse 元素的点击处理，不将半句加入词典。
+      if (/^Drop a CSV or JSON file, or (?:browse|浏览)$/.test(text)) {
+        var browseParts = Array.prototype.filter.call(nodes[j].childNodes, function (node) {
+          return node.nodeType !== 3 || normalize(node.nodeValue);
+        });
+        if (browseParts.length === 2 && browseParts[0].nodeType === 3 &&
+            normalize(browseParts[0].nodeValue) === "Drop a CSV or JSON file, or" &&
+            browseParts[1].nodeType === 1 && /^(?:A|BUTTON|SPAN)$/.test(browseParts[1].tagName) &&
+            browseParts[1].childNodes.length === 1 && browseParts[1].firstChild.nodeType === 3 &&
+            /^(?:browse|浏览)$/.test(normalize(browseParts[1].textContent))) {
+          browseParts[0].nodeValue = EXACT["Drop a CSV or JSON file, or browse"].slice(0, -2);
+          browseParts[1].firstChild.nodeValue = "浏览";
+          continue;
+        }
+      }
+      // 12.31.0 发行说明中的额度报告保留粗体；完整段落的译文仍只取 EXACT。
+      var creditReportText = text.replace(/^Flows Analytics now includes a 额度报告 button/, "Flows Analytics now includes a Credits report button");
+      if (nodes[j].tagName === "P" && creditReportText.indexOf("Flows Analytics now includes a Credits report button ") === 0 &&
+          Object.prototype.hasOwnProperty.call(EXACT, creditReportText)) {
+        var creditReportParts = nodes[j].childNodes;
+        if (creditReportParts.length === 3 && creditReportParts[0].nodeType === 3 &&
+            creditReportParts[1].nodeType === 1 && creditReportParts[1].tagName === "STRONG" &&
+            /^(?:Credits report|额度报告)$/.test(normalize(creditReportParts[1].textContent)) &&
+            creditReportParts[1].childNodes.length === 1 && creditReportParts[1].firstChild.nodeType === 3 &&
+            creditReportParts[2].nodeType === 3 && EXACT[creditReportText].indexOf("Flows 分析现在提供额度报告") === 0) {
+          creditReportParts[0].nodeValue = "Flows 分析现在提供";
+          creditReportParts[1].firstChild.nodeValue = EXACT["Credits report"];
+          creditReportParts[2].nodeValue = EXACT[creditReportText].slice("Flows 分析现在提供额度报告".length);
+          continue;
+        }
+      }
       // 发行说明长段落的 Integrations 被 STRONG 拆开，且可能已经译为“集成”。
       // 仅匹配完整原文及实际三节点结构；在长度闸门前处理并保留元素身份与链接。
       if (nodes[j].tagName === "P" &&

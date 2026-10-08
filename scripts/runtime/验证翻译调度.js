@@ -355,6 +355,76 @@ async function runLocalizationRuntimeTests() {
     assert.equal(paragraph.textContent, original);
     assert.equal(paragraph.childNodes[1], strong);
   });
+  test("Flows 额度发行说明保留粗体并保护响应和编辑数据", r => {
+    const source = "Flows Analytics now includes a Credits report button that shows exactly how your credits are being used. Reports surface total credits, total executions, and active users, plus a Credits by Flow table you can filter by trigger type (HTTP, Triggers, Cloud Runs, Local Runs) and a per-user breakdown you can expand for more detail. Reports default to last month but can be switched to month-to-date, and can be downloaded as HTML or PDF. Available on all plans.";
+    for (const kind of ["normal", "translated", "response-body", "key-value-cell", "contenteditable"]) {
+      const parent = r.el("div");
+      if (kind === "response-body" || kind === "key-value-cell") parent.className = kind;
+      if (kind === "contenteditable") parent.setAttribute("contenteditable", "true");
+      const paragraph = r.el("p", "Flows Analytics now includes a ", parent);
+      const strong = r.el("strong", kind === "translated" ? "额度报告" : "Credits report", paragraph);
+      paragraph.appendChild(r.document.createTextNode(source.slice("Flows Analytics now includes a Credits report".length)));
+      const original = paragraph.textContent;
+      const parts = [...paragraph.childNodes];
+      r.localizer.walk(parent); r.advance(700);
+      assert.equal(paragraph.textContent, kind === "normal" || kind === "translated" ? r.localizer.translate(source) : original, kind);
+      assert.deepEqual(paragraph.childNodes, parts);
+      assert.equal(paragraph.childNodes[1], strong);
+    }
+  });
+  test("Passport 完整提示保留品牌链接、粗体及重复运行稳定性", r => {
+    const original = "Passport by Postman lets you grant granular, time-bound API access to any developer or AI agent. Secrets never leave your cloud, every call is audited, and access can be revoked in one click.";
+    for (const tag of ["a", "strong", "span"]) {
+      const paragraph = r.el("p");
+      const brand = r.el(tag, "Passport by Postman", paragraph);
+      brand.setAttribute("href", "https://www.postman.com/passport/");
+      const tail = r.document.createTextNode(original.slice("Passport by Postman".length));
+      paragraph.appendChild(tail);
+      r.localizer.walk(paragraph);
+      assert.equal(paragraph.textContent, r.localizer.translate(original));
+      assert.equal(paragraph.firstChild, brand);
+      assert.equal(paragraph.childNodes[1], tail);
+      assert.equal(brand.getAttribute("href"), "https://www.postman.com/passport/");
+      r.localizer.walk(paragraph); r.advance(700);
+      assert.equal(paragraph.textContent, r.localizer.translate(original));
+    }
+  });
+  test("数据集浏览提示保留按钮身份并兼容已译标签", r => {
+    for (const label of ["browse", "浏览"]) {
+      const paragraph = r.el("p", "Drop a CSV or JSON file, or ");
+      const browse = r.el("button", label, paragraph);
+      browse.setAttribute("data-testid", "fixture-browse");
+      const parts = [...paragraph.childNodes];
+      r.localizer.walk(paragraph); r.advance(700);
+      assert.equal(paragraph.textContent, "拖放 CSV 或 JSON 文件，或浏览");
+      assert.deepEqual(paragraph.childNodes, parts);
+      assert.equal(browse.getAttribute("data-testid"), "fixture-browse");
+    }
+  });
+  test("Passport 与数据集组合修补保留数据区及可编辑内容", r => {
+    const suffix = " lets you call APIs using a reference instead, the real value is never held on this machine.";
+    for (const kind of ["pre", "code", "response-body", "key-value-cell", "contenteditable"]) {
+      const parent = r.el(kind === "pre" || kind === "code" ? kind : "div");
+      if (kind === "contenteditable") parent.setAttribute("contenteditable", "true");
+      else if (kind !== "pre" && kind !== "code") parent.className = kind;
+      const paragraph = r.el("p", "", parent);
+      const brand = r.el("strong", "Passport by Postman", paragraph);
+      paragraph.appendChild(r.document.createTextNode(suffix));
+      const drop = r.el("p", "Drop a CSV or JSON file, or ", parent);
+      const browse = r.el("button", "browse", drop);
+      r.api.fixCompositeTextBlocks(parent);
+      assert.equal(paragraph.textContent, "Passport by Postman" + suffix, kind);
+      assert.equal(paragraph.firstChild, brand);
+      assert.equal(drop.textContent, "Drop a CSV or JSON file, or browse", kind);
+      assert.equal(drop.childNodes[1], browse);
+    }
+    const incomplete = r.el("p");
+    r.el("strong", "Passport by Postman", incomplete);
+    incomplete.appendChild(r.document.createTextNode(suffix + " Extra content."));
+    const original = incomplete.textContent;
+    r.api.fixCompositeTextBlocks(incomplete);
+    assert.equal(incomplete.textContent, original);
+  });
   test("强制关闭和性能组合文案同样保护键值数据区", r => {
     const cell = r.el("div"); cell.className = "key-value-cell";
     const p = r.el("p", "2 tabs have unsaved changes which will be lost if you force close these tabs.", cell);
