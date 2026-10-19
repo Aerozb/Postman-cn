@@ -8,6 +8,87 @@
 
   var EXACT = {
     /* === batch-translated (auto-merged) === */
+    "Type or paste emails": "输入或粘贴邮箱地址",
+    "Add another email": "添加另一个邮箱地址",
+    "This address is too long": "此邮箱地址过长",
+    "Check the part before the @": "请检查 @ 前面的部分",
+    "Check the domain": "请检查邮箱域名",
+    "That's your own address.": "这是你自己的邮箱地址。",
+    "Add at least one email.": "请至少添加一个邮箱地址。",
+    "No email addresses found in what you pasted.": "粘贴的内容中未找到邮箱地址。",
+    "Skipped your own address.": "已跳过你自己的邮箱地址。",
+    "Couldn’t delete the channel integration.": "删除频道集成失败。",
+    "Failed to connect the channel integration. Please try again.": "连接频道集成失败，请重试。",
+    "Failed to update the channel integration. Please try again.": "更新频道集成失败，请重试。",
+    "You don’t have permission to manage channel integrations in this workspace.": "你没有管理此工作区频道集成的权限。",
+    "You don’t have permission to change this channel integration. Ask a workspace admin to make the change.": "你没有修改此频道集成的权限，请联系工作区管理员进行修改。",
+    "This channel integration belongs to another team. Only that team can change it.": "此频道集成属于另一个团队，仅该团队可以修改。",
+    "This channel integration no longer exists. Refresh the page and try again.": "此频道集成已不存在，请刷新页面后重试。",
+    "This channel is already connected to another integration.": "此频道已连接到另一个集成。",
+    "This destination is already connected.": "此目标已连接。",
+    "This workspace already has a channel integration.": "此工作区已有频道集成。",
+    "You’ve reached the maximum number of channel integrations for this workspace.": "此工作区的频道集成数量已达上限。",
+    "Channel integrations aren’t available for this workspace type.": "此类型的工作区暂不支持频道集成。",
+    "In a public workspace, an integration can only notify this channel about workspace updates.": "在公共工作区中，集成仅可向此频道发送工作区更新通知。",
+    "This integration’s destination type can’t be changed. Disconnect it and connect a new one.": "此集成的目标类型固定，请断开后连接新的集成。",
+    "Failed to connect the monitor integration. Please try again.": "连接监视器集成失败，请重试。",
+    "Failed to update the monitor integration. Please try again.": "更新监视器集成失败，请重试。",
+    "Teardown lifecycle collection failed.": "清理阶段的生命周期集合执行失败。",
+    "Teardown lifecycle collection outcome is unknown.": "清理阶段的生命周期集合执行结果未知。",
+    "Focus Next Split": "聚焦下一个分栏",
+    "Focus Previous Split": "聚焦上一个分栏",
+    "Please wait for setup to complete": "请等待设置完成",
+    "Please fill in all required fields": "请填写所有必填项",
+    "git init command": "git init 命令",
+    "git remote add command": "git remote add 命令",
+    "Close All Tabs in Group": "关闭组内所有标签页",
+    "Force Close All Tabs in Group": "强制关闭组内所有标签页",
+    "Close All Tabs in All Groups": "关闭所有组的全部标签页",
+    "Frontmatter": "文档头部元数据",
+    "Teammate emails": "团队成员邮箱",
+    "Add another teammate": "添加另一位团队成员",
+    "Could not send. Check your connection and try again.": "发送失败，请检查网络连接后重试。",
+    "Postman CLI commands": "Postman CLI 命令",
+    "Auto-update cloud workspace": "自动更新云端工作区",
+    "Automatically update your cloud workspace when a chosen branch is merged.": "所选分支合并时自动更新云端工作区。",
+    "Couldn’t check whether this folder is connected to the workspace.": "检查此文件夹是否已连接到工作区时失败。",
+    "app test command": "app test 命令",
+    "Postman API Key": "Postman API 密钥",
+    "repository secrets": "仓库密钥",
+    "CI secrets": "CI 密钥",
+    "Add workflow config": "添加工作流配置",
+    "Add to a New Branch and Create a PR": "添加到新分支并创建拉取请求",
+    "Couldn't create the auto-update branch.": "创建自动更新分支失败。",
+    "Couldn't commit the workflow file.": "提交工作流文件失败。",
+    "Couldn't push the auto-update branch.": "推送自动更新分支失败。",
+    "Couldn't open the pull request page.": "打开拉取请求页面失败。",
+    "Couldn't push to GitHub.": "推送到 GitHub 失败。",
+    "Set up your Git credentials for GitHub. Review the push command in the terminal, run it, then open the pull request page.": "请配置用于 GitHub 的 Git 凭据。在终端中检查并执行推送命令，然后打开拉取请求页面。",
+    "Open push command in terminal": "在终端中打开推送命令",
+    "Push this branch from the terminal.": "请从终端推送此分支。",
+    "This repository's Git config runs its own programs on push, so Postman won't run the push. Review the push command in the terminal, run it yourself, then open the pull request page.": "此仓库的 Git 配置会在推送时执行自定义程序，因此 Postman 将跳过推送。请在终端中检查并手动执行推送命令，然后打开拉取请求页面。",
+    "Open pull request page": "打开拉取请求页面",
+    "Push the branch first.": "请先推送分支。",
+    "Run the push command in the terminal, then open the pull request page.": "在终端中执行推送命令，然后打开拉取请求页面。",
+    "Couldn't set up the auto-update workflow.": "设置自动更新工作流失败。",
+    "You can only share with people who have access to this partner workspace.": "仅可与拥有此合作伙伴工作区访问权限的人员共享。",
+    "Upgrade to share requests with your team": "升级以与团队共享请求",
+    "Watch the forked collection": "关注派生集合",
+    "Get notified when the forked collection changes.": "派生集合发生更改时接收通知。",
+    "Collapse graph info": "收起图谱信息",
+    "Graph info": "图谱信息",
+    "Expand graph info": "展开图谱信息",
+    "Collapse graph legend": "收起图谱图例",
+    "Expand graph legend": "展开图谱图例",
+    "This cURL leaves out your scripts": "此 cURL 未包含你的脚本",
+    "This cURL leaves out your variables": "此 cURL 未包含你的变量",
+    "This cURL leaves out your auth settings": "此 cURL 未包含你的身份验证设置",
+    "Sending this cURL to a teammate?": "要将此 cURL 发送给团队成员吗？",
+    "Share the request instead so it runs the same for your teammate, scripts included.": "请直接共享请求，让团队成员使用相同的配置运行，包括脚本。",
+    "Share the request instead so it runs the same for your teammate, variables included.": "请直接共享请求，让团队成员使用相同的配置运行，包括变量。",
+    "Share the request instead so it runs the same for your teammate, auth settings included.": "请直接共享请求，让团队成员使用相同的配置运行，包括身份验证设置。",
+    "Share the request instead so it runs the same for your teammate.": "请直接共享请求，让团队成员使用相同的配置运行。",
+    /* === batch-translated (auto-merged) === */
     "Load test": "负载测试",
     "See how this request holds up under load.": "看看此请求在负载下的表现。",
     "Couldn't set up a collection to run the performance test. Try again.": "无法创建用于运行性能测试的集合，请重试。",
@@ -27909,6 +27990,33 @@
       return count + " 个" + { folder: "文件夹", request: "请求", example: "示例" }[kind.toLowerCase().replace(/s$/, "")];
     }],
     // ==== BEGIN 官方 i18n 清单生成的插值规则（rules-b*.json，勿手改）====
+    // ---- BEGIN 12324 批次插值规则 ----
+    [new RegExp("^Your team is already connected to a different ([^<>\\r\\n]{1,100}?) workspace\\. Disconnect it before connecting this one\\.$"), "你的团队已连接到另一个 $1 工作区。请先断开，再连接此工作区。"],
+    [new RegExp("^You edited the workflow's branch filter, so it still doesn't run on ([^<>\\s]{1,200})\\. Update it in the file above\\.$"), "你修改了工作流的分支筛选条件，因此它仍未在 $1 上运行。请在上方文件中更新。"],
+    [new RegExp("^([^<>\\s]{1,200}) is already on origin\\. Open its pull request page, or create a new branch below\\.$"), "$1 已存在于 origin。请打开其拉取请求页面，或在下方创建新分支。"],
+    [new RegExp("^To move this integration to another ([^<>\\r\\n]{1,100}?) workspace, disconnect it and connect again\\.$"), "要将此集成移到另一个 $1 工作区，请先断开再重新连接。"],
+    [new RegExp("^Automatically update your cloud workspace when ([^<>\\s]{1,200}) is merged\\.$"), "合并 $1 时自动更新云端工作区。"],
+    [new RegExp("^Your ([^<>\\r\\n]{1,100}?) connection has expired\\. Reconnect ([^<>\\r\\n]{1,100}?) and try again\\.$"), function (match, app, again) { return app === again ? "你的 " + app + " 连接已过期。请重新连接 " + app + " 后重试。" : match; }],
+    [new RegExp("^Traffic-weighted avg across (\\d+(?:,\\d{3})*) of (\\d+(?:,\\d{3})*) projects?$"), "$2 个项目中 $1 个项目的流量加权平均值"],
+    [new RegExp("^Add your (?:Postman API Key|Postman API 密钥) to your (repository secrets|CI secrets|仓库密钥|CI 密钥) as POSTMAN_API_KEY\\.$"), function (_match, location) { var target = /^(?:repository secrets|仓库密钥)$/.test(location) ? "仓库密钥" : " CI 密钥"; return "将 Postman API 密钥以 POSTMAN_API_KEY 为名称添加到" + target + "。"; }],
+    [new RegExp("^Fix or remove (\\d+(?:,\\d{3})*) address(?:es)? to send\\.$"), "请修正或移除 $1 个邮箱地址后再发送。"],
+    [new RegExp("^You can send up to (\\d+(?:,\\d{3})*) at a time\\.$"), "每次最多可发送 $1 份邀请。"],
+    [new RegExp("^Target branch for auto-update: ([^<>\\s]{1,200})$"), "自动更新的目标分支：$1"],
+    [new RegExp("^Invites sent to (\\d+(?:,\\d{3})*) teammates\\.$"), "已向 $1 位团队成员发送邀请。"],
+    [new RegExp("^Add the full email, like ([^<>\\s@]{1,64}@[^<>\\s@]{1,190})$"), "请填写完整邮箱地址，例如 $1"],
+    [new RegExp("^Skipped (\\d+(?:,\\d{3})*) duplicates?\\.$"), "已跳过 $1 个重复地址。"],
+    [new RegExp("^Avg across (\\d+(?:,\\d{3})*) projects?$"), "$1 个项目的平均值"],
+    [new RegExp("^Press Tab to add ([^<>\\s@]{1,64}@[^<>\\s@]{1,190})\\.$"), "按 Tab 键添加 $1。"],
+    [new RegExp("^(\\d+(?:,\\d{3})*) needs? fixing\\.$"), "$1 个邮箱地址需要修正。"],
+    [new RegExp("^Invite sent to ([^<>\\s@]{1,64}@[^<>\\s@]{1,190})\\.$"), "已向 $1 发送邀请。"],
+    [new RegExp("^Added (\\d+(?:,\\d{3})*) of (\\d+(?:,\\d{3})*)\\.$"), "已添加 $2 个中的 $1 个。"],
+    [new RegExp("^Send (\\d+(?:,\\d{3})*) invites?$"), "发送 $1 份邀请"],
+    [new RegExp("^Added (\\d+(?:,\\d{3})*)\\.$"), "已添加 $1 个。"],
+    [new RegExp("^Removed ([^<>\\s@]{1,64}@[^<>\\s@]{1,190})\\.$"), "已移除 $1。"],
+    [new RegExp("^Remove ([^<>\\s@]{1,64}@[^<>\\s@]{1,190})$"), "移除 $1"],
+    [new RegExp("^Edit ([^<>\\s@]{1,64}@[^<>\\s@]{1,190})$"), "编辑 $1"],
+    [new RegExp("^Add ([^<>\\s@]{1,64}@[^<>\\s@]{1,190})$"), "添加 $1"],
+    // ---- END 12324 批次 ----
     // ---- BEGIN 12321 批次插值规则 ----
     [new RegExp("^With no table, this source connects to the whole database and is queried only through native views\\. These (\\d[\\d,]*) views read its table and will stop working: ([^<>\\r\\n]{1,300}?)\\.$"), "没有表时，此数据源会连接整个数据库，且只能通过原生视图查询。这 $1 个视图读取该表，将停止工作：$2。"],
     [new RegExp("^With no table, this source connects to the whole database and is queried only through native views\\. This view reads its table and will stop working: ([^<>\\r\\n]{1,300}?)\\.$"), "没有表时，此数据源会连接整个数据库，且只能通过原生视图查询。此视图读取该表，将停止工作：$1。"],
@@ -30197,6 +30305,48 @@
         continue;
       }
       var text = normalize(nodes[j].innerText || nodes[j].textContent || "");
+      // 工作区自动更新说明由带链接的分支名 / 密钥名组成；保留节点和事件，仍使用完整 RULES 译文。
+      // canRewriteCompositeText 已排除请求数据、可编辑区域和含代码的容器。
+      if (/^(?:P|DIV|SPAN)$/.test(nodes[j].tagName) &&
+          /^(?:Automatically update your cloud workspace when |Add your (?:Postman API Key|Postman API 密钥) to your )/.test(text)) {
+        var syncParts = nodes[j].childNodes;
+        var simpleSyncLabel = function (part) {
+          return part && part.nodeType === 1 && /^(?:A|SPAN|STRONG)$/.test(part.tagName) &&
+            part.childNodes.length === 1 && part.firstChild.nodeType === 3;
+        };
+        var syncTranslated = translate(text);
+        if (syncTranslated !== text && syncParts.length === 3 && syncParts[0].nodeType === 3 &&
+            simpleSyncLabel(syncParts[1]) && syncParts[2].nodeType === 3 &&
+            normalize(syncParts[0].nodeValue) === "Automatically update your cloud workspace when" &&
+            normalize(syncParts[2].nodeValue) === "is merged.") {
+          var syncBranchName = normalize(syncParts[1].textContent);
+          if (syncTranslated === "合并 " + syncBranchName + " 时自动更新云端工作区。") {
+            syncParts[0].nodeValue = syncTranslated.slice(0, 3);
+            syncParts[2].nodeValue = syncTranslated.slice(3 + syncBranchName.length);
+            continue;
+          }
+        }
+        if (syncTranslated !== text && syncParts.length === 5 && syncParts[0].nodeType === 3 &&
+            simpleSyncLabel(syncParts[1]) && syncParts[2].nodeType === 3 && simpleSyncLabel(syncParts[3]) &&
+            syncParts[4].nodeType === 3 && normalize(syncParts[0].nodeValue) === "Add your" &&
+            /^(?:Postman API Key|Postman API 密钥)$/.test(normalize(syncParts[1].textContent)) &&
+            normalize(syncParts[2].nodeValue) === "to your" &&
+            /^(?:repository secrets|CI secrets|仓库密钥|CI 密钥)$/.test(normalize(syncParts[3].textContent)) &&
+            normalize(syncParts[4].nodeValue) === "as POSTMAN_API_KEY.") {
+          var syncKeyLabel = translate(normalize(syncParts[1].textContent));
+          var syncSecretLabel = translate(normalize(syncParts[3].textContent));
+          var syncSecretAt = syncTranslated.indexOf(syncSecretLabel, 2 + syncKeyLabel.length);
+          if (syncTranslated.indexOf("将 " + syncKeyLabel) === 0 && syncSecretAt > 0 &&
+              syncTranslated.slice(syncSecretAt + syncSecretLabel.length) === "。") {
+            syncParts[0].nodeValue = syncTranslated.slice(0, 2);
+            syncParts[1].firstChild.nodeValue = syncKeyLabel;
+            syncParts[2].nodeValue = syncTranslated.slice(2 + syncKeyLabel.length, syncSecretAt);
+            syncParts[3].firstChild.nodeValue = syncSecretLabel;
+            syncParts[4].nodeValue = "。";
+            continue;
+          }
+        }
+      }
       // 官方 Passport 提示将品牌名包在链接或粗体中；仅在完整精确词条命中时改尾部文本。
       // 不替换容器或内联元素，保留链接地址、事件与所有受保护后代。
       if (/^(?:P|DIV|SPAN)$/.test(nodes[j].tagName) &&

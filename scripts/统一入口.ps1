@@ -268,6 +268,8 @@ Postman 中文汉化工具
   test          运行离线隔离回归；加 --details 查看分项，不启动 Postman、不连接网络
   start         启动 Postman 并等待 CDP 调试端口
                 -UserDataDir <目录> 使用独立 Postman 数据目录（汉化偏好仍由 APPDATA 定位）
+  download      查询并下载官方最新版，校验完整包后准备版本目录
+                -CheckOnly 只检查；-Install 下载后安装汉化并验证；--details 查看路径与版本链
   stop          彻底关闭 Postman 进程
   fix-browser   修复系统浏览器 URL 参数引号
   merge         合并 _generated/trans-*.json 译文；加 --check 只检查、不写入
@@ -276,6 +278,8 @@ Postman 中文汉化工具
   help          显示本帮助
 
 安装示例：
+  .\postman-zh.bat download -CheckOnly
+  .\postman-zh.bat download -Install -CleanOldVersions
   .\postman-zh.bat install
   .\postman-zh.bat install -CleanOldVersions
   .\postman-zh.bat install -PostmanDir C:\Path\To\Postman\app-<版本> -NoVerify
@@ -398,6 +402,7 @@ function Show-Menu {
     @{ Key = '7';  Command = 'fix-browser'; Label = '修复浏览器链接';   Note = '仅在登录页外部链接异常时用' }
     @{ Key = '8';  Command = 'publish';     Label = '发布（维护者）';   Note = '推送代码到 GitHub 并发 Release' }
     @{ Key = '9';  Command = 'stats';       Label = '查看项目数据';     Note = 'Star、下载量、访问与克隆趋势' }
+    @{ Key = 'd';  Command = 'download';    Label = '下载官方最新版';   Note = '校验并准备版本目录；之后选安装汉化' }
     @{ Key = 'h';  Command = 'help';        Label = '查看完整命令帮助'; Note = '' }
     @{ Key = '0';  Command = 'exit';        Label = '退出';             Note = '不执行任何操作' }
   )
@@ -482,7 +487,7 @@ function Show-Menu {
 function Invoke-SelectedCommand {
   param([string]$Command, [string[]]$RemainingArguments = @())
 
-  $validCommands = @('install', 'restore', 'updates', 'zh-updates', 'verify', 'test', 'start', 'stop', 'fix-browser', 'merge', 'publish', 'stats', 'help')
+  $validCommands = @('install', 'restore', 'updates', 'zh-updates', 'verify', 'test', 'start', 'stop', 'download', 'fix-browser', 'merge', 'publish', 'stats', 'help')
   if ($validCommands -notcontains $Command) {
     Write-Host "未知命令：$Command"
     Write-Host "请运行 .\postman-zh.bat help 查看可用命令。"
@@ -495,6 +500,26 @@ function Invoke-SelectedCommand {
   }
 
   switch ($Command) {
+    'download' {
+      $allowed = @('-CheckOnly', '-Install', '--details', '-Details')
+      $unknown = @($RemainingArguments | Where-Object { $_ -and $_ -notin $allowed })
+      $check = $RemainingArguments -contains '-CheckOnly'
+      $installLatest = $RemainingArguments -contains '-Install'
+      if ($unknown.Count -gt 0 -or ($check -and $installLatest) -or
+          (($CleanOldVersions -or $KeepUpdates) -and -not $installLatest) -or
+          $NoRestart -or $NoVerify -or $NoWait -or $UserDataDir) {
+        Write-Host '用法：.\postman-zh.bat download [-CheckOnly | -Install [-CleanOldVersions] [-KeepUpdates]] [-PostmanDir <目录>] [--details]'
+        return 2
+      }
+      if ($installLatest) { Assert-NodeRuntime }
+      $params = @{ CheckOnly = $check; Install = $installLatest }
+      if ($PostmanDir) { $params.PostmanDir = $PostmanDir }
+      if ($CleanOldVersions) { $params.CleanOldVersions = $true }
+      if ($KeepUpdates) { $params.KeepUpdates = $true }
+      if ($RemainingArguments -contains '--details' -or $RemainingArguments -contains '-Details') { $params.Details = $true }
+      return (Invoke-PowerShellScript (Join-Path $internalRoot '下载最新版.ps1') $params)
+    }
+
     'help' {
       Show-Help
       return 0
@@ -590,6 +615,8 @@ function Invoke-SelectedCommand {
       $testParameters = @{}
       if ($details) { $testParameters.Details = $true }
       $code = Invoke-PowerShellScript (Join-Path $maintenanceRoot '验证入口进程.ps1') $testParameters
+      if ($code -ne 0) { return $code }
+      $code = Invoke-PowerShellScript (Join-Path $maintenanceRoot '验证官方下载.ps1') $testParameters
       if ($code -ne 0) { return $code }
       return (Invoke-PowerShellScript (Join-Path $maintenanceRoot '验证发布预检.ps1') @{})
     }

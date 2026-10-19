@@ -304,6 +304,53 @@ async function runLocalizationRuntimeTests() {
       assert.equal(wrapper.firstChild, code); assert.match(code.textContent, /^Run all requests/);
     }
   });
+  test("工作区同步说明保留分支和密钥链接及事件", r => {
+    for (const target of ["repository secrets", "CI secrets", "仓库密钥", "CI 密钥"]) {
+      const p = r.el("p", "Add your ");
+      const key = r.el("a", "Postman API Key", p);
+      p.appendChild(r.document.createTextNode(" to your "));
+      const secrets = r.el("a", target, p);
+      p.appendChild(r.document.createTextNode(" as POSTMAN_API_KEY."));
+      key.setAttribute("href", "https://example.test/key");
+      secrets.setAttribute("href", "https://example.test/secrets");
+      let clicked = 0; key.addEventListener("click", () => { clicked++; });
+      const source = p.textContent, parts = [...p.childNodes];
+      r.localizer.walk(p); r.advance(700);
+      assert.equal(p.textContent, r.localizer.translate(source));
+      assert.deepEqual(p.childNodes, parts);
+      assert.equal(key.getAttribute("href"), "https://example.test/key");
+      assert.equal(secrets.getAttribute("href"), "https://example.test/secrets");
+      key.dispatchEvent({ type: "click" }); assert.equal(clicked, 1);
+    }
+    const p = r.el("p", "Automatically update your cloud workspace when ");
+    const link = r.el("a", "feature/sync", p);
+    p.appendChild(r.document.createTextNode(" is merged."));
+    const parts = [...p.childNodes];
+    r.localizer.walk(p); r.advance(700);
+    assert.equal(p.textContent, "合并 feature/sync 时自动更新云端工作区。");
+    assert.equal(p.childNodes[1], link); assert.deepEqual(p.childNodes, parts);
+  });
+  test("新版同步提示和邀请文案仍保护数据及不完整结构", r => {
+    for (const kind of ["code", "pre", "response-body", "key-value-cell", "contenteditable"]) {
+      const parent = r.el(kind === "code" || kind === "pre" ? kind : "div");
+      if (kind === "response-body" || kind === "key-value-cell") parent.className = kind;
+      if (kind === "contenteditable") parent.setAttribute("contenteditable", "true");
+      const p = r.el("p", "Automatically update your cloud workspace when ", parent);
+      r.el("a", "main", p); p.appendChild(r.document.createTextNode(" is merged."));
+      const invitation = r.el("p", "Type or paste emails", parent);
+      const original = p.textContent;
+      r.localizer.walk(parent); r.advance(700);
+      assert.equal(p.textContent, original); assert.equal(invitation.textContent, "Type or paste emails");
+    }
+    const p = r.el("p", "Automatically update your cloud workspace when ");
+    r.el("code", "main", p); p.appendChild(r.document.createTextNode(" is merged."));
+    const original = p.textContent;
+    r.api.fixCompositeTextBlocks(p); assert.equal(p.textContent, original);
+    const partial = r.el("p", "Add your "); r.el("a", "Postman API Key", partial);
+    partial.appendChild(r.document.createTextNode(" to your "));
+    const before = partial.textContent;
+    r.api.fixCompositeTextBlocks(partial); assert.equal(partial.textContent, before);
+  });
   function integrationsReleaseNote(r, parent, title = "Integrations", gap = " ") {
     const paragraph = r.el("p", "", parent);
     paragraph.appendChild(r.document.createTextNode("You can now browse, connect, and manage all Postman integrations from the" + gap));

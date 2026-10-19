@@ -103,7 +103,7 @@ Assert-Test ($entryParameters -contains 'UserDataDir') '入口支持显式独立
     return $script:Fixture.Exits[0]
   }
 
-  $children = @('install', 'restore', 'verify', 'start', 'stop', 'fix-browser', 'merge', 'publish', 'stats', 'test')
+  $children = @('install', 'restore', 'verify', 'start', 'stop', 'download', 'fix-browser', 'merge', 'publish', 'stats', 'test')
   foreach ($name in $children) {
     foreach ($code in @(0, 1, 2)) {
       Reset-EntryFixture @($code)
@@ -190,16 +190,35 @@ Assert-Test ($entryParameters -contains 'UserDataDir') '入口支持显式独立
   Reset-EntryFixture
   [void](Invoke-EntryFixture 'merge' @('--check'))
   Assert-Test (($script:Fixture.Calls[0].Arguments -join '|') -eq '--check') '合并检查参数透传'
+  $NoRestart = $false; $NoVerify = $false; $NoWait = $false; $UserDataDir = ''; $KeepUpdates = $false
+  Reset-EntryFixture
+  [void](Invoke-EntryFixture 'download' @('-CheckOnly', '--details'))
+  Assert-Test ($script:Fixture.Calls[0].Parameters.CheckOnly -and $script:Fixture.Calls[0].Parameters.Details -and $script:Fixture.Calls[0].Parameters.PostmanDir -eq $PostmanDir) '下载检查、details 与目录参数透传'
+  Reset-EntryFixture
+  $CleanOldVersions = $true; $KeepUpdates = $true
+  [void](Invoke-EntryFixture 'download' @('-Install'))
+  Assert-Test ($script:Fixture.Calls[0].Parameters.Install -and $script:Fixture.Calls[0].Parameters.CleanOldVersions -and $script:Fixture.Calls[0].Parameters.KeepUpdates) '下载汉化沿用安装及守卫参数'
+  $CleanOldVersions = $false; $KeepUpdates = $false
+  foreach ($arguments in @(@('-CheckOnly','-Install'), @('--unknown'))) {
+    Reset-EntryFixture
+    Assert-Test ((Invoke-EntryFixture 'download' $arguments) -eq 2 -and $script:Fixture.Calls.Count -eq 0) '下载非法参数不执行网络或子任务'
+  }
+  Reset-EntryFixture
+  $script:Fixture.ThrowNode = $true
+  Assert-Test ((Invoke-EntryFixture 'download' @('-CheckOnly')) -eq 0) '纯下载查询不要求 Node'
+  Reset-EntryFixture
+  $script:Fixture.ThrowNode = $true
+  Assert-Test ((Invoke-EntryFixture 'download' @('-Install')) -eq 1 -and $script:Fixture.Calls.Count -eq 0) '下载并汉化先验证 Node 再访问网络'
   Reset-EntryFixture
   $publishArguments = @('-ReplaceRelease', '-Yes', '-AppDir', 'fixture app', '-Tag', 'v99.0.0')
   [void](Invoke-EntryFixture 'publish' $publishArguments)
   Assert-Test ((Split-Path -Leaf $script:Fixture.Calls[0].Path) -eq '发布中文版.ps1' -and ($script:Fixture.Calls[0].Arguments -join '|') -eq ($publishArguments -join '|')) '发布覆盖、确认、目录和标签参数原样透传'
 
-  Reset-EntryFixture @(0, 0, 0)
+  Reset-EntryFixture @(0, 0, 0, 0)
   Assert-Test ((Invoke-EntryFixture 'test' @('--details')) -eq 0) '离线回归全部通过'
-  Assert-Test (($script:Fixture.Calls | ForEach-Object { Split-Path -Leaf $_.Path }) -join '|' -eq '运行回归.js|验证入口进程.ps1|验证发布预检.ps1') '离线回归顺序固定且覆盖三组'
+  Assert-Test (($script:Fixture.Calls | ForEach-Object { Split-Path -Leaf $_.Path }) -join '|' -eq '运行回归.js|验证入口进程.ps1|验证官方下载.ps1|验证发布预检.ps1') '离线回归顺序固定且覆盖四组'
   Assert-Test ($script:Fixture.Calls[0].Arguments -contains '--details' -and $script:Fixture.Calls[1].Parameters.Details) '离线回归 details 透传'
-  foreach ($codes in @(@(0, 2), @(0, 0, 1))) {
+  foreach ($codes in @(@(0, 2), @(0, 0, 1), @(0, 0, 0, 1))) {
     Reset-EntryFixture $codes
     Assert-Test ((Invoke-EntryFixture 'test') -eq $codes[-1] -and $script:Fixture.Calls.Count -eq $codes.Count) '回归中途失败即停止并保留原码'
   }
@@ -257,6 +276,7 @@ $stopText = $stopText.Remove($start, $exitStatement.Extent.Text.Length).Insert($
     Assert-Test (($selection.Arguments -join '|') -eq $expectedArguments) "菜单 $($i + 1) 只携带必要参数"
   }
   Assert-Test ((Select-FixtureMenu @('')).Command -eq 'install') '真实菜单回车仍默认安装'
+  Assert-Test ((Select-FixtureMenu @('d')).Command -eq 'download') '真实菜单 d 下载最新版且保持一次执行'
   Assert-Test ((Select-FixtureMenu @('6', '0', '5')).Command -eq 'stop') '更新子菜单返回后可继续选择其它菜单项'
   foreach ($choice in @('0', 'q')) {
     Assert-Test ($null -eq (Select-FixtureMenu @($choice))) "真实菜单 $choice 正常退出"

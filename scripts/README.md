@@ -17,6 +17,7 @@
 | 7 | 修复浏览器链接 | `fix-browser` |
 | 8 | 发布（维护者） | `publish` |
 | 9 | 查看项目数据 | `stats` |
+| d | 下载官方最新版 | `download` |
 | h | 完整帮助 | `help` |
 | 0 / q | 退出 | — |
 
@@ -29,6 +30,31 @@
 `verify` 需要运行中的 Postman/CDP。先执行 `start`；它会重启已运行实例，以确保随机调试端口生效。`test` 和 `merge` 不要求应用启动。
 
 旧的 `collect`、`static-scan`、`probe`、`scan`、`audit` 及审计子菜单已移除，裸命令按未知命令返回 `2`。日常维护以当前官方 i18n 和用户截图反馈为主，不再后台收集漏翻或自动遍历界面。
+
+## 下载官方最新版
+
+已有 Windows x64 Postman 时，无需启动软件检查更新，菜单 **d** 或以下命令直接使用官方接口：
+
+```powershell
+.\postman-zh.bat download                         # 查询、下载、校验并准备最新版目录
+.\postman-zh.bat download -CheckOnly              # 只查询版本，不下载或写文件
+.\postman-zh.bat download -Install                # 下载后按当前词典汉化、启动并验证
+.\postman-zh.bat download -Install -CleanOldVersions
+.\postman-zh.bat download -PostmanDir C:\Path\To\Postman --details
+```
+
+| 参数 | 作用 |
+|---|---|
+| `-CheckOnly` | 只检查官方版本，与 `-Install` 互斥 |
+| `-Install` | 下载准备完成后复用现有安装器；带运行验证及失败回滚 |
+| `-PostmanDir <path>` | 已有版本目录或安装根目录，默认选已发现的最高版本 |
+| `-CleanOldVersions` | 须与 `-Install` 同用，安装验证成功才清理旧版 |
+| `-KeepUpdates` | 须与 `-Install` 同用，保留现有“不装官方更新守卫”语义 |
+| `--details` / `-Details` | 展示递增版本链及产物路径 |
+
+查询会沿官方递增链直到 HTTP 204/空正文，再从 Squirrel feed 选择同版本的 x64 full nupkg。下载校验大小、SHA1、ZIP 路径、nuspec、EXE 版本/架构/官方签名及 asar 版本；仅校验通过后准备 `app-<版本>` 并原子更新 `packages/RELEASES`。不使用网页 EXE 链接猜包名。同版本的有效下载和现有汉化可复用；冲突目录原样保留并报错，半包和本次暂存文件在失败时清理。
+
+单独 `download` 不停止或启动应用、不注入汉化、不清理旧版，不更改两个更新偏好；`-Install` 才进入原有安装闭环。它是显式调用的下载操作，不是后台自动更新。首次安装仍从官网完成，以提供安装根目录的启动器和 `Update.exe`；当前仅支持 12.x，跨主版本需先核对兼容性。网络使用现有显式代理设置，缺失时可沿用已启用的 Windows 静态 HTTPS 代理，不改系统设置。
 
 ## 安装与进程
 
@@ -56,7 +82,7 @@
 .\postman-zh.bat test --details
 ```
 
-按顺序执行 Node 回归、PowerShell 入口/进程回归和发布预检回归；任一阶段失败即返回非零。默认中文摘要，details 显示分组耗时和失败诊断。测试不连接真实 Postman/GitHub，不操作真实进程或偏好。
+按顺序执行 Node 回归、PowerShell 入口/进程回归、官方下载回归和发布预检回归；任一阶段失败即返回非零。默认中文摘要，details 显示分组耗时和失败诊断。测试不连接真实 Postman/GitHub，不操作真实进程或偏好；下载的 ZIP/原子写入用例仅使用独立临时目录。
 
 覆盖：JS/PowerShell 语法、文档链接、skill 元数据一致性、AGENTS 大小、最终词典计数/合并、固定翻译语料、数据保护与重试调度、CDP 生命周期/会话/预算、诊断脱敏与截断、版本检查、跨帧注入、命令出口、进程就绪与验证前的菜单汉化就绪轮询。存储回归确认翻译器不再读写历史漏翻记录。
 
@@ -99,6 +125,8 @@
 | `lib/CDP客户端.js` | WebSocket 生命周期、会话、事件、超时与预算 |
 | `lib/汉化沙箱.js` | 只读执行内存 payload，提供真实翻译和最终词典 |
 | `lib/诊断输出.js` | 定点诊断的路径约束、脱敏、报告与截图写入 |
+| `lib/ASAR元数据.ps1` | 下载与发布共用的只读 asar 包元数据解析 |
+| `lib/官方下载.ps1`、`internal/下载最新版.ps1` | 官方版本链、完整包下载校验及安装衔接 |
 | `internal/安装汉化.ps1` | 原版校验、注入、打包、替换、回滚 |
 | `internal/进程工具.ps1` | 停止、后台启动、端口/页面就绪 |
 | `internal/启动程序.ps1`、`关闭程序.ps1` | 共用进程能力的命令封装 |

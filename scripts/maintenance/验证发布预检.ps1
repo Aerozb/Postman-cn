@@ -1,6 +1,7 @@
 ﻿# 通过 postman-zh.bat publish -TestOnly 运行。只加载函数并使用内存响应，
 # 不执行发布脚本主体，不接触凭据，也不发送真实网络请求。
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot '../lib/ASAR元数据.ps1')
 $source = Join-Path $PSScriptRoot '发布中文版.ps1'
 $tokens = $null
 $parseErrors = $null
