@@ -816,6 +816,7 @@ const samples = {
   ],
   "translationProbeExpectations": [
     ["Import isn't available right now","导入功能暂时不可用"],
+    ["Items in Cloud","云端项目"],
     ["Delete local performance runs?","删除本地性能运行？"],
     ["Local run","本地运行"],
     ["Error rate (%)","错误率（%）"],

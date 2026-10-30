@@ -27175,6 +27175,11 @@
     "You can switch to 日本語 by going to settings.": "你可以在设置中切换到日本語。"
   });
 
+  // 12.34.4 登录后侧边栏云端标签的 aria-label 为硬编码文案，不在官方 i18n 中；按实机 CDP 读取的原文登记。
+  Object.assign(EXACT, {
+    "Items in Cloud": "云端项目"
+  });
+
   var EDITABLE_EXACT = {
     "This workspace contains all your collections and environments, as well as any monitors, mock servers or integrations created on them.": true,
     "Postman editor": true,
