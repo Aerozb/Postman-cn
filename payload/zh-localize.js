@@ -8,6 +8,59 @@
 
   var EXACT = {
     /* === batch-translated (auto-merged) === */
+    "Import isn't available right now": "导入功能暂时不可用",
+    "Check your internet connection, or ask a workspace admin for permission to add collections.": "请检查网络连接，或请工作区管理员授予你添加集合的权限。",
+    "(Invited)": "（已邀请）",
+    "GitHub Account": "GitHub 账号",
+    "Couldn’t turn on Agent Tasks. Please try again.": "无法开启代理任务，请重试。",
+    "The credentials are stored securely in the cloud and are encrypted at rest. They are never returned to the client once saved. Usage of AI features will be billed by the connected provider directly.": "凭据安全地存储在云端，并在静态存储时加密。保存后绝不会再返回给客户端。AI 功能的用量将由已连接的提供商直接计费。",
+    "Replace API key": "替换 API 密钥",
+    "Couldn't stop the performance run. Try again.": "无法停止性能运行，请重试。",
+    "Couldn't open the performance runner. Try again.": "无法打开性能运行器，请重试。",
+    "The Cloud runner uses the pushed collection and records results to Postman Cloud. Push local changes before starting a Cloud run.": "云端运行器使用已推送的集合，并将结果记录到 Postman 云端。开始云端运行前，请先推送本地更改。",
+    "Checking whether this collection can run a performance test…": "正在检查此集合能否运行性能测试…",
+    "Couldn’t find this collection in your local workspace. Switch to another tab and back, or reopen the runner, to try again.": "在你的本地工作区中找不到此集合。请切换到其他标签页再切回，或重新打开运行器后重试。",
+    "Running in Postman Cloud needs a collection that’s in Postman Cloud. Push this collection first, or run it in the app.": "在 Postman 云端运行需要集合位于 Postman 云端。请先推送此集合，或在应用中运行。",
+    "Running in Postman Cloud needs you to be signed in. Sign in, or run the test in the app.": "在 Postman 云端运行需要先登录。请登录，或在应用中运行测试。",
+    "Running in Postman Cloud isn’t available for this collection’s Postman Cloud link. Run the test in the app.": "此集合的 Postman 云端链接不支持在 Postman 云端运行。请在应用中运行测试。",
+    "Running in Postman Cloud needs the active environment to be in Postman Cloud. Push the environment first, or run the test in the app.": "在 Postman 云端运行需要当前环境位于 Postman 云端。请先推送该环境，或在应用中运行测试。",
+    "Couldn’t load the Postman Cloud copy of this collection. Check your connection and that you can access the collection, then try again.": "无法加载此集合在 Postman 云端的副本。请检查网络连接并确认你有权访问该集合，然后重试。",
+    "Couldn’t read this collection from your local files. Check that its files are valid and try again.": "无法从本地文件读取此集合。请检查其文件是否有效，然后重试。",
+    "Running a collection from your local files in the app isn’t available for your account yet. Use a supported Postman CLI version to run a local performance test.": "你的账号暂不支持在应用中运行本地文件里的集合。请使用受支持的 Postman CLI 版本运行本地性能测试。",
+    "Performance testing for local collections isn’t available for your account yet.": "你的账号暂不支持对本地集合进行性能测试。",
+    "Performance testing isn’t supported for this collection. Use the collection runner.": "此集合不支持性能测试，请使用集合运行器。",
+    "Local run": "本地运行",
+    "Results are saved on this device when the run finishes. They aren’t synced to Postman Cloud.": "运行结束后结果会保存在此设备上，不会同步到 Postman 云端。",
+    "Local results are unavailable": "本地结果不可用",
+    "This run was not saved on this device, or its local results were deleted.": "此运行未保存在此设备上，或其本地结果已被删除。",
+    "Could not save the performance test results on this device.": "无法在此设备上保存性能测试结果。",
+    "Local performance runs": "本地性能运行",
+    "No local performance runs yet.": "暂无本地性能运行。",
+    "Could not load local performance runs.": "无法加载本地性能运行。",
+    "Delete selected runs": "删除所选运行",
+    "Error rate (%)": "错误率（%）",
+    "Delete local performance runs?": "删除本地性能运行？",
+    "Could not delete the selected performance runs. Try again.": "无法删除所选性能运行，请重试。",
+    "Pass/Fail criteria were not configured for this run": "此运行未配置通过/失败标准",
+    "Avg. requests/s": "平均请求数/秒",
+    "Bring in the API you want to document": "导入你要编写文档的 API",
+    "Import it as a collection, then add docs and share it with your team.": "将其导入为集合，然后添加文档并与团队共享。",
+    "Paste an OpenAPI spec, collection JSON, or cURL command. Also supports GraphQL and AsyncAPI": "粘贴 OpenAPI 规范、集合 JSON 或 cURL 命令。也支持 GraphQL 和 AsyncAPI",
+    "Use the collections and specs already in your repo.": "使用仓库中已有的集合和规范。",
+    "Bring in the API you want to test or debug": "导入你要测试或调试的 API",
+    "Every request comes in ready to send, so you can start testing right away.": "每个请求导入后即可发送，你可以立即开始测试。",
+    "Paste a cURL command, collection JSON, or OpenAPI spec. Also supports GraphQL and AsyncAPI": "粘贴 cURL 命令、集合 JSON 或 OpenAPI 规范。也支持 GraphQL 和 AsyncAPI",
+    "Bring in the API your team works on": "导入团队正在开发的 API",
+    "Then invite your team. They start with a working API, not an empty workspace.": "然后邀请你的团队。他们一开始就有可用的 API，而不是空的工作区。",
+    "Paste collection JSON, an OpenAPI spec, or a cURL command. Also supports GraphQL and AsyncAPI": "粘贴集合 JSON、OpenAPI 规范或 cURL 命令。也支持 GraphQL 和 AsyncAPI",
+    "Use the collections and specs your team already keeps in Git.": "使用团队已保存在 Git 中的集合和规范。",
+    "Please note this report does not include AI Agent Block credit spend. This information can be provided on request by contacting support: https://support.postman.com/hc/en-us/requests/new": "请注意，此报告不包含 AI Agent Block 的额度消耗。如需这部分信息，可联系支持团队申请：https://support.postman.com/hc/en-us/requests/new",
+    "All accounts": "所有账号",
+    "Auto chooses the appropriate model better suited for the task.": "自动模式会选择更适合当前任务的模型。",
+    "Setup BYOK": "设置 BYOK",
+    "This issue could not be fixed.": "此问题无法修复。",
+    "branch.": "分支。",
+    /* === batch-translated (auto-merged) === */
     "Triggers": "触发器",
     "Add automation trigger": "添加自动化触发器",
     "Remove trigger": "移除触发器",
@@ -28260,6 +28313,28 @@
     return { "a Postman collection": "Postman 集合", "an OpenAPI spec": "OpenAPI 规范", "a Swagger spec": "Swagger 规范" }[format];
   }
 
+  // 12.34.4 本地模式“无法更新路径”的原因片段只在该句中拼接出现，按官方枚举整句映射，不单独入 EXACT。
+  function zhPathFixReason(reason) {
+    return {
+      "no rename was found in git history.": "未在 git 历史中找到重命名记录。",
+      "no rename was found in git history. It may have been deleted.": "未在 git 历史中找到重命名记录，它可能已被删除。",
+      "its files were moved to more than one place.": "它的文件被移动到了多个位置。",
+      "another entry has identical contents, so it is unclear which one was moved.": "另一个条目内容完全相同，无法确定移动的是哪一个。",
+      "its new location is already listed in resources.yaml.": "它的新位置已列在 resources.yaml 中。",
+      "its new location could not be read.": "无法读取它的新位置。",
+      "it was moved outside the workspace.": "它被移到了工作区之外。",
+      "it was renamed too many times to follow.": "它的重命名次数过多，无法追踪。",
+      "its renames lead back to an earlier name.": "它的重命名又回到了之前的名称。",
+      "searching git history took too long.": "搜索 git 历史耗时过长。",
+      "git history is too large to search.": "git 历史过大，无法搜索。",
+      "git history could not be read.": "无法读取 git 历史。",
+      "uncommitted changes could not be read.": "无法读取未提交的更改。",
+      "this path has not been committed yet. Commit it and run the fix again.": "此路径尚未提交。请提交后再次运行修复。",
+      "the workspace is not in a git repository, so there is no history to search.": "工作区不在 git 仓库中，没有可搜索的历史。",
+      "git history could not say where it went.": "无法从 git 历史中确定它的去向。"
+    }[normalize(reason)];
+  }
+
   function i18nTerm(value) {
     if (value === undefined || value === null) {
       return "";
@@ -28331,6 +28406,22 @@
       return count + " 个" + { folder: "文件夹", request: "请求", example: "示例" }[kind.toLowerCase().replace(/s$/, "")];
     }],
     // ==== BEGIN 官方 i18n 清单生成的插值规则（rules-b*.json，勿手改）====
+    // ---- BEGIN 12344 批次插值规则 ----
+    // 12.34.4 官方 i18n：Agent Tasks 集成、性能测试本地运行、密钥扫描筛选计数、本地模式路径修复。应用名、请求名保持原样。
+    [/^Authorize ([^<>\r\n]{1,40}?) access so Agent Mode can read your repositories, run tests, and complete coding tasks from instructions given via @Postman in Slack\.$/, "授权 $1 访问，让智能代理模式可以读取你的仓库、运行测试，并根据你在 Slack 中通过 @Postman 下达的指令完成编码任务。"],
+    [/^Select the ([^<>\r\n]{1,40}?) (workspace|account) you would like to connect\.$/, function (_m, app, term) { return "选择要连接的 " + app + (term === "workspace" ? " 工作区" : " 账号") + "。"; }],
+    [/^No ([^<>\r\n]{1,40}?) (workspace|account) is connected yet\. Add one to get started\.$/, function (_m, app, term) { return "尚未连接 " + app + (term === "workspace" ? " 工作区" : " 账号") + "。添加一个即可开始。"; }],
+    [/^Couldn['’]t connect (?!to\s)([^<>\r\n]{1,40}?)\. Please try again\.$/, "无法连接 $1，请重试。"],
+    [/^Some selected requests aren['’]t in the Postman Cloud copy of this collection: ([^<>\r\n]{1,400}?)\. Push your local changes and try again\.$/, "部分所选请求不在此集合的 Postman 云端副本中：$1。请推送本地更改后重试。"],
+    [/^Some selected requests share a name with another item in the same folder: ([^<>\r\n]{1,400}?)\. Rename them so each request matches one request in the Postman Cloud copy\.$/, "部分所选请求与同一文件夹中的其他项同名：$1。请重命名，使每个请求都只对应 Postman 云端副本中的一个请求。"],
+    [/^Performance test runs for this collection under ([^<>\r\n]{1,200}?) branch\.$/, "此集合的性能测试运行位于 $1 分支。"],
+    [/^(\d+(?:,\d{3})*) (policies|types|visibilities)$/, function (_m, n, kind) { return n + " 个" + { policies: "策略", types: "类型", visibilities: "可见性" }[kind]; }],
+    [/^Occurred 1 time, but it was secured$/, "出现 1 次，但已保护"],
+    [/^Occurred (\d+(?:,\d{3})*) times, but all occurrences were secured$/, "出现 $1 次，但全部已保护"],
+    [/^Occurred (\d+(?:,\d{3})*) times, but (\d+(?:,\d{3})*) occurrences? (?:was|were) secured$/, "出现 $1 次，其中 $2 次已保护"],
+    [/^(\d+(?:,\d{3})*) issues? could not be fixed\. See the Diagnostics panel for details\.$/, "$1 个问题无法修复。详情请查看诊断面板。"],
+    [/^Could not update the path: (.{1,200})$/, function (m, reason) { var t = zhPathFixReason(reason); return t ? "无法更新路径：" + t : m; }],
+    // ---- END 12344 批次 ----
     // ---- BEGIN 12343 批次插值规则 ----
     // 12.34.3 官方 i18n：自动化触发器、合作伙伴邀请、内联导入、Git 分支切换、监视器推送云端、密钥移入共享保管库。
     [/^Trigger (\d{1,3})$/, "触发器 $1"],

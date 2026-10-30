@@ -815,6 +815,23 @@ const samples = {
     "Once deleted, a workspace is gone forever along with its data."
   ],
   "translationProbeExpectations": [
+    ["Import isn't available right now","导入功能暂时不可用"],
+    ["Delete local performance runs?","删除本地性能运行？"],
+    ["Local run","本地运行"],
+    ["Error rate (%)","错误率（%）"],
+    ["Setup BYOK","设置 BYOK"],
+    ["Performance test runs for this collection under","此集合的性能测试运行位于"],
+    ["branch.","分支。"],
+    ["Performance test runs for this collection under main branch.","此集合的性能测试运行位于 main 分支。"],
+    ["Select the GitHub account you would like to connect.","选择要连接的 GitHub 账号。"],
+    ["No Slack workspace is connected yet. Add one to get started.","尚未连接 Slack 工作区。添加一个即可开始。"],
+    ["Couldn’t connect GitHub. Please try again.","无法连接 GitHub，请重试。"],
+    ["Couldn’t connect to GitHub. Please try again.","无法连接 GitHub，请重试。"],
+    ["3 policies","3 个策略"],
+    ["Occurred 1 time, but it was secured","出现 1 次，但已保护"],
+    ["Occurred 5 times, but 3 occurrences were secured","出现 5 次，其中 3 次已保护"],
+    ["4 issues could not be fixed. See the Diagnostics panel for details.","4 个问题无法修复。详情请查看诊断面板。"],
+    ["Could not update the path: its new location is already listed in resources.yaml.","无法更新路径：它的新位置已列在 resources.yaml 中。"],
     ["Bring your work in","导入你的工作内容"],
     ["Fix and import with Agent Mode","使用智能代理模式修复并导入"],
     ["Stash and switch","贮藏并切换"],
@@ -1745,7 +1762,8 @@ const samples = {
     "command to test an endpoint",
     "typically has a base location",
     "and a path",
-    "For example"
+    "For example",
+    "Could not update the path: something unexpected"
   ]
 };
 
