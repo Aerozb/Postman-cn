@@ -123,6 +123,142 @@ function Get-Sha256 {
   return (Get-FileHash -LiteralPath $PathValue -Algorithm SHA256).Hash
 }
 
+function Get-AsarUnpackedLayout {
+  param([string]$AsarPath)
+  $stream = [IO.File]::OpenRead($AsarPath)
+  $reader = $null
+  try {
+    $reader = [IO.BinaryReader]::new($stream, [Text.UTF8Encoding]::new($false, $true), $true)
+    if ($stream.Length -lt 16) { throw 'ASAR 文件头不完整。' }
+    $sizePayload = $reader.ReadUInt32(); $headerSize = $reader.ReadUInt32()
+    $headerPayload = $reader.ReadUInt32(); $jsonSize = $reader.ReadUInt32()
+    if ($sizePayload -ne 4 -or $headerSize -lt 8 -or $headerSize -gt 16MB -or
+        ($headerSize % 4) -ne 0 -or $headerPayload -ne ($headerSize - 4) -or
+        $jsonSize -eq 0 -or $jsonSize -gt ($headerSize - 8) -or
+        ($headerSize - 8 - $jsonSize) -gt 3 -or (8L + $headerSize) -gt $stream.Length) {
+      throw 'ASAR 文件头异常。'
+    }
+    $header = [Text.Encoding]::UTF8.GetString($reader.ReadBytes([int]$jsonSize)) | ConvertFrom-Json
+    if (-not $header.files) { throw 'ASAR 文件索引缺失。' }
+    $files = New-Object 'System.Collections.Generic.List[object]'
+    $directories = New-Object 'System.Collections.Generic.List[string]'
+    $looseFiles = New-Object 'System.Collections.Generic.List[string]'
+    $visit = {
+      param($Children, [string]$Prefix, [bool]$ParentUnpacked)
+      foreach ($property in $Children.PSObject.Properties) {
+        $name = $property.Name; $entry = $property.Value
+        if ($name -in @('.', '..') -or $name -match '[\\/:\x00]') { throw 'ASAR 索引包含无效路径。' }
+        $relative = if ($Prefix) { "$Prefix/$name" } else { $name }
+        $unpacked = $ParentUnpacked -or [bool]$entry.unpacked
+        if ($entry.files) {
+          if ($unpacked -and -not $ParentUnpacked) { $directories.Add($relative) }
+          & $visit $entry.files $relative $unpacked
+        } elseif ($unpacked) {
+          if ($entry.link -or ($entry.size -isnot [int] -and $entry.size -isnot [long]) -or $entry.size -lt 0) {
+            throw 'ASAR 外置文件索引异常。'
+          }
+          if ($entry.integrity -and ($entry.integrity.algorithm -ne 'SHA256' -or $entry.integrity.hash -notmatch '^[a-fA-F0-9]{64}$')) {
+            throw 'ASAR 外置文件完整性信息异常。'
+          }
+          $files.Add([pscustomobject]@{ Path = $relative; Size = [long]$entry.size; Hash = [string]$entry.integrity.hash })
+          if (-not $ParentUnpacked) { $looseFiles.Add($relative) }
+        }
+      }
+    }
+    & $visit $header.files '' $false
+    return [pscustomobject]@{ Files = @($files.ToArray()); Directories = @($directories.ToArray()); LooseFiles = @($looseFiles.ToArray()) }
+  } finally {
+    if ($reader) { $reader.Dispose() }
+    $stream.Dispose()
+  }
+}
+
+function Assert-AsarUnpackedFiles {
+  param($Layout, [string]$Directory)
+  foreach ($entry in $Layout.Files) {
+    $file = Join-Path $Directory $entry.Path
+    if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw "缺少官方 ASAR 外置文件：$($entry.Path)" }
+    if ((Get-Item -LiteralPath $file).Length -ne $entry.Size -or ($entry.Hash -and (Get-Sha256 $file) -ne $entry.Hash)) {
+      throw "官方 ASAR 外置文件校验失败：$($entry.Path)"
+    }
+  }
+}
+
+function Expand-OriginalAsar {
+  param([string]$BackupAsar, [string]$AppDir, [string]$Destination)
+  $layout = Get-AsarUnpackedLayout $BackupAsar
+  if ($layout.Files.Count -eq 0) {
+    Invoke-Asar @('extract', $BackupAsar, $Destination)
+    return
+  }
+  # ASAR 按归档文件名寻找 .unpacked；备份改名后须在自有暂存目录恢复这对名称。
+  $officialSidecar = Join-Path $AppDir 'resources\app.asar.unpacked'
+  Assert-AsarUnpackedFiles $layout $officialSidecar
+  $stage = Join-Path ([IO.Path]::GetTempPath()) ('postman-zh-asar-source-' + [guid]::NewGuid().ToString('N'))
+  if ([IO.Path]::GetDirectoryName([IO.Path]::GetFullPath($stage)) -ne [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\')) {
+    throw 'ASAR 暂存目录不在预期临时目录内。'
+  }
+  try {
+    New-Item -ItemType Directory -Path $stage | Out-Null
+    $stagedAsar = Join-Path $stage 'app.asar'
+    Copy-Item -LiteralPath $BackupAsar -Destination $stagedAsar
+    if ((Get-Sha256 $BackupAsar) -ne (Get-Sha256 $stagedAsar)) { throw '原版 ASAR 暂存副本校验失败。' }
+    Copy-Item -LiteralPath $officialSidecar -Destination "$stagedAsar.unpacked" -Recurse
+    Assert-AsarUnpackedFiles $layout "$stagedAsar.unpacked"
+    Invoke-Asar @('extract', $stagedAsar, $Destination)
+  } finally {
+    if (Test-Path -LiteralPath $stage) {
+      Remove-Item -LiteralPath $stage -Recurse -Force -ErrorAction Stop
+    }
+  }
+}
+
+function New-LocalizedAsar {
+  param([string]$BackupAsar, [string]$AppDir, [string]$UnpackedDir, [string]$PatchedAsar)
+  if ([IO.Path]::GetFullPath($PatchedAsar) -ne [IO.Path]::GetFullPath((Join-Path $AppDir 'resources\app.asar.zh'))) {
+    throw '汉化 ASAR 暂存目标必须位于目标版本的 resources 目录内。'
+  }
+  $layout = Get-AsarUnpackedLayout $BackupAsar
+  $arguments = @('pack', $UnpackedDir, $PatchedAsar)
+  foreach ($group in @(@{ Flag = '--unpack-dir'; Paths = $layout.Directories }, @{ Flag = '--unpack'; Paths = $layout.LooseFiles })) {
+    if ($group.Paths.Count -eq 0) { continue }
+    $patterns = @($group.Paths | ForEach-Object {
+      # 不把未知路径当作 glob 或 cmd 语法执行；新版布局变化时明确停止。
+      if ($_ -notmatch '^[A-Za-z0-9._/ -]+$') { throw '官方 ASAR 外置路径含不支持的 glob 字符。' }
+      if ($group.Flag -eq '--unpack') { '**/' + $_ } else { $_ }
+    })
+    $pattern = if ($patterns.Count -eq 1) { $patterns[0] } else { '{' + ($patterns -join ',') + '}' }
+    $arguments += @($group.Flag, $pattern)
+  }
+  if (($arguments -join ' ').Length -gt 6000) { throw '官方 ASAR 外置路径过多，无法安全传入打包命令。' }
+  try {
+    Invoke-Asar $arguments
+    $packedLayout = Get-AsarUnpackedLayout $PatchedAsar
+    $expected = @($layout.Files | ForEach-Object { $_.Path } | Sort-Object)
+    $actual = @($packedLayout.Files | ForEach-Object { $_.Path } | Sort-Object)
+    if (($expected -join "`n") -cne ($actual -join "`n")) { throw '汉化 ASAR 未保留官方外置文件布局。' }
+    if ((@($layout.Directories | Sort-Object) -join "`n") -cne (@($packedLayout.Directories | Sort-Object) -join "`n")) {
+      throw '汉化 ASAR 未保留官方外置目录标记。'
+    }
+    if ((@($layout.LooseFiles | Sort-Object) -join "`n") -cne (@($packedLayout.LooseFiles | Sort-Object) -join "`n")) {
+      throw '汉化 ASAR 未保留官方独立外置文件标记。'
+    }
+    $officialSidecar = Join-Path $AppDir 'resources\app.asar.unpacked'
+    Assert-AsarUnpackedFiles $layout $officialSidecar
+    Assert-AsarUnpackedFiles $layout "$PatchedAsar.unpacked"
+    foreach ($entry in $layout.Files) {
+      if ((Get-Sha256 (Join-Path $officialSidecar $entry.Path)) -ne (Get-Sha256 (Join-Path "$PatchedAsar.unpacked" $entry.Path))) {
+        throw "汉化打包改变了官方外置文件：$($entry.Path)"
+      }
+    }
+  } finally {
+    # 安装后的 app.asar 继续使用未改动的官方 sidecar，仅清理本次打包副本。
+    if (Test-Path -LiteralPath "$PatchedAsar.unpacked") {
+      Remove-Item -LiteralPath "$PatchedAsar.unpacked" -Recurse -Force -ErrorAction Stop
+    }
+  }
+}
+
 function Assert-JavaScriptSyntax {
   param([string]$PathValue, [string]$Name)
 
@@ -298,7 +434,7 @@ function Assert-OriginalAsarBackup {
   $checkDir = Join-Path ([IO.Path]::GetTempPath()) ("postman-zh-restore-check-{0}" -f [guid]::NewGuid().ToString("N"))
   try {
     Write-Step "正在检查英文原版备份。"
-    Invoke-Asar @("extract", $BackupAsar, $checkDir)
+    Expand-OriginalAsar -BackupAsar $BackupAsar -AppDir $AppDir -Destination $checkDir
     Assert-OriginalTree -UnpackedDir $checkDir -AppDir $AppDir
   } finally {
     Remove-Item -LiteralPath $checkDir -Recurse -Force -ErrorAction SilentlyContinue
@@ -378,6 +514,9 @@ function Install-AsarAtomically {
 
 function Remove-InstallArtifacts {
   param([string]$UnpackedDir, [string]$PatchedAsar, [string]$AppAsar)
+  if ($PatchedAsar -and [IO.Path]::GetFullPath($PatchedAsar) -ne [IO.Path]::GetFullPath("$AppAsar.zh")) {
+    throw '汉化 ASAR 清理目标与应用归档不匹配。'
+  }
   # 只删除本工具创建的明确路径，保留 Postman 官方可能使用的 app.asar.unpacked。
   if ($UnpackedDir -and (Test-Path -LiteralPath $UnpackedDir)) {
     try {
@@ -387,6 +526,9 @@ function Remove-InstallArtifacts {
     }
   }
   Remove-Item -LiteralPath $PatchedAsar -Force -ErrorAction SilentlyContinue
+  if ($PatchedAsar -and (Test-Path -LiteralPath "$PatchedAsar.unpacked")) {
+    Remove-Item -LiteralPath "$PatchedAsar.unpacked" -Recurse -Force -ErrorAction Stop
+  }
   Remove-Item -LiteralPath "$AppAsar.installing" -Force -ErrorAction SilentlyContinue
   Write-Step "已清理安装临时文件。"
 }
@@ -813,7 +955,7 @@ try {
   }
 
   Write-Step "正在解包英文原版 app.asar 备份。"
-  Invoke-Asar @("extract", $sourceAsar, $unpackedDir)
+  Expand-OriginalAsar -BackupAsar $sourceAsar -AppDir $appDir -Destination $unpackedDir
   Assert-OriginalTree -UnpackedDir $unpackedDir -AppDir $appDir
   $originalTreeValidated = $true
 
@@ -836,7 +978,7 @@ try {
   }
 
   Write-Step "正在打包已汉化的 app.asar。"
-  Invoke-Asar @("pack", $unpackedDir, $patchedAsar)
+  New-LocalizedAsar -BackupAsar $sourceAsar -AppDir $appDir -UnpackedDir $unpackedDir -PatchedAsar $patchedAsar
   $formalAsarReplaced = $true
   Install-AsarAtomically -SourceAsar $patchedAsar -DestinationAsar $appAsar
   Write-Step "中文汉化已安装。"

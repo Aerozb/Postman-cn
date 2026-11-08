@@ -465,5 +465,104 @@ Assert-Test ($null -ne $restartBlock) '安装重启使用共享调试启动器'
   }
 }
 
+# 使用真实 ASAR 头和独立文件目录验证外置模块；只替换 npx 边界，不访问网络或安装实例。
+& {
+  foreach ($definition in @($installerAst.EndBlock.Statements | Where-Object {
+    $_ -is [Management.Automation.Language.FunctionDefinitionAst] -and
+    $_.Name -in @('Get-Sha256', 'Get-AsarUnpackedLayout', 'Assert-AsarUnpackedFiles', 'Expand-OriginalAsar', 'New-LocalizedAsar', 'Assert-OriginalAsarBackup', 'Remove-InstallArtifacts')
+  })) { . ([scriptblock]::Create($definition.Extent.Text)) }
+  function Write-Step { param($Message) }
+  function New-FixtureAsar([string]$Destination, [bool]$WithSidecar) {
+    $files = @{ 'package.json' = @{ size = 2; offset = '0' } }
+    if ($WithSidecar) {
+      $files['native'] = @{ unpacked = $true; files = @{
+        'addon.node' = @{ unpacked = $true; size = 6; integrity = @{ algorithm = 'SHA256'; hash = $script:NativeHash } }
+      } }
+    }
+    $json = [Text.Encoding]::UTF8.GetBytes((@{ files = $files } | ConvertTo-Json -Depth 20 -Compress))
+    $padded = [int]([Math]::Ceiling($json.Length / 4.0) * 4)
+    $stream = [IO.File]::Create($Destination)
+    $writer = [IO.BinaryWriter]::new($stream)
+    try {
+      $writer.Write([uint32]4); $writer.Write([uint32]($padded + 8))
+      $writer.Write([uint32]($padded + 4)); $writer.Write([uint32]$json.Length)
+      $writer.Write($json); $writer.Write([byte[]]::new($padded - $json.Length))
+      $writer.Write([Text.Encoding]::UTF8.GetBytes('{}'))
+    } finally { $writer.Dispose(); $stream.Dispose() }
+  }
+  $fixtureRoot = Join-Path ([IO.Path]::GetTempPath()) ('postman-zh-asar-test-' + [guid]::NewGuid().ToString('N'))
+  $tempParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\')
+  if ([IO.Path]::GetDirectoryName([IO.Path]::GetFullPath($fixtureRoot)) -ne $tempParent) { throw 'ASAR 测试目录越界' }
+  $script:AsarFixture = @{ Calls = 0; FailExtract = $false; LoseLayout = $false; CorruptPack = $false; RestoreChecked = $false }
+  function Invoke-Asar {
+    param([string[]]$AsarArgs)
+    $script:AsarFixture.Calls++
+    if ($AsarArgs[0] -eq 'extract') {
+      $script:AsarFixture.LastExtract = $AsarArgs[1]
+      if ($script:AsarFixture.ExpectSidecar) {
+        Assert-Test ((Split-Path -Leaf $AsarArgs[1]) -eq 'app.asar') '改名备份在暂存目录恢复 app.asar 文件名'
+        Assert-Test ((Get-Sha256 $AsarArgs[1]) -eq (Get-Sha256 $backup)) '暂存归档仍来自英文备份'
+        Assert-Test (Test-Path -LiteralPath ($AsarArgs[1] + '.unpacked\native\addon.node')) '解包前具有匹配名称的完整 sidecar'
+      }
+      if ($script:AsarFixture.FailExtract) { throw 'fixture extract failed' }
+      New-Item -ItemType Directory -Path $AsarArgs[2] -Force | Out-Null
+      return
+    }
+    $script:AsarFixture.PackArguments = $AsarArgs
+    New-FixtureAsar $AsarArgs[2] (-not $script:AsarFixture.LoseLayout)
+    $nativeOut = Join-Path ($AsarArgs[2] + '.unpacked') 'native'
+    New-Item -ItemType Directory -Path $nativeOut -Force | Out-Null
+    $content = if ($script:AsarFixture.CorruptPack) { 'broken' } else { 'native' }
+    [IO.File]::WriteAllText((Join-Path $nativeOut 'addon.node'), $content)
+  }
+  function Assert-OriginalTree { param($UnpackedDir, $AppDir); $script:AsarFixture.RestoreChecked = $true }
+  try {
+    $app = Join-Path $fixtureRoot 'app-12.35.5'
+    $sidecar = Join-Path $app 'resources\app.asar.unpacked'
+    New-Item -ItemType Directory -Path (Join-Path $sidecar 'native') -Force | Out-Null
+    $native = Join-Path $sidecar 'native\addon.node'
+    [IO.File]::WriteAllText($native, 'native')
+    $script:NativeHash = Get-Sha256 $native
+    $backup = Join-Path $app 'resources\app.asar.original'
+    $patched = Join-Path $app 'resources\app.asar.zh'
+    $destination = Join-Path $fixtureRoot 'extracted'
+    New-FixtureAsar $backup $true
+    $layout = Get-AsarUnpackedLayout $backup
+    Assert-Test ($layout.Files.Count -eq 1 -and $layout.Directories.Count -eq 1 -and $layout.Directories[0] -eq 'native') '读取真实 ASAR 外置文件与目录布局'
+    Assert-AsarUnpackedFiles $layout $sidecar
+    Assert-TestThrows { Assert-AsarUnpackedFiles $layout (Join-Path $fixtureRoot 'missing') } '缺少官方 ASAR 外置文件' '缺失原生配套文件时停止'
+    [IO.File]::WriteAllText($native, 'broken')
+    Assert-TestThrows { Assert-AsarUnpackedFiles $layout $sidecar } '校验失败' '同大小原生配套文件被篡改时停止'
+    [IO.File]::WriteAllText($native, 'native')
+    $script:AsarFixture.ExpectSidecar = $true
+    Expand-OriginalAsar $backup $app $destination
+    Assert-Test (-not (Test-Path -LiteralPath (Split-Path -Parent $script:AsarFixture.LastExtract))) '成功解包后清理专用暂存目录'
+    $script:AsarFixture.FailExtract = $true
+    Assert-TestThrows { Expand-OriginalAsar $backup $app $destination } 'fixture extract failed' '解包错误明确返回'
+    Assert-Test (-not (Test-Path -LiteralPath (Split-Path -Parent $script:AsarFixture.LastExtract))) '解包失败也清理专用暂存目录'
+    $script:AsarFixture.FailExtract = $false
+    Assert-OriginalAsarBackup $backup $app
+    Assert-Test ($script:AsarFixture.RestoreChecked) '还原备份检查也使用配套目录解包流程'
+    New-LocalizedAsar $backup $app $destination $patched
+    Assert-Test (($script:AsarFixture.PackArguments -join '|') -match '\|--unpack-dir\|native$') '打包传递原版外置目录标记'
+    Assert-Test (-not (Test-Path -LiteralPath "$patched.unpacked")) '成功打包后清理临时 sidecar'
+    $script:AsarFixture.LoseLayout = $true
+    Assert-TestThrows { New-LocalizedAsar $backup $app $destination $patched } '未保留官方外置文件布局' '打包丢失外置标记时停止'
+    Assert-Test (-not (Test-Path -LiteralPath "$patched.unpacked")) '布局验证失败也清理临时 sidecar'
+    $script:AsarFixture.LoseLayout = $false; $script:AsarFixture.CorruptPack = $true
+    Assert-TestThrows { New-LocalizedAsar $backup $app $destination $patched } '校验失败' '打包改变原生文件时停止'
+    Assert-Test ((Get-Sha256 $native) -eq $script:NativeHash) '所有成功与失败路径保持官方 sidecar 不变'
+    $legacy = Join-Path $fixtureRoot 'legacy.asar.original'
+    New-FixtureAsar $legacy $false
+    $script:AsarFixture.ExpectSidecar = $false
+    Expand-OriginalAsar $legacy $app $destination
+    Assert-Test ($script:AsarFixture.LastExtract -eq $legacy) '无外置模块的旧版沿用原解包路径'
+    Assert-TestThrows { New-LocalizedAsar $backup $app $destination (Join-Path $fixtureRoot 'other.asar') } '暂存目标' '打包清理目标不可越出预期位置'
+    Assert-TestThrows { Remove-InstallArtifacts -PatchedAsar $backup -AppAsar (Join-Path $app 'resources\app.asar') } '清理目标' '清理拒绝把英文备份当成汉化暂存归档'
+  } finally {
+    if (Test-Path -LiteralPath $fixtureRoot) { Remove-Item -LiteralPath $fixtureRoot -Recurse -Force }
+  }
+}
+
 if ($Details) { foreach ($name in $script:Checks) { Write-Host "  [通过] $name" } }
 Write-Host "[Postman 汉化] 入口与进程隔离回归通过（$($script:Checks.Count) 项）。"
