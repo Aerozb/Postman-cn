@@ -419,6 +419,73 @@ async function runLocalizationRuntimeTests() {
       assert.equal(paragraph.childNodes[1], strong);
     }
   });
+  test("Teams 登录组合提示保留链接、事件及重复遍历稳定性", r => {
+    for (const [kind, translatedKind] of [["channels", "频道"], ["teams", "团队"], ["group chats", "群聊"]]) {
+      for (const tag of ["p", "div", "span"]) {
+        for (const label of ["sign in", "登录"]) {
+          const paragraph = r.el(tag, "Couldn’t load " + kind + ". Please ");
+          const link = r.el("a", label, paragraph);
+          link.setAttribute("href", "https://example.invalid/teams-sign-in");
+          let clicks = 0;
+          link.addEventListener("click", () => { clicks++; });
+          paragraph.appendChild(r.document.createTextNode("."));
+          const parts = [...paragraph.childNodes];
+          const linkText = link.firstChild;
+          const expected = "无法加载" + translatedKind + "，请登录。";
+          r.localizer.walk(paragraph); r.advance(700);
+          assert.equal(paragraph.textContent, expected, kind + "/" + tag + "/" + label);
+          assert.deepEqual(paragraph.childNodes, parts);
+          assert.equal(link.firstChild, linkText);
+          assert.equal(link.getAttribute("href"), "https://example.invalid/teams-sign-in");
+          link.dispatchEvent({ type: "click" });
+          assert.equal(clicks, 1);
+          r.localizer.walk(paragraph); r.advance(700);
+          assert.equal(paragraph.textContent, expected);
+          assert.deepEqual(paragraph.childNodes, parts);
+          assert.equal(link.firstChild, linkText);
+          link.dispatchEvent({ type: "click" });
+          assert.equal(clicks, 2);
+        }
+      }
+    }
+  });
+  test("Teams 登录组合修补保留代码、请求数据及可编辑内容", r => {
+    for (const kind of ["pre", "code", "monaco-editor", "pm-editor", "response-body", "key-value-cell", "contenteditable"]) {
+      for (const subject of ["channels", "teams", "group chats"]) {
+        const parent = r.el(kind === "pre" || kind === "code" ? kind : "div");
+        if (kind === "contenteditable") parent.setAttribute("contenteditable", "true");
+        else if (kind !== "pre" && kind !== "code") parent.className = kind;
+        const paragraph = r.el("p", "Couldn’t load " + subject + ". Please ", parent);
+        const link = r.el("a", "sign in", paragraph);
+        paragraph.appendChild(r.document.createTextNode("."));
+        const original = paragraph.textContent;
+        const parts = [...paragraph.childNodes];
+        r.api.fixCompositeTextBlocks(parent);
+        r.localizer.walk(parent); r.advance(700);
+        assert.equal(paragraph.textContent, original, kind + "/" + subject);
+        assert.deepEqual(paragraph.childNodes, parts);
+        assert.equal(link.textContent, "sign in");
+      }
+    }
+  });
+  test("Teams 登录组合修补仅接受完整的正文链接句号三节点结构", r => {
+    for (const kind of ["span-link", "nested-link", "split-prefix", "extra-content", "wrong-prefix", "protected-link"]) {
+      const paragraph = r.el("p", kind === "wrong-prefix" ? "Couldn’t load channels.Please " : "Couldn’t load channels. Please ");
+      if (kind === "split-prefix") {
+        paragraph.firstChild.nodeValue = "Couldn’t load channels. ";
+        paragraph.appendChild(r.document.createTextNode("Please "));
+      }
+      const link = r.el(kind === "span-link" ? "span" : "a", kind === "nested-link" ? "" : "sign in", paragraph);
+      if (kind === "nested-link") r.el("span", "sign in", link);
+      if (kind === "protected-link") link.setAttribute("contenteditable", "true");
+      paragraph.appendChild(r.document.createTextNode(kind === "extra-content" ? ". More details." : "."));
+      const original = paragraph.textContent;
+      const parts = [...paragraph.childNodes];
+      r.api.fixCompositeTextBlocks(paragraph);
+      assert.equal(paragraph.textContent, original, kind);
+      assert.deepEqual(paragraph.childNodes, parts);
+    }
+  });
   test("Passport 完整提示保留品牌链接、粗体及重复运行稳定性", r => {
     const original = "Passport by Postman lets you grant granular, time-bound API access to any developer or AI agent. Secrets never leave your cloud, every call is audited, and access can be revoked in one click.";
     for (const tag of ["a", "strong", "span"]) {
