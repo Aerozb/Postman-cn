@@ -8,6 +8,104 @@
 
   var EXACT = {
     /* === batch-translated (auto-merged) === */
+    "Number of runs": "运行次数",
+    "Then set up an environment, examples, tests and docs with Agent Mode": "然后使用智能代理模式设置环境、示例、测试和文档",
+    "After import, Agent Mode sends the GET requests to save examples, then adds docs and tests.": "导入后，智能代理模式会发送 GET 请求以保存示例，然后添加文档和测试。",
+    "A simpler way to manage workspace access": "更简单地管理工作区访问权限",
+    "We've combined workspace type and access settings. You can now invite people, manage existing members, and choose who can access your workspace—all in one place.": "工作区类型和访问设置已合并。现在你可以在同一个页面邀请成员、管理现有成员，并选择哪些人可以访问工作区。",
+    "Filter by trigger": "按触发方式筛选",
+    "Cancelled": "已取消",
+    "Cancel run": "取消运行",
+    "Run cancelled": "运行已取消",
+    "Failed to cancel run. Please try again.": "取消运行失败，请重试。",
+    "Stop all runs": "停止所有运行",
+    "Active runs cancelled": "进行中的运行已取消",
+    "Failed to cancel runs. Please try again.": "取消运行失败，请重试。",
+    "Stop all runs?": "停止所有运行？",
+    "Every run that is still queued or running will be stopped. Runs that have already finished are not affected.": "所有排队中或进行中的运行都会停止。已结束的运行不受影响。",
+    "Stop runs": "停止运行",
+    "Timer type": "定时方式",
+    "Frequency": "频率",
+    "Upload a dataset...": "上传数据集…",
+    "Their latest runs didn’t finish successfully.": "这些监视器的最近一次运行均未成功完成。",
+    "The latest run was stopped before it finished.": "最近一次运行在完成前已停止。",
+    "Your monitors have stopped running!": "你的监视器已停止运行！",
+    "You’ve reached your Free plan monitor call limit this month. Upgrade to resume monitoring immediately.": "本月已达到免费套餐的监视器调用上限。升级套餐可立即恢复监视。",
+    "You’ve reached your Free plan monitor call limit this month. Ask an admin to upgrade your plan to resume monitoring.": "本月已达到免费套餐的监视器调用上限。请联系管理员升级套餐以恢复监视。",
+    "You’ve reached your paid plan limit and pay-as-you-go is off. Turn it on to resume monitoring immediately.": "已达到付费套餐的用量上限，且尚未开启按量付费。开启后可立即恢复监视。",
+    "You’ve reached your paid plan limit and pay-as-you-go is off. Ask an admin to turn it on to resume monitoring.": "已达到付费套餐的用量上限，且尚未开启按量付费。请联系管理员开启按量付费以恢复监视。",
+    "You’ve reached your plan’s monitor call limit this month. Upgrade to resume monitoring immediately.": "本月已达到套餐的监视器调用上限。升级套餐可立即恢复监视。",
+    "You’ve reached your plan’s monitor call limit this month. Ask an admin to upgrade your plan to resume monitoring.": "本月已达到套餐的监视器调用上限。请联系管理员升级套餐以恢复监视。",
+    "Upgrade to keep your monitors running": "升级套餐以继续运行监视器",
+    "View failed run": "查看失败的运行",
+    "View monitors": "查看监视器",
+    "Start trial": "开始试用",
+    "Turn on pay-as-you-go": "开启按量付费",
+    "Manage billing": "管理账单",
+    "Billing period": "账单周期",
+    "Now you can create Jira issues directly from Postman requests, collection runs, and collections via the ellipsis in the top right.": "现在，你可以通过请求、集合运行和集合右上角的省略号菜单，直接在 Postman 中创建 Jira 问题。",
+    "The Add to Jira Cloud option in Postman": "Postman 中的“添加到 Jira Cloud”选项",
+    "Lost? Try using the search to find what you’re looking for or go to Home.": "找不到页面？请试着搜索所需内容，或前往主页。",
+    "go to Home": "前往主页",
+    "This package has been modified since you last opened it.": "自你上次打开此包以来，其内容已被修改。",
+    "File type": "文件类型",
+    "Something went wrong while loading this collection's documentation.": "加载此集合的文档时出错。",
+    "This documentation isn't available offline. It loads automatically when you reconnect.": "离线时无法查看此文档。重新联网后将自动加载。",
+    "Loading documentation": "正在加载文档",
+    "Documentation navigation": "文档导航",
+    "Show navigation": "显示导航",
+    "Hide navigation": "隐藏导航",
+    "Loading collection": "正在加载集合",
+    "Loading folder": "正在加载文件夹",
+    "Couldn't load this collection.": "无法加载此集合。",
+    "Couldn't load this folder.": "无法加载此文件夹。",
+    "Couldn't load this request.": "无法加载此请求。",
+    "Couldn't rename this collection. Try again.": "无法重命名此集合，请重试。",
+    "Couldn't rename this folder. Try again.": "无法重命名此文件夹，请重试。",
+    "Couldn't rename this request. Try again.": "无法重命名此请求，请重试。",
+    "Untitled Folder": "未命名文件夹",
+    "Loading authorization": "正在加载授权设置",
+    "Couldn't load the inherited authorization.": "无法加载继承的授权设置。",
+    "Copy link to this folder": "复制此文件夹的链接",
+    "Copy link to this request": "复制此请求的链接",
+    "Select an example": "选择示例",
+    "Loading example": "正在加载示例",
+    "Couldn't load this example.": "无法加载此示例。",
+    "Formatting response body": "正在格式化响应正文",
+    "Generating code snippet": "正在生成代码片段",
+    "Couldn't generate a code snippet for this example.": "无法为此示例生成代码片段。",
+    "Binary (Base64)": "二进制（Base64）",
+    "Binary (Hexadecimal)": "二进制（十六进制）",
+    "Messages published": "已发布的消息",
+    "Loading method schema": "正在加载方法架构",
+    "Couldn't load the method schema.": "无法加载方法架构。",
+    "Content": "内容",
+    "Waits for an acknowledgement": "等待确认",
+    "Couldn't load this message.": "无法加载此消息。",
+    "Loading message": "正在加载消息",
+    "No topic": "无主题",
+    "Message Properties": "消息属性",
+    "Transport": "传输方式",
+    "Environment Variables": "环境变量",
+    "Vault secrets": "保管库密钥",
+    "Only .csv, .json, .ndjson and .jsonl files can be added as sources.": "仅支持将 .csv、.json、.ndjson 和 .jsonl 文件添加为数据源。",
+    "Only CSV, JSON and NDJSON files can be added.": "仅支持添加 CSV、JSON 和 NDJSON 文件。",
+    "Remove app": "移除应用",
+    "Keep app": "保留应用",
+    "Only team admins can remove this app.": "只有团队管理员才能移除此应用。",
+    "Couldn't remove the app. Try again.": "无法移除此应用，请重试。",
+    "Linked requests will no longer follow updates if an original is deleted.": "删除源请求后，与之关联的请求将不再同步更新。",
+    "Switch organization": "切换组织",
+    "Switch team or account": "切换团队或账号",
+    "Switch organization or account": "切换组织或账号",
+    "dataset": "数据集",
+    "datasets": "数据集",
+    "Public dataset": "公开数据集",
+    "Private dataset": "私有数据集",
+    "Team dataset": "团队数据集",
+    "Personal dataset": "个人数据集",
+    "Partner dataset": "合作伙伴数据集",
+    /* === batch-translated (auto-merged) === */
     "MQTT version": "MQTT 版本",
     "This secret no longer exists in the vault. Re-link the variable to an existing secret, then run again.": "此密钥已不在保管库中。请将变量重新关联到现有密钥，然后再次运行。",
     "The vault holding this secret isn't available to this workspace.": "存储此密钥的保管库对此工作区不可用。",
@@ -28922,6 +29020,29 @@
       return count + " 个" + { folder: "文件夹", request: "请求", example: "示例" }[kind.toLowerCase().replace(/s$/, "")];
     }],
     // ==== BEGIN 官方 i18n 清单生成的插值规则（rules-b*.json，勿手改）====
+    // ---- BEGIN 12372 批次插值规则 ----
+    // 12.37.2 官方 i18n：监视器告警、集成应用、集合文档与账号切换。名称和地址原样保留。
+    [/^Your team will use the default (GitHub|Slack) app, if one is set up\. Everyone who connected (GitHub|Slack) through your team's app will need to connect again\.$/, function (_m, provider, repeatedProvider) { return provider === repeatedProvider ? "如果已配置默认的 " + provider + " 应用，你的团队将改用该应用。所有通过团队应用连接 " + provider + " 的用户都需要重新连接。" : _m; }],
+    [/^Help me debug and fix the errors and failures in the latest runs of these monitors: ([^<>\r\n]{1,500})\.$/, "请帮我调试并修复以下监视器最近一次运行中的错误和失败项：$1。"],
+    [/^Help me debug and fix the errors and failures in the latest run of the ([^<>\r\n]{1,160}) monitor\.$/, "请帮我调试并修复监视器 $1 最近一次运行中的错误和失败项。"],
+    [/^This (request|folder) is using an authorization helper from (folder|collection) ([^<>\r\n]{1,160})$/, function (_m, kind, sourceKind, name) { return "此" + i18nTerm(kind) + "使用了" + i18nTerm(sourceKind) + " " + name + " 的授权辅助工具"; }],
+    [/^Your team goes back to the default (GitHub|Slack) app, if one is set up\.$/, "如果已配置默认的 $1 应用，你的团队将恢复使用该应用。"],
+    [/^The latest run had (\d+(?:,\d{3})*) failed tests? and (\d+(?:,\d{3})*) errors?\.$/, "最近一次运行有 $1 项测试失败和 $2 个错误。"],
+    [/^([^<>\r\n]{1,160}) — manage (teams|organizations) and accounts$/, function (_m, name, kind) { return name + " — 管理" + (kind === "teams" ? "团队" : "组织") + "和账号"; }],
+    [/^Signed in as ([^<>\r\n]{1,120}) \(([^<>()\s@]+@[^<>()\s@]+)\) in (team|organization) ([^<>\r\n]{1,160})\.$/, function (_m, name, email, kind, team) { return "已在" + i18nTerm(kind) + " " + team + " 中以 " + name + "（" + email + "）登录。"; }],
+    [/^Signed in as ([^<>\r\n]{1,120}) \(([^<>()\s@]+@[^<>()\s@]+)\)\.$/, "已以 $1（$2）登录。"],
+    [/^(\d+(?:,\d{3})*) monitors in this workspace are unhealthy\.$/, "此工作区中有 $1 个监视器运行异常。"],
+    [/^The latest run had (\d+(?:,\d{3})*) failed tests?\.$/, "最近一次运行有 $1 项测试失败。"],
+    [/^Remove your team's (GitHub|Slack) app(\?)?$/, function (_m, provider, question) { return "移除团队的 " + provider + " 应用" + (question ? "？" : ""); }],
+    [/^The latest run had (\d+(?:,\d{3})*) errors?\.$/, "最近一次运行有 $1 个错误。"],
+    [/^Monitor ([^<>\r\n]{1,160}) is unhealthy\.$/, "监视器 $1 运行异常。"],
+    [/^Show all messages \((\d+(?:,\d{3})*)\)$/, "显示所有消息（$1）"],
+    [/^([^<>\r\n]{1,160}) Documentation$/, "$1 文档"],
+    [/^raw \((Text|JavaScript|JSON|HTML|XML|GraphQL)\)$/, "原始（$1）"],
+    [/^Event: ([^<>\r\n]{1,160})$/, "事件：$1"],
+    [/^Argument (\d+(?:,\d{3})*)$/, "参数 $1"],
+    [/^(GitHub|Slack) app removed$/, "$1 应用已移除"],
+    // ---- END 12372 批次 ----
     // ---- BEGIN 12370 批次插值规则 ----
     // 12.37.0 官方 i18n：Git 操作、MCP 本地服务、共享保管库、响应正文和 PCU 用量。
     [/^Each secret is stored in its workspace's Shared Vault as ([^<>\r\n]{1,180}) and, wherever it appeared, is replaced with a new variable created in the form ([^<>\r\n]{1,180}), or an existing variable is reused if one already points to the secret\. This can't be undone automatically\.$/, "每个密钥会以 $1 的名称存入其工作区的共享保管库，并在所有出现位置替换为按 $2 格式新建的变量；如果已有变量指向该密钥，则复用该变量。此操作无法自动撤销。"],
@@ -31546,6 +31667,59 @@
         continue;
       }
       var text = normalize(nodes[j].innerText || nodes[j].textContent || "");
+      // 12.37.2 集成落地页的整句被链接拆开；严格检查节点结构，只改正文和链接文字。
+      // 词典保存完整句子，不让残句进入通用翻译路径，也不重建链接或覆盖点击事件。
+      if (/^(?:P|DIV|SPAN)$/.test(nodes[j].tagName)) {
+        var landingParts = nodes[j].childNodes;
+        var simpleLandingLink = landingParts.length === 3 && landingParts[0].nodeType === 3 &&
+          landingParts[1].nodeType === 1 && /^(?:A|BUTTON|SPAN)$/.test(landingParts[1].tagName) &&
+          landingParts[1].childNodes.length === 1 && landingParts[1].firstChild.nodeType === 3 &&
+          landingParts[2].nodeType === 3;
+        if (simpleLandingLink && normalize(landingParts[0].nodeValue) === "Now you can" &&
+            landingParts[1].tagName === "A" &&
+            normalize(landingParts[1].textContent) === "create Jira issues directly from Postman" &&
+            normalize(landingParts[2].nodeValue) === "requests, collection runs, and collections via the ellipsis in the top right.") {
+          var jiraLandingKey = "Now you can create Jira issues directly from Postman requests, collection runs, and collections via the ellipsis in the top right.";
+          var jiraLandingTranslation = EXACT[jiraLandingKey];
+          var jiraLinkStart = jiraLandingTranslation && jiraLandingTranslation.indexOf("直接在 Postman 中创建 Jira 问题");
+          if (jiraLinkStart > 0 && jiraLandingTranslation.slice(jiraLinkStart) === "直接在 Postman 中创建 Jira 问题。") {
+            landingParts[0].nodeValue = jiraLandingTranslation.slice(0, jiraLinkStart);
+            landingParts[1].firstChild.nodeValue = jiraLandingTranslation.slice(jiraLinkStart, -1);
+            landingParts[2].nodeValue = "。";
+            continue;
+          }
+        }
+        if (simpleLandingLink &&
+            normalize(landingParts[0].nodeValue) === "Lost? Try using the search to find what you’re looking for or" &&
+            /^(?:go to Home|前往主页)$/.test(normalize(landingParts[1].textContent)) &&
+            /^[.。]$/.test(normalize(landingParts[2].nodeValue))) {
+          var lostLandingTranslation = EXACT["Lost? Try using the search to find what you’re looking for or go to Home."];
+          var homeLabel = translate("go to Home");
+          if (lostLandingTranslation && lostLandingTranslation.slice(-(homeLabel.length + 1)) === homeLabel + "。") {
+            landingParts[0].nodeValue = lostLandingTranslation.slice(0, -(homeLabel.length + 1));
+            landingParts[1].firstChild.nodeValue = homeLabel;
+            landingParts[2].nodeValue = "。";
+            continue;
+          }
+        }
+        // 文档的授权来源由前缀和名称节点组成；只改前缀并追加译文尾部，保留名称节点。
+        var authSourceMatch = landingParts.length === 2 && landingParts[0].nodeType === 3 &&
+          normalize(landingParts[0].nodeValue).match(/^This (request|folder) is using an authorization helper from (folder|collection)$/);
+        if (authSourceMatch && landingParts[1].nodeType === 1 && /^(?:A|SPAN)$/.test(landingParts[1].tagName) &&
+            landingParts[1].childNodes.length === 1 && landingParts[1].firstChild.nodeType === 3 &&
+            normalize(landingParts[1].textContent).length > 0 &&
+            normalize(landingParts[1].textContent).length <= 160) {
+          var authSourceName = normalize(landingParts[1].textContent);
+          var authSourceKey = normalize(landingParts[0].nodeValue) + " " + authSourceName;
+          var authSourceTranslation = translate(authSourceKey);
+          var authSourcePrefix = "此" + i18nTerm(authSourceMatch[1]) + "使用了" + i18nTerm(authSourceMatch[2]) + " ";
+          if (authSourceTranslation === authSourcePrefix + authSourceName + " 的授权辅助工具") {
+            landingParts[0].nodeValue = authSourcePrefix;
+            nodes[j].appendChild(document.createTextNode(" 的授权辅助工具"));
+            continue;
+          }
+        }
+      }
       // Teams 登录提示由正文、登录链接和句号组成；仅按完整词条重排文本，保留链接及事件。
       var teamsSignInMatch = text.match(/^Couldn’t load (channels|teams|group chats)\. Please (?:sign in|登录)[.。]$/);
       if (/^(?:P|DIV|SPAN)$/.test(nodes[j].tagName) && teamsSignInMatch) {
@@ -32517,6 +32691,23 @@
     return !closestTranslationAncestor(el, ".requester-tabs,.requester-tab,.request-url,.requester-builder-tabs,[role='tablist'],[role='tab'],[role='menu'],[role='menuitem'],[role='tooltip']");
   }
 
+  // 文档授权来源的链接/名称不是 UI 标签；兼容修补前的两节点及修补后的三节点结构。
+  function isDocumentationAuthSourceName(el) {
+    if (!el || !/^(?:A|SPAN)$/.test(el.tagName) || el.childNodes.length !== 1 ||
+        el.firstChild.nodeType !== 3 || !el.parentElement || !/^(?:P|DIV|SPAN)$/.test(el.parentElement.tagName)) {
+      return false;
+    }
+    var parts = el.parentElement.childNodes;
+    if (parts[1] !== el || parts[0].nodeType !== 3) {
+      return false;
+    }
+    var prefix = normalize(parts[0].nodeValue);
+    return (parts.length === 2 &&
+      /^This (?:request|folder) is using an authorization helper from (?:folder|collection)$/.test(prefix)) ||
+      (parts.length === 3 && /^此(?:请求|文件夹)使用了(?:文件夹|集合)$/.test(prefix) &&
+        parts[2].nodeType === 3 && normalize(parts[2].nodeValue) === "的授权辅助工具");
+  }
+
   // 文本和属性有意分开：编辑器正文保留原样，输入框的 placeholder 等界面属性仍翻译。
   // 特殊文案修补与普通翻译共用这些判断，避免绕过键值数据区保护。
   function canTranslateTextNode(node) {
@@ -32524,6 +32715,9 @@
       return false;
     }
     var el = textContextElement(node);
+    if (isDocumentationAuthSourceName(el)) {
+      return false;
+    }
     // textarea 的子文本也是 defaultValue；编辑器内的白名单命中也应服从 value 保护。
     if (el && el.matches && el.matches("input,textarea") && !canTranslateEditableValue(el)) {
       return false;
@@ -32659,6 +32853,17 @@
         continue;
       }
       var value = el.getAttribute(attr);
+      // 文档树的动态名称属于用户内容；仅给具有原生展开状态的控件翻译无障碍动作。
+      // 普通文本、代码区和没有 aria-expanded 的未知标签不套用宽泛名称规则。
+      var expansionLabel = attr === "aria-label" && !shouldSkipElement(el) &&
+        /^(?:true|false)$/.test(el.getAttribute("aria-expanded") || "") &&
+        value.match(/^(Expand|Collapse) ([^<>\r\n]{1,160})$/);
+      if (expansionLabel) {
+        var existingExpansionTranslation = translate(value);
+        el.setAttribute(attr, existingExpansionTranslation !== value ? existingExpansionTranslation :
+          (expansionLabel[1] === "Expand" ? "展开 " : "折叠 ") + expansionLabel[2]);
+        continue;
+      }
       var menuLabel = translateMenuItemLabel(el, value);
       if (menuLabel !== null) {
         if (menuLabel !== value) {

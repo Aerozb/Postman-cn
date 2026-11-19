@@ -419,6 +419,125 @@ async function runLocalizationRuntimeTests() {
       assert.equal(paragraph.childNodes[1], strong);
     }
   });
+  test("集成落地页的完整句子保留链接、点击事件与重试稳定性", r => {
+    for (const kind of ["jira", "home", "translated-home"]) {
+      const jira = kind === "jira";
+      const paragraph = r.el("p", jira ? "Now you can " : "Lost? Try using the search to find what you’re looking for or\u00a0");
+      const link = r.el("a", jira ? "create Jira issues directly from Postman" : kind === "home" ? "go to Home" : "前往主页", paragraph);
+      link.setAttribute("href", "https://example.invalid/integration-help");
+      let clicks = 0;
+      link.addEventListener("click", () => { clicks++; });
+      paragraph.appendChild(r.document.createTextNode(jira ? " requests, collection runs, and collections via the ellipsis in the top right." : "."));
+      const nodes = [...paragraph.childNodes];
+      const linkText = link.firstChild;
+      const expected = jira ? "现在，你可以通过请求、集合运行和集合右上角的省略号菜单，直接在 Postman 中创建 Jira 问题。" : "找不到页面？请试着搜索所需内容，或前往主页。";
+      for (let pass = 0; pass < 2; pass++) {
+        r.localizer.walk(paragraph); r.advance(700);
+        assert.equal(paragraph.textContent, expected, kind);
+        assert.deepEqual(paragraph.childNodes, nodes);
+        assert.equal(link.firstChild, linkText);
+        assert.equal(link.getAttribute("href"), "https://example.invalid/integration-help");
+        link.dispatchEvent({ type: "click" });
+        assert.equal(clicks, pass + 1);
+      }
+    }
+  });
+  test("文档授权来源保留动态名称、链接和事件且不重复添加后缀", r => {
+    for (const kind of ["request", "folder"]) {
+      for (const sourceKind of ["collection", "folder"]) {
+        for (const tag of ["a", "span"]) {
+          const paragraph = r.el("p", "This " + kind + " is using an authorization helper from " + sourceKind + " ");
+          const link = r.el(tag, "Payments API", paragraph);
+          link.setAttribute("href", "https://example.invalid/auth-source");
+          let clicks = 0;
+          link.addEventListener("click", () => { clicks++; });
+          const prefix = paragraph.firstChild;
+          const linkText = link.firstChild;
+          const expected = "此" + (kind === "request" ? "请求" : "文件夹") + "使用了" +
+            (sourceKind === "collection" ? "集合" : "文件夹") + " Payments API 的授权辅助工具";
+          for (let pass = 0; pass < 2; pass++) {
+            r.localizer.walk(paragraph); r.advance(700);
+            assert.equal(paragraph.textContent, expected);
+            assert.equal(paragraph.childNodes.length, 3);
+            assert.equal(paragraph.firstChild, prefix);
+            assert.equal(paragraph.childNodes[1], link);
+            assert.equal(link.firstChild, linkText);
+            assert.equal(link.textContent, "Payments API");
+            assert.equal(link.getAttribute("href"), "https://example.invalid/auth-source");
+            link.dispatchEvent({ type: "click" });
+            assert.equal(clicks, pass + 1);
+          }
+        }
+      }
+    }
+  });
+  test("集成和授权组合文案仍保留代码、请求数据和可编辑内容", r => {
+    for (const kind of ["pre", "code", "monaco-editor", "pm-editor", "response-body", "key-value-cell", "contenteditable"]) {
+      for (const example of ["jira", "home", "auth"]) {
+        const parent = r.el(kind === "pre" || kind === "code" ? kind : "div");
+        if (kind === "contenteditable") parent.setAttribute("contenteditable", "true");
+        else if (kind !== "pre" && kind !== "code") parent.className = kind;
+        const paragraph = r.el("p", example === "jira" ? "Now you can " : example === "home" ? "Lost? Try using the search to find what you’re looking for or " :
+          "This request is using an authorization helper from folder ", parent);
+        r.el("a", example === "jira" ? "create Jira issues directly from Postman" : example === "home" ? "go to Home" : "Payments API", paragraph);
+        if (example !== "auth") paragraph.appendChild(r.document.createTextNode(example === "jira" ?
+          " requests, collection runs, and collections via the ellipsis in the top right." : "."));
+        const original = paragraph.textContent;
+        const nodes = [...paragraph.childNodes];
+        r.api.fixCompositeTextBlocks(parent);
+        r.localizer.walk(parent); r.advance(700);
+        assert.equal(paragraph.textContent, original, kind + "/" + example);
+        assert.deepEqual(paragraph.childNodes, nodes);
+      }
+    }
+  });
+  test("集成组合修补拒绝不完整、嵌套及受保护链接", r => {
+    for (const kind of ["wrong-suffix", "nested-link", "protected-link", "wrong-element"]) {
+      const paragraph = r.el("p", "Now you can ");
+      const link = r.el(kind === "wrong-element" ? "strong" : "a", kind === "nested-link" ? "" : "create Jira issues directly from Postman", paragraph);
+      if (kind === "nested-link") r.el("span", "create Jira issues directly from Postman", link);
+      if (kind === "protected-link") link.setAttribute("contenteditable", "true");
+      paragraph.appendChild(r.document.createTextNode(kind === "wrong-suffix" ? " requests." :
+        " requests, collection runs, and collections via the ellipsis in the top right."));
+      const original = paragraph.textContent;
+      const nodes = [...paragraph.childNodes];
+      r.api.fixCompositeTextBlocks(paragraph);
+      assert.equal(paragraph.textContent, original, kind);
+      assert.deepEqual(paragraph.childNodes, nodes);
+    }
+  });
+  test("动态展开无障碍标签只在原生展开控件中翻译并保留名称", r => {
+    for (const [action, expected, state] of [["Expand", "展开 ", "false"], ["Collapse", "折叠 ", "true"]]) {
+      const button = r.el("button");
+      button.setAttribute("aria-expanded", state);
+      button.setAttribute("aria-label", action + " get_orders.json");
+      button.addEventListener("click", () => { button.setAttribute("data-clicked", "yes"); });
+      r.localizer.walk(button); r.advance(700);
+      assert.equal(button.getAttribute("aria-label"), expected + "get_orders.json");
+      assert.equal(button.getAttribute("aria-expanded"), state);
+      button.dispatchEvent({ type: "click" });
+      assert.equal(button.getAttribute("data-clicked"), "yes");
+      r.localizer.walk(button); r.advance(700);
+      assert.equal(button.getAttribute("aria-label"), expected + "get_orders.json");
+      const plain = r.el("span", action + " get_orders.json");
+      plain.setAttribute("aria-label", action + " get_orders.json");
+      r.localizer.walk(plain); r.advance(700);
+      assert.equal(plain.textContent, action + " get_orders.json");
+      assert.equal(plain.getAttribute("aria-label"), action + " get_orders.json");
+    }
+  });
+  test("展开标签保持受保护数据区和未知状态原样", r => {
+    for (const kind of ["pre", "code", "monaco-editor", "response-body", "key-value-cell", "contenteditable", "invalid-state"]) {
+      const parent = r.el(kind === "pre" || kind === "code" ? kind : "div");
+      if (kind === "contenteditable") parent.setAttribute("contenteditable", "true");
+      else if (!["pre", "code", "invalid-state"].includes(kind)) parent.className = kind;
+      const button = r.el("button", "", parent);
+      button.setAttribute("aria-expanded", kind === "invalid-state" ? "unknown" : "false");
+      button.setAttribute("aria-label", "Expand get_orders.json");
+      r.localizer.walk(parent); r.advance(700);
+      assert.equal(button.getAttribute("aria-label"), "Expand get_orders.json", kind);
+    }
+  });
   test("Teams 登录组合提示保留链接、事件及重复遍历稳定性", r => {
     for (const [kind, translatedKind] of [["channels", "频道"], ["teams", "团队"], ["group chats", "群聊"]]) {
       for (const tag of ["p", "div", "span"]) {
