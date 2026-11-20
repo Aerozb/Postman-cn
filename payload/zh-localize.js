@@ -8,6 +8,14 @@
 
   var EXACT = {
     /* === batch-translated (auto-merged) === */
+    "Properties and settings": "属性和设置",
+    "Select an operation to run": "选择要运行的操作",
+    "Conversation history": "对话历史",
+    "Add prompt": "添加提示词",
+    "Couldn't open monitor creation": "无法打开监视器创建界面",
+    "User distribution over time (All organizations)": "用户分布趋势（所有组织）",
+    "The organization filter is not applied to this chart. It always shows data for all organizations.": "组织筛选条件不适用于此图表。此图表始终显示所有组织的数据。",
+    /* === batch-translated (auto-merged) === */
     "Number of runs": "运行次数",
     "Then set up an environment, examples, tests and docs with Agent Mode": "然后使用智能代理模式设置环境、示例、测试和文档",
     "After import, Agent Mode sends the GET requests to save examples, then adds docs and tests.": "导入后，智能代理模式会发送 GET 请求以保存示例，然后添加文档和测试。",

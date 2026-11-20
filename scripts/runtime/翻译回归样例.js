@@ -815,6 +815,14 @@ const samples = {
     "Once deleted, a workspace is gone forever along with its data."
   ],
   "translationProbeExpectations": [
+    // 12.37.3：操作菜单、对话历史、监视器与组织统计。
+    ["Properties and settings", "属性和设置"],
+    ["Select an operation to run", "选择要运行的操作"],
+    ["Conversation history", "对话历史"],
+    ["Add prompt", "添加提示词"],
+    ["Couldn't open monitor creation", "无法打开监视器创建界面"],
+    ["User distribution over time (All organizations)", "用户分布趋势（所有组织）"],
+    ["The organization filter is not applied to this chart. It always shows data for all organizations.", "组织筛选条件不适用于此图表。此图表始终显示所有组织的数据。"],
     // 12.37.2：监视器告警、文档、集成应用和账号菜单。
     ["Number of runs","运行次数"],
     ["Then set up an environment, examples, tests and docs with Agent Mode","然后使用智能代理模式设置环境、示例、测试和文档"],

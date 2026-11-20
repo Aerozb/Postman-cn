@@ -69,6 +69,8 @@
 
 菜单安装默认清理旧版本，CLI 普通 `install` 保留旧版本，显式加开关才清理。当前版本、英文备份、用户数据和偏好保留；安装失败跳过清理。
 
+维护者执行版本升级时必须使用 `install -CleanOldVersions`（或 `download -Install -CleanOldVersions`），新版运行验证成功后清除旧目录和旧安装包；发布收尾还须核对只剩最新版本，并删除旧版提示验收的临时程序与隔离数据，见 [旧版本清理验收](../docs/升级与发布.md#6-旧版本清理验收)。这项升级收尾要求不改变普通 CLI 安装的参数语义。
+
 `install -KeepUpdates` 刻意不装官方更新守卫，之后独立验证也使用 `verify -KeepUpdates`；普通 `verify` 默认要求守卫存在。
 
 启动、停止和安装共用 `internal/进程工具.ps1`：完全停止后再启动，轮询新的端口文件及页面就绪，替代固定等待。`start -NoWait` 跳过就绪等待，`-TimeoutSec` 控制等待上限。
